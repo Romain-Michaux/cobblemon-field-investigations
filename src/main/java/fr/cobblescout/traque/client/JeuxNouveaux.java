@@ -362,11 +362,11 @@ final class JeuxNouveaux {
         }
 
         double sx() {
-            return 80 + 52 * Math.sin(tic * 0.021 * vitesse() + p1);
+            return 80 + 46 * Math.sin(tic * 0.021 * vitesse() + p1);
         }
 
         double sy() {
-            return 60 + 26 * Math.sin(tic * 0.033 * vitesse() + p2);
+            return 58 + 22 * Math.sin(tic * 0.033 * vitesse() + p2);
         }
 
         // Flou en pixels : la mise au point « pompe » toute seule, il faut déclencher au bon moment.
@@ -391,7 +391,7 @@ final class JeuxNouveaux {
             int bx = ox + 4, by = oy + 3;
             if (!Dessin.dans(mx, my, bx, by, L, H)) return;
             Dessin.bip(SoundEvents.LEVER_CLICK, 1.6f, 0.7f);
-            boolean cadre = Math.abs(mx - bx - sx()) < 10 && Math.abs(my - by - sy()) < 10, net = flou() < 1.3;
+            boolean cadre = Math.abs(mx - bx - sx()) < 13 && Math.abs(my - by - sy()) < 13, net = flou() < 1.3;
             if (cadre && net) {
                 eclair = 4;
                 message = T.f("sharp_photo");
@@ -413,17 +413,17 @@ final class JeuxNouveaux {
             int bx = ox + 4, by = oy + 3;
             cadre(g, bx, by, flash > 0);
             Dessin.image(g, FOND, bx, by, L, H);
-            int x = bx + (int) sx() - 16, y = by + (int) sy() - 16, f = (int) Math.round(flou());
+            int x = bx + (int) sx() - 24, y = by + (int) sy() - 24, f = (int) Math.round(flou());
             // Image floue : le sujet se dédouble, d'autant plus que la mise au point est loin.
             if (f >= 1) {
-                Dessin.portrait(g, espece, Math.max(bx, x - f * 2), y, 2f);
-                Dessin.portrait(g, espece, Math.min(bx + L - 32, x + f * 2), y, 2f);
+                Dessin.portrait(g, espece, Math.max(bx, x - f * 2), y, 3f);
+                Dessin.portrait(g, espece, Math.min(bx + L - 48, x + f * 2), y, 3f);
                 g.pose().pushPose();
                 g.pose().translate(0, 0, 200);
-                g.fill(Math.max(bx, x - f * 2), y, Math.min(bx + L, x + f * 2 + 32), y + 32, (Math.min(5, f) * 22 << 24) | 0xC8D8C0);
+                g.fill(Math.max(bx, x - f * 2), y, Math.min(bx + L, x + f * 2 + 48), y + 48, (Math.min(5, f) * 22 << 24) | 0xC8D8C0);
                 g.pose().popPose();
             } else {
-                Dessin.portrait(g, espece, Math.max(bx, Math.min(bx + L - 32, x)), y, 2f);
+                Dessin.portrait(g, espece, Math.max(bx, Math.min(bx + L - 48, x)), y, 3f);
             }
             g.pose().pushPose();
             g.pose().translate(0, 0, 250);
@@ -432,7 +432,7 @@ final class JeuxNouveaux {
                 int c = flou() < 1.3 ? Dessin.VERT : Dessin.TEXTE;
                 for (int cx = -1; cx <= 1; cx += 2) {
                     for (int cy = -1; cy <= 1; cy += 2) {
-                        int ex = mx + cx * 20, ey = my + cy * 20;
+                        int ex = mx + cx * 26, ey = my + cy * 26;
                         g.fill(Math.min(ex, ex - cx * 8), cy < 0 ? ey : ey - 1, Math.max(ex, ex - cx * 8), cy < 0 ? ey + 1 : ey, c);
                         g.fill(cx < 0 ? ex : ex - 1, Math.min(ey, ey - cy * 8), cx < 0 ? ex + 1 : ex, Math.max(ey, ey - cy * 8), c);
                     }
