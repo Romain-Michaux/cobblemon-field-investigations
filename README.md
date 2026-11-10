@@ -125,7 +125,7 @@ The source code and its comments are written in French.
 ## Credits
 
 - Pixel art generated with [PixelLab](https://www.pixellab.ai/) and processed by the scripts in `outils/`.
-- The icon follows the frame commonly used by Cobblemon add-ons.
+- The icon uses the official Cobblemon add-on frames shared by the Cobblemon team.
 - Not affiliated with Cobblemon, Mojang, Nintendo, Game Freak or The Pokémon Company.
 
 ## License

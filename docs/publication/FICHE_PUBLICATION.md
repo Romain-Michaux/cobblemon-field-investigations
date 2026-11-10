@@ -73,5 +73,4 @@ First public release.
 - [x] Le mod testé sur un serveur dédié.
 - [x] Conditions de PixelLab relues (version du 30/10/2026) : l'article 1.3 autorise l'usage commercial des créations
       et l'article 3.3 leur libre distribution ; seule interdiction, entraîner d'autres modèles avec.
-- [ ] L'icône reprend le cadre « MOD » utilisé par la plupart des add-ons Cobblemon, reconstitué à partir d'une icône
-      existante : si l'équipe Cobblemon ou une plateforme le refuse, remplacer par une icône sans ce cadre.
+- [x] Icône composée avec le gabarit officiel `Cobblemon_Addon_Frames` (couches bg, border et mod) partagé sur le Discord de Cobblemon.
