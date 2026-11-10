@@ -464,6 +464,12 @@ NOUVEAUX += [
     ("Attrape une coquille et lance-la dans la boîte de droite. Le temps presse, mais un débris cogné dans la boîte ou une coquille au rebut est une erreur.",
      "Grab a shell and throw it into the box on the right. Time is short, but debris knocked into the box or a shell in the bin is a mistake."),
 ]
+NOUVEAUX += [
+    ("Plumes", "Feathers"), ("Écailles", "Scales"), ("Ailes", "Wings"), ("Nageoires", "Fins"), ("Griffes", "Claws"), ("Crocs", "Fangs"),
+    ("L'échantillon a :", "The sample has:"),
+    ("Descends l'arbre : à chaque embranchement, clique la branche qui porte un caractère de l'échantillon (sa fiche est à droite).",
+     "Go down the tree: at each fork, click the branch that carries one of the sample's traits (its card is on the right)."),
+]
 _deja = {f for f, _ in UI}
 UI += [t for t in NOUVEAUX if t[0] not in _deja]
 

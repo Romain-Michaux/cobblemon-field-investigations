@@ -199,3 +199,7 @@ for nom in ("branche", "branche_morte"):
     im.alpha_composite(decoupe, ((32 - decoupe.width) // 2, (32 - decoupe.height) // 2))  # centrée sur sa case
     sauver(im, "gui", nom + "_d")
     sauver(ImageOps.mirror(im), "gui", nom + "_g")
+
+# Pictogrammes de l'arbre de parenté (les autres caractères reprennent les dessins des objets enfouis).
+for nom in ("caractere_aile", "caractere_nageoire"):
+    sauver(ouvrir(nom), "gui", nom)
