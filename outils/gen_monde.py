@@ -191,18 +191,51 @@ sauver(liquide, "gui", "erlenmeyer_liquide")
 # Les fichiers de langue sont écrits par outils/gen_langues.py.
 
 # Branches de la grimpe : l'image PixelLab pointe vers la droite ; celle de gauche est son miroir.
+# La branche morte est tirée de la branche vivante, pour qu'elles aient la même forme et la même écorce : on lui retire
+# son feuillage, on casse son extrémité, on ternit son bois et on y ouvre une fente.
 from PIL import ImageOps
+
+
+def branche_morte(vivante):
+    im = vivante.copy()
+    px = im.load()
+    ecorce = lambda c: c[3] > 0 and c[0] > c[1] * 1.15 and c[0] > 60
+    bout = max(x for x in range(im.width) for y in range(im.height) if ecorce(px[x, y]))
+    lignes = [y for y in range(im.height) if any(ecorce(px[x, y]) for x in range(im.width))]
+    milieu = (min(lignes) + max(lignes)) // 2
+    for y in range(im.height):
+        # L'extrémité est cassée net, en dents de scie.
+        limite = bout - (2 if (y - milieu) % 3 == 0 else 0) - abs(y - milieu) // 3
+        for x in range(im.width):
+            r, v, b, a = px[x, y]
+            if a == 0:
+                continue
+            if x > limite or (v > r * 1.05 and v > b):
+                px[x, y] = (0, 0, 0, 0)  # feuillage et bout de branche
+            elif ecorce((r, v, b, a)):
+                gris = (r * 3 + v * 6 + b) // 10
+                px[x, y] = ((r + gris * 2) * 26 // 100, (v + gris * 2) * 27 // 100, (b + gris * 2) * 29 // 100, a)
+    # Une fente sombre le long du bois, et un liseré noir sur la cassure.
+    for x in range(im.width):
+        if x % 7 != 3 and px[x, milieu][3] > 0 and px[x, milieu][0] > 30:
+            px[x, milieu] = (28, 24, 24, 255)
+    for y in range(im.height):
+        for x in range(im.width - 1, -1, -1):
+            if px[x, y][3] > 0:
+                px[x, y] = (20, 16, 16, 255)
+                break
+    return im
+
+
 for nom in ("branche", "branche_morte"):
-    brut = ouvrir(nom)
+    brut = ouvrir("branche")
+    if nom == "branche_morte":
+        brut = branche_morte(brut)
     decoupe = brut.crop(brut.getbbox())
     im = Image.new("RGBA", (32, 32))
     im.alpha_composite(decoupe, (0, (32 - decoupe.height) // 2))  # calée à gauche : c'est le côté qui touche le tronc
     sauver(im, "gui", nom + "_d")
     sauver(ImageOps.mirror(im), "gui", nom + "_g")
-
-# Pictogrammes de l'arbre de parenté (les autres caractères reprennent les dessins des objets enfouis).
-for nom in ("caractere_aile", "caractere_nageoire"):
-    sauver(ouvrir(nom), "gui", nom)
 
 # Décor de la grimpe : la forêt du fond est fixe ; le tronc est une bande droite de 56 px (la partie sans racines d'une
 # image PixelLab, raccordée par un fondu sur dix lignes) qui se répète sans couture et défile.
