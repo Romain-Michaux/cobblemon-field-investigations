@@ -1686,9 +1686,9 @@ final class JeuxNouveaux {
     // ---------- Grimpe (enquête des cimes) : attraper chaque prise du bon côté, au bon moment, sans toucher aux branches mortes ----------
 
     static final class Grimpe extends Jeu {
-        // Le tronc et la forêt du fond sont des bandes de 224 px de haut qui se raccordent : elles défilent sans couture.
+        // Le tronc et la forêt du fond sont des images de 112 px de haut qui se répètent sans couture : elles défilent en boucle.
         static final ResourceLocation TRONC = Dessin.texture("tronc"), FORET = Dessin.texture("foret");
-        static final int BANDE = 224, TRONC_X = 56, TRONC_L = 48;
+        static final int BANDE = 112, TRONC_X = 56, TRONC_L = 48;
         // Branches vivantes et mortes, tournées vers la gauche ou vers la droite.
         static final ResourceLocation[][] BRANCHES = {{Dessin.texture("branche_g"), Dessin.texture("branche_d")},
                 {Dessin.texture("branche_morte_g"), Dessin.texture("branche_morte_d")}};

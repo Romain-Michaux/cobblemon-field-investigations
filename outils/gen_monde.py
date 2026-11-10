@@ -204,11 +204,7 @@ for nom in ("branche", "branche_morte"):
 for nom in ("caractere_aile", "caractere_nageoire"):
     sauver(ouvrir(nom), "gui", nom)
 
-# Décor de la grimpe : le tronc et la forêt du fond défilent ; chaque bande est l'image suivie de son reflet vertical,
-# pour que le bas de l'une se raccorde au haut de la suivante.
+# Décor de la grimpe : le tronc et la forêt du fond défilent. Les deux images se raccordent en hauteur : PixelLab a
+# redessiné leur jonction (image décalée d'une demi-hauteur, puis bande centrale régénérée), elles se répètent donc sans couture.
 for nom in ("tronc", "foret"):
-    im = ouvrir(nom)
-    bande = Image.new("RGBA", (im.width, im.height * 2))
-    bande.paste(im, (0, 0))
-    bande.paste(ImageOps.flip(im), (0, im.height))
-    sauver(bande, "gui", nom)
+    sauver(ouvrir(nom), "gui", nom)
