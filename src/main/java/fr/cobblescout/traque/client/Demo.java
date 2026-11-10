@@ -34,6 +34,26 @@ final class Demo {
             TraqueClient.etat = t;
             mc.setScreen(new EcranTableau());
         });
+        etape("tableau_pistes", () -> {
+            CompoundTag t = new CompoundTag();
+            t.putInt("reussies", 3);
+            ListTag pistes = new ListTag();
+            String[] speciaux = {"", "nocturne", "exceptionnel"};
+            for (int i = 0; i < 3; i++) {
+                CompoundTag c = new CompoundTag();
+                c.putInt("rang", i);
+                c.putString("special", speciaux[i]);
+                c.putBoolean("nouvelle", i != 0);
+                c.putDouble("zoneX", mc.player.getX() + 110 - i * 90);
+                c.putDouble("zoneZ", mc.player.getZ() - 60 + i * 70);
+                pistes.add(c);
+            }
+            t.put("pistes", pistes);
+            t.putLong("pistesFin", 540_000);
+            TraqueClient.etat = t;
+            TraqueClient.etatRecu = System.currentTimeMillis();
+            mc.setScreen(new EcranTableau());
+        });
         etape("tableau", () -> {
             TraqueClient.etat = etat("PRELEVEMENTS", 3);
             mc.setScreen(new EcranTableau());
@@ -133,6 +153,7 @@ final class Demo {
         t.putInt("rayonZone", 45);
         t.putInt("requis", 3);
         t.putString("pronostic", phase.equals("PRELEVEMENTS") ? "" : "vulpix");
+        if (phase.equals("TRAQUE")) t.putString("special", "nocturne");
         String[] cible = {"fire", "aucun", "1", "FIELD", "speed"};
         ListTag traces = new ListTag();
         for (int i = 0; i < 5; i++) {

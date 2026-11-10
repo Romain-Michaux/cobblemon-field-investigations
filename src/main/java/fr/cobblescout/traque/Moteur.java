@@ -32,6 +32,7 @@ import com.cobblemon.mod.common.api.spawning.detail.SpawnDetail;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
+import com.cobblemon.mod.common.pokemon.properties.HiddenAbilityProperty;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -109,7 +110,19 @@ public final class Moteur {
         // Le butin d'une enquête résolue vient des tables de butin du mod (data/cobblescout/loot_table/traque) :
         // etoiles_1 à etoiles_5 selon la qualité de l'enquête, rarete_<catégorie> selon l'espèce, palier tous les N dossiers.
         public int palierBonus = 5;
+        // À l'ouverture d'une enquête, le joueur choisit parmi plusieurs signalements (1 = pas de choix, comme en 1.0).
+        public int nombrePistes = 3;
+        public int minutesValiditePistes = 10;
+        // Chance qu'un signalement (autre que le premier) soit une enquête spéciale : nocturne, craintive ou exceptionnelle.
+        public double chanceEnqueteSpeciale = 0.3;
+        // Rythme des mini-jeux : "easy" (un tiers plus lent), "normal" ou "hard" (un quart plus rapide).
+        public String difficulteMiniJeux = "normal";
     }
+
+    // Enquêtes spéciales. Nocturne : traces, cris et cible seulement la nuit (chance de chromatique doublée).
+    // Craintive : elle repère le joueur de bien plus loin (butin spécial doublé). Exceptionnelle : un résultat d'analyse
+    // de plus est exigé et les suspects se ressemblent tous (talent caché garanti). Toutes donnent le butin « speciale ».
+    static final List<String> SPECIAUX = List.of("nocturne", "craintive", "exceptionnel");
 
     public static class Trace {
         public String genre;
@@ -135,6 +148,8 @@ public final class Moteur {
         public long id;
         public String phase = "PRELEVEMENTS"; // PRELEVEMENTS -> TRAQUE -> APPROCHE -> DEBUSQUE
         public String monde, espece, categorie, pronostic;
+        // Type d'enquête spéciale (voir SPECIAUX), ou null pour une enquête ordinaire.
+        public String special;
         public boolean nouvelle;
         public long graine;
         public int niveau, fuites;
@@ -159,6 +174,9 @@ public final class Moteur {
         public Map<UUID, Dossier> dossiers = new HashMap<>();
         public Map<UUID, Long> prochaineEnquete = new HashMap<>();
         public Map<UUID, Integer> reussies = new HashMap<>();
+        // Signalements proposés au joueur tant qu'il n'en a pas choisi un, et leur date d'expiration.
+        public Map<UUID, List<Dossier>> offres = new HashMap<>();
+        public Map<UUID, Long> finOffres = new HashMap<>();
     }
 
     private record Candidat(String espece, int rang, int niveauMin, int niveauMax) {}
@@ -189,6 +207,8 @@ public final class Moteur {
             if (etat.dossiers == null) etat.dossiers = new HashMap<>();
             if (etat.prochaineEnquete == null) etat.prochaineEnquete = new HashMap<>();
             if (etat.reussies == null) etat.reussies = new HashMap<>();
+            if (etat.offres == null) etat.offres = new HashMap<>();
+            if (etat.finOffres == null) etat.finOffres = new HashMap<>();
         }
     }
 
@@ -244,6 +264,23 @@ public final class Moteur {
         t.putBoolean("actif", d != null);
         t.putInt("reussies", etat.reussies.getOrDefault(joueur.getUUID(), 0));
         t.putLong("attente", Math.max(0, etat.prochaineEnquete.getOrDefault(joueur.getUUID(), 0L) - System.currentTimeMillis()));
+        t.putInt("difficulte", "easy".equalsIgnoreCase(reglages.difficulteMiniJeux) ? -1 : "hard".equalsIgnoreCase(reglages.difficulteMiniJeux) ? 1 : 0);
+        List<Dossier> pistes = d == null ? pistes(joueur) : null;
+        if (pistes != null) {
+            // Ce que le joueur sait d'un signalement avant de le choisir : sa rareté, son type, où se trouve la zone.
+            ListTag liste = new ListTag();
+            for (Dossier o : pistes) {
+                CompoundTag c = new CompoundTag();
+                c.putInt("rang", Math.max(0, CATEGORIES.indexOf(o.categorie)));
+                c.putString("special", o.special == null ? "" : o.special);
+                c.putBoolean("nouvelle", o.nouvelle);
+                c.putDouble("zoneX", o.zoneX);
+                c.putDouble("zoneZ", o.zoneZ);
+                liste.add(c);
+            }
+            t.put("pistes", liste);
+            t.putLong("pistesFin", Math.max(0, etat.finOffres.getOrDefault(joueur.getUUID(), 0L) - System.currentTimeMillis()));
+        }
         if (d != null) {
             Species cible = PokemonSpecies.getByName(d.espece);
             t.putString("phase", d.phase);
@@ -252,7 +289,8 @@ public final class Moteur {
             t.putDouble("zoneX", d.zoneX);
             t.putDouble("zoneZ", d.zoneZ);
             t.putInt("rayonZone", reglages.rayonZone);
-            t.putInt("requis", reglages.epinglesPourTraquer);
+            t.putInt("requis", requis(d));
+            t.putString("special", d.special == null ? "" : d.special);
             t.putString("pronostic", d.pronostic == null ? "" : d.pronostic);
             ListTag traces = new ListTag();
             for (Trace tr : d.traces) {
@@ -339,6 +377,35 @@ public final class Moteur {
         return Math.max(0, Math.min(4, etoiles - 1));
     }
 
+    private static boolean est(Dossier d, String special) {
+        return special.equals(d.special);
+    }
+
+    // Résultats d'analyse à réunir avant de pouvoir désigner un suspect.
+    static int requis(Dossier d) {
+        return Math.min(Genetique.MARQUEURS.size(), reglages.epinglesPourTraquer + (est(d, "exceptionnel") ? 1 : 0));
+    }
+
+    // Distance en dessous de laquelle la cible repère le joueur.
+    static int alerte(Dossier d) {
+        return est(d, "craintive") ? (int) Math.round(reglages.rayonAlerte * 1.6) : reglages.rayonAlerte;
+    }
+
+    // Une cible nocturne ne laisse rien voir ni entendre en plein jour.
+    private static boolean dort(Dossier d, ServerLevel monde) {
+        return est(d, "nocturne") && !monde.isNight();
+    }
+
+    // Débloque un progrès du mod (data/cobblemon_field_investigations/advancement/<nom>.json, critère « fait »).
+    static void progres(ServerPlayer joueur, String nom) {
+        try {
+            var p = joueur.server.getAdvancements().get(ResourceLocation.fromNamespaceAndPath("cobblemon_field_investigations", nom));
+            if (p != null) joueur.getAdvancements().award(p, "fait");
+        } catch (Exception e) {
+            System.err.println("[Field Investigations] Progrès impossible à accorder : " + nom + " : " + e);
+        }
+    }
+
     private static void faute(ServerPlayer joueur, Dossier d) {
         d.fautes++;
         sauver();
@@ -388,7 +455,8 @@ public final class Moteur {
             sauver();
             joueur.playNotifySound(SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.5f, 1.6f);
             annonce(joueur, "analyse_reussie", 0x6CCB5F, Component.translatable(Genetique.NOMS_MARQUEURS.get(genre)),
-                    Genetique.libelle(genre, Genetique.valeur(genre, cible)), d.epingles.size(), reglages.epinglesPourTraquer);
+                    Genetique.libelle(genre, Genetique.valeur(genre, cible)), d.epingles.size(), requis(d));
+            progres(joueur, "premiere_analyse");
             synchroniser(joueur);
             return;
         }
@@ -421,8 +489,76 @@ public final class Moteur {
             synchroniser(joueur);
             return;
         }
+        if (pistes(joueur) != null) {
+            synchroniser(joueur); // des signalements l'attendent déjà sur son tableau
+            return;
+        }
         ServerLevel monde = joueur.serverLevel();
         PokedexManager pokedex = Cobblemon.playerDataManager.getPokedexData(joueur);
+        int voulu = Math.max(1, Math.min(3, reglages.nombrePistes));
+        List<Dossier> pistes = new ArrayList<>();
+        Set<String> prises = new HashSet<>();
+        for (int i = 0; i < voulu; i++) {
+            // Le premier signalement est toujours ordinaire : il y a toujours une enquête classique au choix.
+            String special = i > 0 && HASARD.nextDouble() < reglages.chanceEnqueteSpeciale ? SPECIAUX.get(HASARD.nextInt(SPECIAUX.size())) : null;
+            Dossier d = signalement(joueur, monde, dim, pokedex, prises, special);
+            if (d == null) break;
+            prises.add(d.espece);
+            pistes.add(d);
+        }
+        if (pistes.isEmpty()) {
+            annonce(joueur, "aucun_signalement", 0xF2C93A);
+            return;
+        }
+        if (voulu == 1) {
+            engager(joueur, pistes.get(0));
+            return;
+        }
+        Collections.shuffle(pistes, HASARD);
+        etat.offres.put(id, pistes);
+        etat.finOffres.put(id, System.currentTimeMillis() + Math.max(1, reglages.minutesValiditePistes) * 60_000L);
+        sauver();
+        joueur.playNotifySound(SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1f, 1f);
+        synchroniser(joueur);
+    }
+
+    // Signalements en attente de choix : ils tombent s'ils ont expiré ou si le joueur a changé de dimension.
+    private static List<Dossier> pistes(ServerPlayer joueur) {
+        UUID id = joueur.getUUID();
+        List<Dossier> pistes = etat.offres.get(id);
+        if (pistes == null) return null;
+        boolean valides = !pistes.isEmpty() && etat.finOffres.getOrDefault(id, 0L) > System.currentTimeMillis();
+        for (Dossier d : pistes) valides &= d.monde != null && d.monde.equals(dimension(joueur));
+        if (valides) return pistes;
+        etat.offres.remove(id);
+        etat.finOffres.remove(id);
+        sauver();
+        return null;
+    }
+
+    // Le joueur retient l'un des signalements proposés : c'est son enquête.
+    static void choisir(ServerPlayer joueur, int index) {
+        List<Dossier> pistes = dossier(joueur) == null ? pistes(joueur) : null;
+        if (pistes == null || index < 0 || index >= pistes.size()) {
+            synchroniser(joueur);
+            return;
+        }
+        engager(joueur, pistes.get(index));
+    }
+
+    private static void engager(ServerPlayer joueur, Dossier d) {
+        UUID id = joueur.getUUID();
+        etat.offres.remove(id);
+        etat.finOffres.remove(id);
+        etat.dossiers.put(id, d);
+        sauver();
+        joueur.playNotifySound(SoundEvents.SPYGLASS_USE, SoundSource.PLAYERS, 1f, 0.8f);
+        annonce(joueur, d.special == null ? "nouvelle_enquete" : "enquete_" + d.special, 0xF2C93A);
+        synchroniser(joueur);
+    }
+
+    // Tire un signalement autour du joueur : une zone de traces, une tanière, une espèce du biome et ses suspects.
+    private static Dossier signalement(ServerPlayer joueur, ServerLevel monde, String dim, PokedexManager pokedex, Set<String> prises, String special) {
         for (int essai = 0; essai < 60; essai++) {
             double a1 = HASARD.nextDouble() * Math.PI * 2;
             double d1 = reglages.zoneDistanceMin + HASARD.nextDouble() * (reglages.zoneDistanceMax - reglages.zoneDistanceMin);
@@ -434,6 +570,7 @@ public final class Moteur {
             if (aquatique(monde, tx, tz)) continue;
             Holder<Biome> biome = monde.getBiome(BlockPos.containing(tx, 100, tz));
             List<Candidat> bassin = bassin(biome, monde.dimension().location());
+            bassin.removeIf(c -> prises.contains(c.espece)); // jamais deux signalements pour la même espèce
             if (bassin.size() < 3) continue;
             double total = 0;
             double[] poids = new double[bassin.size()];
@@ -454,6 +591,7 @@ public final class Moteur {
             Dossier d = new Dossier();
             d.id = HASARD.nextLong();
             d.monde = dim;
+            d.special = special;
             d.espece = cible.espece;
             d.categorie = CATEGORIES.get(cible.rang);
             d.nouvelle = !possede(pokedex, cible.espece);
@@ -483,15 +621,10 @@ public final class Moteur {
             }
             Collections.shuffle(enfouissables, HASARD);
             for (int i = 0; i < enfouissables.size(); i++) enfouissables.get(i).enfoui = i == 0 || HASARD.nextInt(3) == 0;
-            d.suspects = suspects(cible.espece, bassin);
-            etat.dossiers.put(id, d);
-            sauver();
-            joueur.playNotifySound(SoundEvents.SPYGLASS_USE, SoundSource.PLAYERS, 1f, 0.8f);
-            annonce(joueur, "nouvelle_enquete", 0xF2C93A);
-            synchroniser(joueur);
-            return;
+            d.suspects = suspects(cible.espece, bassin, "exceptionnel".equals(special));
+            return d;
         }
-        annonce(joueur, "aucun_signalement", 0xF2C93A);
+        return null;
     }
 
     private static boolean aquatique(ServerLevel monde, double x, double z) {
@@ -557,7 +690,8 @@ public final class Moteur {
     }
 
     // La cible + des leurres au profil proche (mais jamais identique : les 5 marqueurs désignent toujours une seule espèce).
-    private static List<String> suspects(String cible, List<Candidat> locaux) {
+    // « serre » (enquête exceptionnelle) : tous les leurres sont pris parmi les profils les plus proches.
+    private static List<String> suspects(String cible, List<Candidat> locaux, boolean serre) {
         Species s = PokemonSpecies.getByName(cible);
         Set<String> duCoin = new HashSet<>();
         for (Candidat c : locaux) duCoin.add(c.espece);
@@ -571,7 +705,7 @@ public final class Moteur {
         }
         List<String> tries = new ArrayList<>(notes.keySet());
         tries.sort((a, b) -> Double.compare(notes.get(b), notes.get(a)));
-        int proches = Math.max(0, reglages.nombreSuspects - 1) * 2 / 3;
+        int proches = serre ? Math.max(0, reglages.nombreSuspects - 1) : Math.max(0, reglages.nombreSuspects - 1) * 2 / 3;
         List<String> liste = new ArrayList<>(tries.subList(0, Math.min(proches, tries.size())));
         List<String> reste = new ArrayList<>(tries.subList(liste.size(), tries.size()));
         Collections.shuffle(reste, HASARD);
@@ -603,6 +737,10 @@ public final class Moteur {
                 monde.removeBlock(pos, false);
                 annonce(joueur, "trace_ancienne", 0x9AA0A6);
             }
+            return;
+        }
+        if (dort(d, monde)) {
+            annonce(joueur, "nocturne_trace", 0xF2C93A);
             return;
         }
         if (joueur.getInventory().findSlotMatchingItem(new ItemStack(Contenu.FIOLE)) < 0 && !joueur.isCreative()) {
@@ -650,6 +788,7 @@ public final class Moteur {
         if (trace.enfoui) reboucher(monde, trace);
         sauver();
         joueur.playNotifySound(SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 1f, 1.1f);
+        progres(joueur, "premier_prelevement");
         long reste = d.traces.stream().filter(t -> !t.finie()).count();
         annonce(joueur, tr("annonce." + (succes ? (parfait ? "prelevement_parfait" : "prelevement_ok") : "prelevement_abime") + ".titre"),
                 tr("annonce.prelevement.texte", Component.translatable(Genetique.nomTrace(trace.genre, trace.enfoui)), doses,
@@ -777,6 +916,7 @@ public final class Moteur {
         trace.degage = true;
         fixer(monde, trace, pos, Direction.UP);
         joueur.playNotifySound(SoundEvents.BRUSH_SAND_COMPLETED, SoundSource.PLAYERS, 1f, 1f);
+        progres(joueur, "indice_degage");
         annonce(joueur, "indice_degage", 0x6CCB5F, Component.translatable(Genetique.nomTrace(trace.genre, true)));
         synchroniser(joueur);
     }
@@ -905,7 +1045,7 @@ public final class Moteur {
 
     static void lancer(ServerPlayer joueur, String pronostic) {
         Dossier d = dossier(joueur);
-        if (d == null || !"PRELEVEMENTS".equals(d.phase) || d.epingles.size() < reglages.epinglesPourTraquer) return;
+        if (d == null || !"PRELEVEMENTS".equals(d.phase) || d.epingles.size() < requis(d)) return;
         Species cible = PokemonSpecies.getByName(d.espece), choix = PokemonSpecies.getByName(pronostic);
         // Le joueur peut désigner n'importe quel suspect qu'il n'a pas barré, même si les analyses le contredisent :
         // se tromper lui coûtera des étoiles.
@@ -949,6 +1089,10 @@ public final class Moteur {
     private static void releve(ServerPlayer joueur, Dossier d) {
         long maintenant = System.currentTimeMillis();
         if (maintenant < d.prochainReleve) return;
+        if (dort(d, joueur.serverLevel())) {
+            annonce(joueur, "nocturne_silence", 0xF2C93A);
+            return;
+        }
         Releve dernier = d.releves.isEmpty() ? null : d.releves.get(d.releves.size() - 1);
         if (dernier != null && !dernier.perime && distance(joueur, dernier.x, dernier.z) < reglages.distanceEntreReleves) {
             annonce(joueur, "meme_ecoute", 0xF2C93A, reglages.distanceEntreReleves);
@@ -1046,25 +1190,27 @@ public final class Moteur {
         signal.donnees().putString("phase", d.phase);
         switch (d.phase) {
             case "PRELEVEMENTS": {
+                boolean jour = dort(d, monde);
                 double min = Double.MAX_VALUE;
                 Trace proche = null;
                 for (Trace t : d.traces) {
                     if (t.finie()) continue;
                     double dist = distance(joueur, t.x, t.z);
-                    if (dist < 56) poser(monde, d, t);
+                    if (dist < 56 && !jour) poser(monde, d, t);
                     if (dist < min) {
                         min = dist;
                         proche = t;
                     }
                     // Les traces sont discrètes : kit en main, celles qui sont à portée scintillent (pour ce joueur seulement).
                     boolean cache = t.enfoui && !t.degage;
-                    if (kit && t.posee && dist < 9 && (!cache || monde.getBlockState(new BlockPos(t.px, t.py + 1, t.pz)).isAir())) {
+                    if (kit && !jour && t.posee && dist < 9 && (!cache || monde.getBlockState(new BlockPos(t.px, t.py + 1, t.pz)).isAir())) {
                         monde.sendParticles(joueur, ParticleTypes.WAX_OFF, false, t.px + 0.5, t.py + (cache ? 1.15 : 0.4), t.pz + 0.5,
                                 2, 0.25, 0.1, 0.25, 0.0);
                     }
                 }
                 if (joueur.isUsingItem() && joueur.getUseItem().is(Items.BRUSH)) brosser(joueur, d, monde);
                 if (!kit) return;
+                signal.donnees().putBoolean("jour", jour);
                 signal.donnees().putInt("niveau", min == Double.MAX_VALUE ? -1 : min > 90 ? 0 : min > 60 ? 1 : min > 35 ? 2 : min > 14 ? 3 : min > 5 ? 4 : 5);
                 boolean sousTerre = proche != null && proche.enfoui && !proche.degage;
                 signal.donnees().putBoolean("enfoui", sousTerre);
@@ -1084,9 +1230,11 @@ public final class Moteur {
                     annonce(joueur, "cible_deplacee", 0xF2C93A);
                     synchroniser(joueur);
                 }
-                if (distance(joueur, d.taniereX, d.taniereZ) < reglages.rayonApproche) {
+                boolean jour = dort(d, monde);
+                if (!jour && distance(joueur, d.taniereX, d.taniereZ) < reglages.rayonApproche) {
                     apparaitre(joueur, d, monde);
                 } else if (kit) {
+                    signal.donnees().putBoolean("jour", jour);
                     signal.donnees().putBoolean("pret", maintenant >= d.prochainReleve);
                     envoyer(joueur, signal);
                 }
@@ -1123,8 +1271,8 @@ public final class Moteur {
                 if (e.isBattling() && dist < 64) d.dernierCombat = maintenant;
                 if (reperage || "APPROCHE".equals(d.phase)) {
                     // La cible file si on l'approche avant de l'avoir identifiée, ou en courant une fois identifiée.
-                    boolean senti = reperage && dist < reglages.rayonAlerte;
-                    boolean entendu = !reperage && dist < reglages.rayonAlerte && joueur.isSprinting();
+                    boolean senti = reperage && dist < alerte(d);
+                    boolean entendu = !reperage && dist < alerte(d) && joueur.isSprinting();
                     if ((senti || entendu) && !e.isBattling()) {
                         e.discard();
                         ENTITES.remove(joueur.getUUID());
@@ -1134,7 +1282,7 @@ public final class Moteur {
                         deplacer(d, 80, 130);
                         sauver();
                         joueur.playNotifySound(SoundEvents.VILLAGER_NO, SoundSource.PLAYERS, 1f, 1.4f);
-                        annonce(joueur, senti ? "senti" : "entendu", 0xE8543A, reglages.rayonAlerte, etoilesTexte(etoiles(d, false)));
+                        annonce(joueur, senti ? "senti" : "entendu", 0xE8543A, alerte(d), etoilesTexte(etoiles(d, false)));
                         synchroniser(joueur);
                         return;
                     }
@@ -1152,6 +1300,7 @@ public final class Moteur {
                             joueur.playNotifySound(SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.PLAYERS, 1f, 1.5f);
                             joueur.playNotifySound(SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.7f, 1.3f);
                             boolean juste = d.espece.equals(d.pronostic);
+                            if (juste) progres(joueur, "bon_flair");
                             annonce(joueur, tr("annonce.identifie.titre", etoilesTexte(etoiles(d))),
                                     tr("annonce.identifie.texte", nomEspece(d.espece), tr(juste ? "annonce.identifie.juste" : "annonce.identifie.faux"), ivParfaits(etoiles(d))), 0xF2C93A);
                             synchroniser(joueur);
@@ -1160,7 +1309,7 @@ public final class Moteur {
                         signal.donnees().putInt("distance", (int) Math.round(dist));
                         signal.donnees().putInt("scan", d.scan);
                         signal.donnees().putBoolean("autre", d.scanAutre > 0);
-                        signal.donnees().putInt("alerte", reglages.rayonAlerte);
+                        signal.donnees().putInt("alerte", alerte(d));
                         envoyer(joueur, signal);
                         return;
                     }
@@ -1241,7 +1390,15 @@ public final class Moteur {
         // Mieux l'enquête est menée, meilleur est le Pokémon : une statistique parfaite (IV 31) par étoile au-delà de la première.
         for (int i = 0; i < Math.min(stats.size(), ivParfaits(etoiles)); i++) p.setIV(stats.get(i), 31);
         float taux = Cobblemon.INSTANCE.getConfig().getShinyRate();
-        if (taux > 0 && HASARD.nextDouble() < (1 + reglages.multChromaParEtoile * etoiles) / taux) p.setShiny(true);
+        double chroma = (1 + reglages.multChromaParEtoile * etoiles) * (est(d, "nocturne") ? 2 : 1);
+        if (taux > 0 && HASARD.nextDouble() < chroma / taux) p.setShiny(true);
+        if (est(d, "exceptionnel")) {
+            try {
+                new HiddenAbilityProperty(true).apply(p); // sans effet si l'espèce n'a pas de talent caché
+            } catch (Exception e) {
+                System.err.println("[Field Investigations] Talent caché impossible à donner : " + e);
+            }
+        }
         // Elle apparaît sur la terre ferme : jamais dans l'eau, la lave ou au-dessus du vide.
         BlockPos sol = solFerme(monde, (int) Math.floor(d.taniereX), (int) Math.floor(d.taniereZ));
         if (sol == null) {
@@ -1264,7 +1421,7 @@ public final class Moteur {
         if (!d.annonceApproche) {
             d.annonceApproche = true;
             joueur.playNotifySound(SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1f, 0.6f);
-            annonce(joueur, "tout_pres", 0xF2C93A, reglages.rayonAlerte);
+            annonce(joueur, "tout_pres", 0xF2C93A, alerte(d));
         }
         synchroniser(joueur);
     }
@@ -1318,6 +1475,14 @@ public final class Moteur {
         List<ItemStack> gains = new ArrayList<>(butin(joueur, "traque/etoiles_" + etoiles));
         gains.addAll(butin(joueur, "traque/rarete_" + d.categorie.replace('-', '_')));
         if (palier) gains.addAll(butin(joueur, "traque/palier"));
+        if (d.special != null) {
+            gains.addAll(butin(joueur, "traque/speciale"));
+            if (est(d, "craintive")) gains.addAll(butin(joueur, "traque/speciale"));
+            progres(joueur, "enquete_speciale");
+        }
+        progres(joueur, "premiere_enquete");
+        if (etoiles >= 5) progres(joueur, "cinq_etoiles");
+        if (total >= 10) progres(joueur, "dix_enquetes");
         MutableComponent liste = Component.empty();
         boolean premier = true;
         for (ItemStack pile : gains) {
@@ -1362,6 +1527,8 @@ public final class Moteur {
         if (d != null && d.monde.equals(dimension(joueur))) retirerTraces(joueur.serverLevel(), d);
         etat.dossiers.remove(joueur.getUUID());
         etat.prochaineEnquete.remove(joueur.getUUID());
+        etat.offres.remove(joueur.getUUID());
+        etat.finOffres.remove(joueur.getUUID());
         ENTITES.remove(joueur.getUUID());
         sauver();
         synchroniser(joueur);
@@ -1370,7 +1537,7 @@ public final class Moteur {
     static String reveler(ServerPlayer joueur) {
         Dossier d = dossier(joueur);
         if (d == null) return "No investigation in progress.";
-        StringBuilder sb = new StringBuilder("[test] " + d.espece + " lvl " + d.niveau + " · phase " + d.phase + " · stars " + etoiles(d) + " (faults " + d.fautes
+        StringBuilder sb = new StringBuilder("[test] " + d.espece + (d.special == null ? "" : " [" + d.special + "]") + " lvl " + d.niveau + " · phase " + d.phase + " · stars " + etoiles(d) + " (faults " + d.fautes
                 + ", flees " + d.fuites + ") · zone X " + Math.round(d.zoneX) + " Z " + Math.round(d.zoneZ) + " · lair X " + Math.round(d.taniereX)
                 + " Z " + Math.round(d.taniereZ) + " · traces:");
         for (Trace t : d.traces) sb.append(" ").append(t.genre).append("(").append(Math.round(t.x)).append(", ").append(Math.round(t.z)).append(t.recolte ? ", ok)" : t.perdue ? ", lost)" : t.enfoui ? (t.degage ? ", uncovered)" : ", buried)") : ")");

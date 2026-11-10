@@ -32,9 +32,37 @@ public class TraqueClient implements ClientModInitializer {
     static Component annonceTitre, annonceTexte;
     static int annonceCouleur;
     static long annonceRecue;
+    // Réglage propre à ce joueur (config/cobblemon_field_investigations_client.json) : chiffrer les teintes des mini-jeux de couleur.
+    static boolean aideCouleurs;
+
+    private static java.nio.file.Path fichierReglages() {
+        return net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_client.json");
+    }
+
+    private static void chargerReglages() {
+        try {
+            if (!java.nio.file.Files.exists(fichierReglages())) return;
+            var json = com.google.gson.JsonParser.parseString(java.nio.file.Files.readString(fichierReglages())).getAsJsonObject();
+            aideCouleurs = json.has("colourAid") && json.get("colourAid").getAsBoolean();
+        } catch (Exception e) {
+            // fichier illisible : on garde les réglages par défaut
+        }
+    }
+
+    static void basculerAideCouleurs() {
+        aideCouleurs = !aideCouleurs;
+        try {
+            var json = new com.google.gson.JsonObject();
+            json.addProperty("colourAid", aideCouleurs);
+            java.nio.file.Files.writeString(fichierReglages(), new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(json));
+        } catch (Exception e) {
+            // le réglage vaudra au moins pour cette session
+        }
+    }
 
     @Override
     public void onInitializeClient() {
+        chargerReglages();
         BlockRenderLayerMap.INSTANCE.putBlock(Contenu.TRACE, RenderType.translucent());
         BlockRenderLayerMap.INSTANCE.putBlock(Contenu.SOL, RenderType.cutout());
         ClientPlayNetworking.registerGlobalReceiver(Paquet.TYPE, (paquet, ctx) -> {
@@ -226,7 +254,12 @@ public class TraqueClient implements ClientModInitializer {
                 int niveau = Math.min(5, signal.getInt("niveau"));
                 String[] libelles = {T.f("no_sign"), T.f("faint_signs"), T.f("clear_signs"), T.f("fresh_signs"), T.f("trace_very_close"), T.f("right_here")};
                 int[] couleurs = {Dessin.GRIS, Dessin.GRIS, Dessin.JAUNE, 0xFFE9A15B, Dessin.VERT, Dessin.ACCENT};
-                if (niveau < 0) {
+                if (signal.getBoolean("jour")) {
+                    // Enquête nocturne, en plein jour : il n'y a rien à relever.
+                    ligne1 = T.f("wait_for_nightfall");
+                    couleur1 = 0xFF8FA8FF;
+                    ligne2 = T.f("no_traces_by_day");
+                } else if (niveau < 0) {
                     ligne1 = T.f("all_sampled");
                     couleur1 = Dessin.VERT;
                 } else {
@@ -266,6 +299,10 @@ public class TraqueClient implements ClientModInitializer {
                     couleur1 = Dessin.ACCENT;
                     ligne2 = Dessin.vent(cap) + " · " + Math.round(cap) + "° ± " + Math.round(releve.getDouble("erreur")) + "°";
                     couleur2 = Dessin.TEXTE;
+                } else if (signal.getBoolean("jour")) {
+                    ligne1 = T.f("wait_for_nightfall");
+                    couleur1 = 0xFF8FA8FF;
+                    ligne2 = T.f("target_asleep_no_cry");
                 } else {
                     ligne1 = signal.getBoolean("pret") ? T.f("right_click_listen") : T.f("recalibrating");
                     ligne2 = T.f("sneak_map");
@@ -296,7 +333,7 @@ public class TraqueClient implements ClientModInitializer {
             }
         }
         Dessin.segment(g, cx - 0.5, cy - 0.5, cx - 0.5 + Math.sin(balayage) * 8, cy - 0.5 - Math.cos(balayage) * 8, 1, aiguille ? Dessin.JAUNE : 0xFF3EA162);
-        int place = ligne1.equals(T.f("all_sampled")) || !phase.equals("PRELEVEMENTS") ? 119 : 93;
+        int place = ligne1.equals(T.f("all_sampled")) || signal.getBoolean("jour") || !phase.equals("PRELEVEMENTS") ? 119 : 93;
         g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(ligne1, place), ex, ey, couleur1, false);
         g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(ligne2, place), ex, ey + 9, couleur2, false);
     }

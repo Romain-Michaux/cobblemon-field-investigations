@@ -10,7 +10,8 @@ The cleaner your investigation, the better the reward: up to **four perfect IVs*
 
 ## How it works
 
-1. **Open a case** with the Field Kit. A trace zone is reported, with a line-up of suspects that really spawn in that biome.
+1. **Pick a case** with the Field Kit. Up to three leads are reported, each with its rarity, its distance and sometimes
+   a special rule. The one you pick comes with a line-up of suspects that really spawn in that biome.
 2. **Sample the traces.** Residue, deposits, footprints, nests, claw marks: each has its own sampling mini-game. The
    kit's proximity radar leads you to them.
 3. **Dig up buried clues.** Bones, eggshells and fangs are hidden underground. Dig carefully and uncover them with a
@@ -27,6 +28,10 @@ The cleaner your investigation, the better the reward: up to **four perfect IVs*
 
 - **15 mini-games**: memory, timing, steady hand, code breaking, colour mixing, pattern matching and more.
 - **Buried clues** to dig up and brush out, like suspicious sand.
+- **Special investigations**: nocturnal targets that only show at night, skittish ones to scan from afar, exceptional
+  specimens with their hidden ability.
+- **Advancements** for your first steps and your best cases.
+- **Accessibility**: a colour aid for the colour-based mini-game and a server-side pace setting for all mini-games.
 - **A 5-star rating** for every case. Failed mini-games, a fleeing target or a wrong guess cost stars; stars decide the
   perfect IVs, the shiny odds and the loot.
 - **Data-driven loot**: one loot table per star level, overridable with a data pack.

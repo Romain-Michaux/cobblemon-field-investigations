@@ -64,7 +64,12 @@ public class EcranAnalyse extends Screen {
     @Override
     public void tick() {
         ticks++;
-        if (!jeu.fini) jeu.tick();
+        // Rythme réglé par le serveur : en facile, le jeu saute un tic sur trois ; en difficile, il en joue un de plus sur quatre.
+        int rythme = TraqueClient.etat.getInt("difficulte");
+        if (!jeu.fini && !(rythme < 0 && ticks % 3 == 0)) {
+            jeu.tick();
+            if (rythme > 0 && ticks % 4 == 0 && !jeu.fini) jeu.tick();
+        }
         if (jeu.fini && finDepuis < 0) {
             finDepuis = ticks;
             // Fin de partie : carillon et petite fanfare si c'est réussi, note grave sinon.

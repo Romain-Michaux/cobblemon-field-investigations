@@ -46,6 +46,10 @@ public class EcranTableau extends Screen {
         // Le titre est gravé sur la plaque de laiton du cadre.
         Dessin.centre(g, T.f("case_board"), x + L / 2 + 1, y - 14, Dessin.ENCRE);
 
+        if (!e.getBoolean("actif") && !e.getList("pistes", Tag.TAG_COMPOUND).isEmpty()) {
+            pistes(g, e, x, y, mx, my);
+            return;
+        }
         if (!e.getBoolean("actif")) {
             long attente = e.getLong("attente") - (System.currentTimeMillis() - TraqueClient.etatRecu);
             Dessin.plaque(g, x + 38, y + 26, L - 76, 110);
@@ -54,9 +58,10 @@ public class EcranTableau extends Screen {
                     x + 50, y + 52, L - 100, Dessin.GRIS);
             Dessin.paragraphe(g, T.f("each_star_you_keep_5"), x + 50, ly0 + 2, L - 100, Dessin.JAUNE);
             boolean pret = attente <= 0;
-            String libelle = pret ? T.f("open_an_investigation") : T.f("next_report_in") + (attente / 60000 + 1) + T.f("min");
+            String libelle = pret ? T.f("check_the_reports") : T.f("next_report_in") + (attente / 60000 + 1) + T.f("min");
             Dessin.bouton(g, x + L / 2 - 90, y + 144, 180, 22, libelle, Dessin.dans(mx, my, x + L / 2 - 90, y + 144, 180, 22), pret, Dessin.ACCENT);
             Dessin.centre(g, T.f("cases_solved") + e.getInt("reussies"), x + L / 2, y + 173, Dessin.ENCRE);
+            reglage(g, x, y, mx, my);
             return;
         }
 
@@ -71,7 +76,9 @@ public class EcranTableau extends Screen {
         Dessin.image(g, Dessin.PAPIER, px, py, PAPIER_L, PAPIER_H);
         // Qualité de l'enquête : c'est elle qui fixe les IV du Pokémon capturé et le butin.
         g.drawString(Dessin.police(), T.etoiles(e.getInt("etoiles")), tx, py + 22, 0xFFB07A10, false);
-        boolean survolEtoiles = Dessin.dans(mx, my, tx - 2, py + 20, 46, 12);
+        String special = e.getString("special");
+        if (!special.isEmpty()) g.drawString(Dessin.police(), "✦", tx + 50, py + 22, couleurSpecial(special), false);
+        boolean survolEtoiles = Dessin.dans(mx, my, tx - 2, py + 20, 62, 12);
         g.drawString(Dessin.police(), T.f("species") + RANGS[Math.min(3, e.getInt("rang"))], tx, py + 37, Dessin.ENCRE_ROUGE, false);
         for (int i = 0; i < Genetique.MARQUEURS.size(); i++) {
             String m = Genetique.MARQUEURS.get(i);
@@ -170,6 +177,11 @@ public class EcranTableau extends Screen {
             lignes.add(Component.literal(T.f("8mini_game_failure_half") + e.getInt("fautes") + ")"));
             lignes.add(Component.literal(T.f("8target_ran_away_1") + e.getInt("fuites") + ")"));
             lignes.add(Component.literal(T.f("8wrong_guess_2")));
+            if (!special.isEmpty()) {
+                lignes.add(Component.literal("§6✦ " + T.f("investigation") + nomSpecial(special).toLowerCase()));
+                for (String ligne : reglesSpecial(special)) lignes.add(Component.literal(ligne));
+                lignes.add(Component.literal("§e" + gainSpecial(special)));
+            }
             Dessin.infobulle(g, lignes, mx, my, width);
         } else if (survole != null) {
             List<Component> lignes = new ArrayList<>();
@@ -188,10 +200,125 @@ public class EcranTableau extends Screen {
         }
     }
 
+    // ---------- Signalements à choisir ----------
+
+    private static final int CARTE_L = 104, CARTE_H = 130, CARTE_Y = 21, CARTE_PAS = 110;
+
+    static String nomSpecial(String special) {
+        return switch (special) {
+            case "nocturne" -> T.f("nocturnal");
+            case "craintive" -> T.f("skittish");
+            case "exceptionnel" -> T.f("exceptional");
+            default -> T.f("standard");
+        };
+    }
+
+    static int couleurSpecial(String special) {
+        return switch (special) {
+            case "nocturne" -> 0xFF8FA8FF;
+            case "craintive" -> Dessin.JAUNE;
+            case "exceptionnel" -> 0xFFE9A15B;
+            default -> Dessin.GRIS;
+        };
+    }
+
+    static String[] reglesSpecial(String special) {
+        return switch (special) {
+            case "nocturne" -> new String[] {T.f("7traces_and_cries_only_at"), T.f("7the_target_only_comes_out")};
+            case "craintive" -> new String[] {T.f("7it_senses_you_from_much"), T.f("7scan_it_from_a_long")};
+            case "exceptionnel" -> new String[] {T.f("7one_more_analysis_result_required"), T.f("7and_suspects_that_all_look")};
+            default -> new String[] {T.f("7a_regular_investigation")};
+        };
+    }
+
+    static String gainSpecial(String special) {
+        return switch (special) {
+            case "nocturne" -> T.f("shiny_odds_2_special_loot");
+            case "craintive" -> T.f("double_special_loot");
+            case "exceptionnel" -> T.f("hidden_ability_special_loot");
+            default -> T.f("ivs_and_loot_by_your");
+        };
+    }
+
+    private static int carteX(int x, int n, int i) {
+        return x + (L - (n * CARTE_L + (n - 1) * (CARTE_PAS - CARTE_L))) / 2 + i * CARTE_PAS;
+    }
+
+    // Trois signalements épinglés au tableau : le joueur choisit son enquête (rareté, type, distance).
+    private void pistes(GuiGraphics g, CompoundTag e, int x, int y, int mx, int my) {
+        ListTag pistes = e.getList("pistes", Tag.TAG_COMPOUND);
+        int n = Math.min(3, pistes.size());
+        long reste = e.getLong("pistesFin") - (System.currentTimeMillis() - TraqueClient.etatRecu);
+        Dessin.centre(g, T.f("pick_your_investigation"), x + L / 2, y + 8, Dessin.ENCRE);
+        CompoundTag survole = null;
+        for (int i = 0; i < n; i++) {
+            CompoundTag p = pistes.getCompound(i);
+            int cx = carteX(x, n, i), cy = y + CARTE_Y, tx = cx + 9;
+            boolean survol = Dessin.dans(mx, my, cx, cy, CARTE_L, CARTE_H);
+            String special = p.getString("special");
+            if (survol) {
+                g.fill(cx - 2, cy - 2, cx + CARTE_L + 2, cy + CARTE_H + 2, Dessin.JAUNE);
+                survole = p;
+            }
+            Dessin.plaque(g, cx, cy, CARTE_L, CARTE_H);
+            g.drawString(Dessin.police(), T.f("lead") + (i + 1), tx, cy + 9, Dessin.ACCENT, false);
+            g.drawString(Dessin.police(), (special.isEmpty() ? "" : "✦ ") + nomSpecial(special), tx, cy + 21, couleurSpecial(special), false);
+            g.fill(tx, cy + 32, cx + CARTE_L - 9, cy + 33, 0x40FFFFFF);
+            g.drawString(Dessin.police(), T.f("species_2"), tx, cy + 37, Dessin.GRIS, false);
+            g.drawString(Dessin.police(), RANGS[Math.min(3, p.getInt("rang"))], tx, cy + 47, Dessin.TEXTE, false);
+            g.drawString(Dessin.police(), T.f("zone_2"), tx, cy + 60, Dessin.GRIS, false);
+            String ou = "?";
+            if (minecraft != null && minecraft.player != null) {
+                double zx = p.getDouble("zoneX"), zz = p.getDouble("zoneZ"), jx = minecraft.player.getX(), jz = minecraft.player.getZ();
+                ou = Math.round(Math.hypot(zx - jx, zz - jz)) + " m · " + Dessin.vent(Dessin.cap(jx, jz, zx, zz));
+            }
+            g.drawString(Dessin.police(), ou, tx, cy + 70, Dessin.TEXTE, false);
+            g.drawString(Dessin.police(), p.getBoolean("nouvelle") ? T.f("never_caught") : T.f("already_caught"), tx, cy + 84,
+                    p.getBoolean("nouvelle") ? Dessin.VERT : Dessin.SOMBRE, false);
+            Dessin.paragraphe(g, gainSpecial(special), tx, cy + 96, CARTE_L - 18, Dessin.JAUNE);
+        }
+        Dessin.centre(g, T.f("reports_valid_for_another") + Math.max(1, reste / 60000 + 1) + T.f("min"), x + L / 2, y + 157, Dessin.ENCRE);
+        Dessin.centre(g, T.f("cases_solved") + e.getInt("reussies"), x + L / 2, y + 173, Dessin.ENCRE);
+        reglage(g, x, y, mx, my);
+        if (survole != null) {
+            List<Component> lignes = new ArrayList<>();
+            String special = survole.getString("special");
+            lignes.add(Component.literal(T.f("investigation") + nomSpecial(special).toLowerCase()));
+            for (String ligne : reglesSpecial(special)) lignes.add(Component.literal(ligne));
+            lignes.add(Component.literal("§e" + gainSpecial(special)));
+            lignes.add(Component.literal(T.f("8click_open_this_investigation")));
+            Dessin.infobulle(g, lignes, mx, my, width);
+        }
+    }
+
+    // Réglage d'accessibilité, en bas à gauche du tableau : l'aide aux couleurs chiffre les teintes des mini-jeux.
+    private void reglage(GuiGraphics g, int x, int y, int mx, int my) {
+        String texte = T.f("colour_aid") + (TraqueClient.aideCouleurs ? T.f("on") : T.f("off"));
+        boolean survol = Dessin.dans(mx, my, x + 4, y + 171, Dessin.police().width(texte) + 4, 12);
+        g.drawString(Dessin.police(), texte, x + 6, y + 173, survol ? Dessin.ENCRE_ROUGE : Dessin.ENCRE, false);
+    }
+
     @Override
     public boolean mouseClicked(double mx, double my, int bouton) {
         CompoundTag e = TraqueClient.etat;
         int x = F.x(width), y = F.y(height);
+        if (!e.getBoolean("actif") && Dessin.dans(mx, my, x + 4, y + 171, 96, 12)) {
+            TraqueClient.basculerAideCouleurs();
+            Dessin.son(1.2f);
+            return true;
+        }
+        ListTag pistes = e.getList("pistes", Tag.TAG_COMPOUND);
+        if (!e.getBoolean("actif") && !pistes.isEmpty()) {
+            int n = Math.min(3, pistes.size());
+            for (int i = 0; i < n; i++) {
+                if (!Dessin.dans(mx, my, carteX(x, n, i), y + CARTE_Y, CARTE_L, CARTE_H)) continue;
+                Paquet p = Paquet.de("choisir");
+                p.donnees().putInt("index", i);
+                TraqueClient.envoyer(p);
+                Dessin.son(1.3f);
+            }
+            return true;
+        }
         if (!e.getBoolean("actif")) {
             long attente = e.getLong("attente") - (System.currentTimeMillis() - TraqueClient.etatRecu);
             if (attente <= 0 && Dessin.dans(mx, my, x + L / 2 - 90, y + 144, 180, 22)) {

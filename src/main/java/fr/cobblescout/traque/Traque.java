@@ -39,6 +39,7 @@ public class Traque implements ModInitializer {
                 try {
                     switch (paquet.genre()) {
                         case "ouvrir_enquete" -> Moteur.ouvrirEnquete(joueur);
+                        case "choisir" -> Moteur.choisir(joueur, d.getInt("index"));
                         case "lancer" -> Moteur.lancer(joueur, d.getString("espece"));
                         case "abandonner" -> Moteur.abandonner(joueur);
                         case "ecarter" -> Moteur.ecarter(joueur, d.getString("espece"));

@@ -324,7 +324,9 @@ final class JeuxLabo {
             } else {
                 g.drawString(Dessin.police(), T.f("target"), cx, oy + 8, Dessin.GRIS, false);
                 pastille(g, cx, oy + 19, 64, 22, 0xFF1A2633);
-                Dessin.centre(g, "?", cx + 32, oy + 26, Dessin.SOMBRE);
+                // Aide aux couleurs : la ressemblance du mélange en cours s'affiche à la place du point d'interrogation.
+                boolean aide = TraqueClient.aideCouleurs && nombre() > 0;
+                Dessin.centre(g, aide ? ressemblance(melange(gouttes), cible) + " %" : "?", cx + 32, oy + 26, aide ? Dessin.TEXTE : Dessin.SOMBRE);
                 g.drawString(Dessin.police(), T.f("your_mix"), cx, oy + 46, Dessin.GRIS, false);
                 pastille(g, cx, oy + 57, 64, 22, melange(gouttes));
                 // La recette en cours, goutte par goutte.

@@ -16,8 +16,9 @@ Everything fits in one item: the **Field Kit**. No workstation to carry around.
 
 ## How an investigation goes
 
-1. **Open a case.** Right-click with the Field Kit. A trace zone is reported 100–180 blocks away, with a line-up of suspects
-   taken from the species that really spawn in that biome.
+1. **Pick a case.** Right-click with the Field Kit and check the reports: up to three leads are offered, each with its
+   rarity, its distance and sometimes a special rule (see below). The one you pick gives you a trace zone 100–180 blocks
+   away and a line-up of suspects taken from the species that really spawn in that biome.
 2. **Sample the traces.** Five traces are hidden in the zone (elemental residue, strange deposit, footprint, abandoned
    nest, signs of a struggle). The kit's proximity radar leads you to them. Each kind of trace has its own sampling
    mini-game, and you need an empty vial for each.
@@ -48,6 +49,27 @@ Every investigation is rated from 1 to 5 stars. You start at 5:
 - **Perfect IVs:** stars − 1 (none at 1 star, four at 5 stars). Shiny odds also rise with the stars.
 - **Loot:** rolled from loot tables, one per star level, plus a small table for the rarity of the species and one for
   every fifth solved case.
+
+## Special investigations
+
+Some leads come with their own rule and their own reward. There is always at least one standard lead to pick instead.
+
+| Kind | Rule | Reward |
+| --- | --- | --- |
+| Nocturnal | Traces, cries and the target itself only show at night | Shiny odds ×2, special loot |
+| Skittish | The target senses you from much farther away: scan it from a long distance | Double special loot |
+| Exceptional | One more analysis result is required and the suspects all look alike | Hidden ability, special loot |
+
+## Advancements
+
+Nine advancements follow your first steps (first sample, first buried clue, first analysis, first solved case) and
+your best work (a five-star case, a special case, ten solved cases).
+
+## Accessibility
+
+- **Colour aid** (bottom left of the case board, per player): the colorimetry mini-game shows how close your mix is.
+- **Mini-game pace** (server config `difficulteMiniJeux`): `easy` slows every mini-game by a third, `hard` speeds them up
+  by a quarter.
 
 ## Mini-games
 
