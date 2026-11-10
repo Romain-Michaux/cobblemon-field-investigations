@@ -1,5 +1,7 @@
 package fr.cobblescout.traque.client;
 
+import fr.cobblescout.traque.Genetique;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,6 +132,11 @@ final class Dessin {
 
     static void encart(GuiGraphics g, int x, int y, int w, int h) {
         neufCases(g, ENCART_TEXTURE, x, y, w, h, 88, 54, 5, 5, 5, 5);
+    }
+
+    // Dessin de l'objet enfoui : enfoui_<marqueur>.png pour le premier, enfoui_<marqueur>_<n>.png pour les autres.
+    static ResourceLocation iconeEnfoui(String genre, int variante) {
+        return texture("enfoui_" + genre + (variante > 0 && variante < Genetique.VARIANTES.getOrDefault(genre, 1) ? "_" + variante : ""));
     }
 
     static ResourceLocation iconeTrace(String genre, boolean enfoui) {

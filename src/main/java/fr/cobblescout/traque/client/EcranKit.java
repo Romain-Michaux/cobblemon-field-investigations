@@ -63,7 +63,7 @@ public class EcranKit extends Screen {
             boolean epingle = t.getBoolean("epingle"), recolte = t.getBoolean("recolte");
             boolean enfoui = t.getBoolean("enfoui"), degage = t.getBoolean("degage"), perdue = t.getBoolean("perdue");
             int couleur = perdue ? Dessin.ALERTE : epingle ? Dessin.VERT : recolte ? Dessin.JAUNE : enfoui && degage ? Dessin.ACCENT : Dessin.SOMBRE;
-            if (enfoui) Dessin.image(g, Dessin.iconeTrace(genre, true), x + 12, ly + 2, 16, 16);
+            if (enfoui) Dessin.image(g, Dessin.iconeEnfoui(genre, t.getInt("variante")), x + 12, ly + 2, 16, 16);
             else Dessin.image(g, Dessin.iconeTrace(genre, false), x + 8, ly - 2, 24, 24);
             // La fiole : éteinte tant que la trace n'est pas prélevée, pleine ensuite, pastille verte une fois analysée.
             if (perdue || (!epingle && !recolte)) Dessin.teinte(g, 0xFF46525E);
@@ -73,7 +73,7 @@ public class EcranKit extends Screen {
                 g.fill(x + 179, ly + 13, x + 185, ly + 19, Dessin.BORD);
                 g.fill(x + 180, ly + 14, x + 184, ly + 18, Dessin.VERT);
             }
-            g.drawString(Dessin.police(), T.c(Genetique.nomTrace(genre, enfoui)), x + 36, ly + 1, perdue ? Dessin.SOMBRE : Dessin.TEXTE, false);
+            g.drawString(Dessin.police(), T.c(Genetique.nomTrace(genre, enfoui, t.getInt("variante"))), x + 36, ly + 1, perdue ? Dessin.SOMBRE : Dessin.TEXTE, false);
             g.drawString(Dessin.police(), perdue ? T.f("clue_destroyed") : epingle ? T.f("analysed_in_the_file") : recolte ? T.f("sampled_to_analyse")
                     : enfoui ? (degage ? T.f("uncovered_to_sample") : T.f("buried_brush_needed")) : T.f("to_sample_in_the_zone"), x + 36, ly + 11, couleur, false);
         }

@@ -79,8 +79,8 @@ public final class Contenu {
     public static class BlocTrace extends Block implements net.minecraft.world.level.block.SimpleWaterloggedBlock {
         // Vrai quand la trace est au fond de l'eau (enquêtes aquatiques) : l'eau reste en place autour d'elle.
         public static final net.minecraft.world.level.block.state.properties.BooleanProperty EAU = BlockStateProperties.WATERLOGGED;
-        // 0 à 4 : les cinq traces de surface ; 5 à 7 : les indices dégagés du sol (os, coquilles, croc).
-        public static final IntegerProperty GENRE = IntegerProperty.create("genre", 0, 7);
+        // 0 à 4 : les cinq traces de surface ; 5 à 12 : les indices dégagés du sol (os, coquilles, croc, dent, plume, mue, griffe, écaille).
+        public static final IntegerProperty GENRE = IntegerProperty.create("genre", 0, 12);
         // UP = posée au sol (ou sur un feuillage) ; sinon plaquée contre le bloc situé derrière elle (tronc, falaise).
         public static final DirectionProperty APPUI = BlockStateProperties.FACING;
         private static final VoxelShape FORME = Block.box(1, 0, 1, 15, 2, 15);
@@ -230,7 +230,7 @@ public final class Contenu {
         public Component getName(ItemStack pile) {
             CompoundTag d = donnees(pile);
             return Component.translatable(d.getBoolean("analyse") ? "cobblemon_field_investigations.echantillon.nom_analyse" : "cobblemon_field_investigations.echantillon.nom",
-                    Component.translatable(Genetique.nomTrace(d.getString("genre"), d.getBoolean("enfoui"))));
+                    Component.translatable(Genetique.nomTrace(d.getString("genre"), d.getBoolean("enfoui"), d.getInt("variante"))));
         }
 
         @Override

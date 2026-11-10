@@ -16,14 +16,14 @@ import net.minecraft.sounds.SoundEvents;
 public class EcranAnalyse extends Screen {
     private static final int ZL = 280, ZH = 118;
     private final String genre, idJeu;
-    private final boolean prelevement, filet, enfoui;
-    private final int doses;
+    private final boolean prelevement, filet, enfoui, filtrage;
+    private final int doses, variante;
     private final Jeu jeu;
     private boolean envoye;
     private int finDepuis = -1;
     private int ticks;
 
-    public EcranAnalyse(String genre, String idJeu, long graine, int doses, boolean filet, boolean enfoui, boolean prelevement) {
+    public EcranAnalyse(String genre, String idJeu, long graine, int doses, boolean filet, boolean enfoui, boolean prelevement, int variante) {
         super(Component.literal(T.f("dna_sequencer")));
         this.genre = genre;
         this.idJeu = idJeu;
@@ -31,6 +31,9 @@ public class EcranAnalyse extends Screen {
         this.enfoui = enfoui;
         this.doses = doses;
         this.filet = filet;
+        this.variante = variante;
+        // Le filtrage du cri se joue pendant la traque, avant un relevé : ni fiole ni étoile en jeu.
+        this.filtrage = idJeu.equals("filtrage");
         Random h = new Random(graine);
         this.jeu = switch (idJeu) {
             case "memoire" -> new JeuxTerrain.Cristaux(h);
@@ -38,7 +41,23 @@ public class EcranAnalyse extends Screen {
             case "mesure" -> new JeuxTerrain.Mesure(h);
             case "tri" -> new JeuxTerrain.Tri(h);
             case "trace" -> new JeuxTerrain.Trace(h);
-            case "degagement" -> new JeuxTerrain.Degagement(h, genre);
+            case "degagement" -> new JeuxTerrain.Degagement(h, genre, variante);
+            case "tamisage" -> new JeuxNouveaux.Tamis(h, genre, variante);
+            case "moulage" -> new JeuxNouveaux.Moulage(h);
+            case "pince" -> new JeuxNouveaux.Pince(h);
+            case "photo" -> new JeuxNouveaux.Photo(h, genre);
+            case "ecouvillon" -> new JeuxNouveaux.Ecouvillon(h);
+            case "apnee" -> new JeuxNouveaux.Apnee(h);
+            case "grimpe" -> new JeuxNouveaux.Grimpe(h);
+            case "rappel" -> new JeuxNouveaux.Rappel(h);
+            case "lampe" -> new JeuxNouveaux.LampeUV(h);
+            case "filtrage" -> new JeuxNouveaux.Filtrage(h);
+            case "microscope" -> new JeuxNouveaux.Microscope(h);
+            case "chromatographie" -> new JeuxNouveaux.Chromato(h);
+            case "parente" -> new JeuxNouveaux.Parente(h);
+            case "dosage" -> new JeuxNouveaux.Dosage(h);
+            case "morsure" -> new JeuxNouveaux.Morsure(h);
+            case "degel" -> new JeuxNouveaux.Degel(h);
             case "appariement" -> new Appariement(h);
             case "centrifugation" -> new Centrifugeuse(h);
             case "fragments" -> new Fragments(h);
@@ -84,7 +103,7 @@ public class EcranAnalyse extends Screen {
     public void removed() {
         if (!envoye) {
             envoye = true;
-            Paquet p = Paquet.de(prelevement ? "prelevement" : "analyse");
+            Paquet p = Paquet.de(filtrage ? "filtrage" : prelevement ? "prelevement" : "analyse");
             p.donnees().putBoolean("succes", jeu.fini && jeu.succes);
             p.donnees().putBoolean("parfait", jeu.fini && jeu.succes && jeu.parfait);
             TraqueClient.envoyer(p);
@@ -100,7 +119,7 @@ public class EcranAnalyse extends Screen {
         Dessin.fond(g, f, width, height);
         int zx = x + (l - ZL) / 2, zy;
         if (prelevement) {
-            Dessin.bandeau(g, x, y, l, T.c(Genetique.nomJeu(idJeu)).toUpperCase(), T.c(Genetique.nomTrace(genre, enfoui)));
+            Dessin.bandeau(g, x, y, l, T.c(Genetique.nomJeu(idJeu)).toUpperCase(), filtrage ? T.f("cry_bearing") : T.c(Genetique.nomTrace(genre, enfoui, variante)));
             zy = y + 18;
         } else {
             // Le titre s'affiche sur le bandeau turquoise de la machine, sous l'écran.
@@ -108,7 +127,7 @@ public class EcranAnalyse extends Screen {
             String titre = T.f("dna_sequencer_2") + nomJeu;
             if (Dessin.police().width(titre) > 220) titre = nomJeu;
             Dessin.centre(g, titre, x + l / 2, y + 176, 0xFF0E3B3A);
-            g.drawString(Dessin.police(), T.c(Genetique.nomTrace(genre, enfoui)) + T.f("doses") + doses + (filet ? T.f("first_mistake_is_free") : ""),
+            g.drawString(Dessin.police(), T.c(Genetique.nomTrace(genre, enfoui, variante)) + T.f("doses") + doses + (filet ? T.f("first_mistake_is_free") : ""),
                     zx, y + 3, Dessin.GRIS, false);
             zy = y + 15;
         }
@@ -122,7 +141,10 @@ public class EcranAnalyse extends Screen {
             g.pose().translate(0, 0, 300);
             g.fill(zx + 40, zy + 40, zx + ZL - 40, zy + 78, Dessin.BORD);
             g.fill(zx + 42, zy + 42, zx + ZL - 42, zy + 76, jeu.succes ? 0xFF245C3A : 0xFF6B2420);
-            if (prelevement) {
+            if (filtrage) {
+                Dessin.centre(g, jeu.succes ? T.f("cry_isolated") : T.f("cry_lost_in_noise"), zx + ZL / 2, zy + 49, Dessin.TEXTE);
+                Dessin.centre(g, jeu.succes ? T.f("precise_bearing") : T.f("less_precise_bearing"), zx + ZL / 2, zy + 62, Dessin.GRIS);
+            } else if (prelevement) {
                 Dessin.centre(g, jeu.succes ? (jeu.parfait ? T.f("perfect_sample") : T.f("sample_taken")) : T.f("sample_damaged"), zx + ZL / 2, zy + 49, Dessin.TEXTE);
                 Dessin.centre(g, jeu.succes ? (jeu.parfait ? T.f("one_extra_dose") : T.f("full_sample")) : T.f("a_single_dose_half_star"), zx + ZL / 2, zy + 62, Dessin.GRIS);
             } else {

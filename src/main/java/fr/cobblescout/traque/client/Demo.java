@@ -63,15 +63,20 @@ final class Demo {
             mc.setScreen(new EcranTableau());
         });
         String[][] analyses = {{"type1", "sequencage"}, {"type1", "gel"}, {"type2", "appariement"}, {"type2", "pcr"}, {"taille", "centrifugation"},
-                {"taille", "comptage"}, {"oeuf", "fragments"}, {"stat", "spectre"}, {"stat", "titrage"}};
+                {"taille", "comptage"}, {"oeuf", "fragments"}, {"stat", "spectre"}, {"stat", "titrage"}, {"type1", "chromatographie"},
+                {"type2", "microscope"}, {"taille", "morsure"}, {"oeuf", "parente"}, {"stat", "dosage"}, {"stat", "degel"}};
         for (String[] a : analyses) {
-            etape("analyse_" + a[1], () -> mc.setScreen(new EcranAnalyse(a[0], a[1], 42L, 2, a[1].equals("sequencage"), false, false)));
+            etape("analyse_" + a[1], () -> mc.setScreen(new EcranAnalyse(a[0], a[1], 42L, 2, a[1].equals("sequencage"), false, false, 0)));
         }
         String[][] prelevements = {{"type1", "memoire"}, {"type2", "pipette"}, {"taille", "mesure"}, {"oeuf", "tri"}, {"stat", "trace"},
-                {"taille", "degagement"}, {"oeuf", "degagement"}, {"stat", "degagement"}};
+                {"taille", "degagement"}, {"oeuf", "degagement"}, {"stat", "degagement"}, {"oeuf", "tamisage"}, {"type1", "photo"},
+                {"type2", "ecouvillon"}, {"taille", "moulage"}, {"oeuf", "pince"}, {"type1", "apnee"}, {"stat", "grimpe"}, {"stat", "rappel"},
+                {"type1", "lampe"}, {"", "filtrage"}};
         for (String[] a : prelevements) {
-            boolean enfoui = a[1].equals("degagement");
-            etape("prelevement_" + a[1] + (enfoui ? "_" + a[0] : ""), () -> mc.setScreen(new EcranAnalyse(a[0], a[1], 7L, 0, false, enfoui, true)));
+            boolean enfoui = a[1].equals("degagement") || a[1].equals("tamisage");
+            // Les dégagements montrent les objets de base ; le tamisage, un objet ajouté en 1.1 (la plume).
+            etape("prelevement_" + a[1] + (enfoui ? "_" + a[0] : ""), () -> mc.setScreen(new EcranAnalyse(a[0], a[1], 7L, 0, false, enfoui, true,
+                    a[1].equals("tamisage") ? 1 : 0)));
         }
         etape("kit_prelevements", () -> {
             TraqueClient.etat = etat("PRELEVEMENTS", 2);
@@ -164,6 +169,7 @@ final class Demo {
             if (i < epingles) c.putString("valeur", cible[i]);
             if (i >= 3 && epingles < 5) {
                 c.putBoolean("enfoui", true);
+                c.putInt("variante", 1);
                 c.putBoolean("perdue", i == 4);
             }
             traces.add(c);

@@ -13,6 +13,14 @@
     mist (less precise bearings).
   - New loot tables: `traque/speciale` for every special case, `traque/type_<kind>` for the biome kinds.
   - Traces can now sit under water.
+- **16 new mini-games** (31 in total), all with sound feedback and new pixel art:
+  - Sampling: sieving, footprint cast, tweezers, trace photo, swabbing.
+  - Analysis: microscope, chromatography, family tree, drop titration, bite cast.
+  - Tied to the kind of case: free dive (aquatic), tree climb (canopy), abseil (highlands), UV lamp (nocturnal),
+    thawing (frost), cry filter (mist, played before each bearing during the hunt).
+  - Each trace and each marker now picks among several games.
+- **Buried clues**: a single one per regular case (dig sites keep three), dug up with the brush or the sieve, and what
+  you find varies: bone or tooth, eggshells, feather or moult, fang, claw or scale.
 - **Advancements**: nine of them, from the first sample to ten solved cases.
 - **Accessibility**: per-player colour aid (colorimetry shows the match percentage while you mix); server setting
   `difficulteMiniJeux` (`easy`, `normal`, `hard`) for the pace of every mini-game.

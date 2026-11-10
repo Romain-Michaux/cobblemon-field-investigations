@@ -98,9 +98,30 @@ your best work (a five-star case, a special case, ten solved cases).
 | Fragment sorting (spot the shells) | Fragment assembly (ordering) |
 | Scratch tracing (steady hand) | Spectrum tuning |
 | Brush excavation (find the buried fragments) | Electrophoresis (find the identical lane) |
-| | Colorimetry (recreate a colour from memory) |
-| | PCR cycles (repeat the sequence) |
-| | Colony count |
+| Sieving (shake in bursts) | Colorimetry (recreate a colour from memory) |
+| Footprint cast (pour to the line) | PCR cycles (repeat the sequence) |
+| Tweezers (aim and time the grip) | Colony count |
+| Trace photo (frame and focus) | Microscope (focus, then find the odd cell) |
+| Swabbing (cover the stain once) | Chromatography (stop each strip in time) |
+| | Family tree (follow the branches) |
+| | Drop titration (stop at the colour change) |
+| | Bite cast (find and slide the matching cast) |
+
+Each trace and each marker picks one of its possible games, so two cases rarely play the same way.
+
+Some special investigations bring their own games:
+
+| Kind | Game |
+| --- | --- |
+| Aquatic | Free dive: fill the vial on a drifting trace before running out of air |
+| Canopy | Tree climb: grab each hold on the right side, in rhythm |
+| Highlands | Abseil: let the rope run and brake level with each trace |
+| Nocturnal | UV lamp: sweep the dark ground to reveal fluorescent stains |
+| Frost | Thawing: keep the frozen sample in the right temperature range |
+| Mist | Cry filter: before each bearing, track the frequency where the cry stands out; a miss only makes the bearing less precise |
+
+Only one clue is buried in a regular case, and what you dig up varies: bone or tooth, eggshells, feather or moult,
+fang, claw or scale.
 
 ## Requirements
 

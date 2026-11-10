@@ -59,7 +59,10 @@ sauver(voile(ouvrir("monde_taille"), 0.8), "block", "trace_2")
 sauver(voile(ouvrir("monde_oeuf"), 0.92), "block", "trace_3")
 sauver(voile(ouvrir("monde_stat"), 0.85), "block", "trace_4")
 # Indices dégagés du sol : os, coquilles, croc.
-for i, nom in ((5, "enfoui_os"), (6, "enfoui_coquille"), (7, "enfoui_croc")):
+# Les numéros suivent Genetique.blocEnfoui : os et dent (croissance), coquilles, plume et mue (lignée), croc, griffe et écaille (aptitude).
+ENFOUIS = ((5, "enfoui_os", "taille", 0), (6, "enfoui_coquille", "oeuf", 0), (7, "enfoui_croc", "stat", 0), (8, "enfoui_dent", "taille", 1),
+           (9, "enfoui_plume", "oeuf", 1), (10, "enfoui_mue", "oeuf", 2), (11, "enfoui_griffe", "stat", 1), (12, "enfoui_ecaille", "stat", 2))
+for i, nom, _, _ in ENFOUIS:
     sauver(ouvrir(nom), "block", "trace_%d" % i)
 
 # ---------- Sol remué : un voile posé sur le dessus du bloc d'origine, qui se creuse au fil du brossage ----------
@@ -102,9 +105,9 @@ for m, base in enumerate(BASES):
         variantes["degage=%d,matiere=%d" % (k, m)] = {"model": NS + ":block/" + nom}
 ecrire_json(("assets", NS, "blockstates", "sol_remue.json"), {"variants": variantes})
 
-# ---------- Traces : huit genres (5 de surface + 3 indices dégagés) ----------
+# ---------- Traces : treize genres (5 de surface + 8 indices dégagés) ----------
 variantes = {}
-for i in range(8):
+for i in range(13):
     ecrire_json(("assets", NS, "models", "block", "trace_%d.json" % i), {
         "ambientocclusion": False,
         "textures": {"t": NS + ":block/trace_%d" % i, "particle": NS + ":block/trace_%d" % i},
@@ -133,8 +136,11 @@ sauver(ouvrir("item_echantillon"), "item", "echantillon")
 for nom in ("ecorce", "terre", "petri", "grand_os", "grand_coquille", "grand_croc",
             "debris_coquille", "debris_brindille", "debris_feuille", "debris_caillou"):
     sauver(ouvrir(nom), "gui", nom)
-for genre, nom in (("taille", "enfoui_os"), ("oeuf", "enfoui_coquille"), ("stat", "enfoui_croc")):
-    sauver(ouvrir(nom), "gui", "enfoui_" + genre)
+for _, nom, genre, variante in ENFOUIS:
+    sauver(ouvrir(nom), "gui", "enfoui_" + genre + ("_%d" % variante if variante else ""))
+# Accessoires et décors des mini-jeux ajoutés en 1.1.
+for nom in ("tamis", "pince", "ecouvillon", "burette", "glacon", "paroi", "fond_eau", "nuit"):
+    sauver(ouvrir(nom), "gui", nom)
 sauver(ouvrir("radar_b"), "gui", "radar")  # détecteur du HUD : sonar à gauche (centre 33,24), afficheur à droite (55..177 x 14..33)
 sauver(ouvrir("cristal_a"), "gui", "cristal")  # teinté en jeu : terne, turquoise (stable) ou rouge (instable)
 # Bac de gel de l'électrophorèse (240 x 104), dessiné ici : PixelLab le rend en perspective, il faut un fond bien à plat.

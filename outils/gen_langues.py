@@ -11,7 +11,7 @@ import re
 ICI = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.join(ICI, "..", "src", "main", "resources", "assets", "cobblemon_field_investigations", "lang")
 CLIENT = os.path.join(ICI, "..", "src", "main", "java", "fr", "cobblescout", "traque", "client")
-FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "JeuxLabo.java", "JeuxTerrain.java", "TraqueClient.java"]
+FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "JeuxLabo.java", "JeuxTerrain.java", "JeuxNouveaux.java", "TraqueClient.java"]
 
 UI = [
     # --- commun ---
@@ -349,6 +349,94 @@ UI += [
     ("Butin spécial · objets des marais", "Special loot · swamp items"),
 ]
 
+# --- 1.1 : nouveaux mini-jeux (les textes déjà connus plus haut ne sont pas répétés) ---
+NOUVEAUX = [
+    ("Relevé de cri", "Cry bearing"), ("CRI ISOLÉ", "CRY ISOLATED"), ("CRI BROUILLÉ", "CRY LOST IN NOISE"),
+    ("relevé précis", "precise bearing"), ("relevé moins précis", "less precise bearing"),
+    # tamisage
+    ("Sable : ", "Sand: "), ("Perdus : ", "Lost: "), ("Secousse", "Shaking"),
+    ("Relâche avant que la jauge soit pleine.", "Let go before the gauge is full."),
+    ("Maintiens le clic pour secouer le tamis, par à-coups : si la jauge de secousse se remplit, un fragment passe à travers.",
+     "Hold the click to shake the sieve, in bursts: if the shaking gauge fills up, a fragment falls through."),
+    # moulage
+    ("Creux remplis : ", "Hollows filled: "), ("Débordements : ", "Overflows: "),
+    ("Arrête-toi dans la bande verte, juste sous le trait.", "Stop in the green band, just under the line."),
+    ("Place le bec sur un creux et maintiens le clic pour couler le plâtre. Remplis chaque creux jusqu'à la bande verte, sans dépasser le trait.",
+     "Put the spout over a hollow and hold the click to pour plaster. Fill each hollow up to the green band without going over the line."),
+    # pince
+    ("Fibres : ", "Fibres: "), ("Ratés : ", "Misses: "), ("Pince fermée", "Tweezers closed"), ("Pince ouverte", "Tweezers open"),
+    ("Les pointes passent au vert quand elles serrent.", "The tips turn green when they grip."),
+    ("Aligne la pince sur une fibre et clique à l'instant où elle se referme. Elle bat de plus en plus vite.",
+     "Line the tweezers up with a fibre and click the moment they close. They beat faster and faster."),
+    # photo
+    ("Photo nette", "Sharp photo"), ("Photo floue", "Blurry photo"), ("Mal cadrée", "Badly framed"), ("Photos : ", "Photos: "),
+    ("Ratées : ", "Failed: "), ("Netteté", "Sharpness"), ("Lumière", "Light"),
+    ("Suis la trace avec le viseur et clique quand elle est nette (viseur vert). Trois photos avant que la lumière baisse.",
+     "Follow the trace with the viewfinder and click when it is sharp (green viewfinder). Three photos before the light fades."),
+    # écouvillon
+    ("Tache prélevée : ", "Stain swabbed: "), ("Souillé : ", "Soiled: "),
+    ("Tu peux lever l'écouvillon pour reprendre ailleurs.", "You may lift the swab and start again elsewhere."),
+    ("Maintiens le clic et frotte toute la tache violette. Ne repasse pas sur une zone déjà claire : l'écouvillon serait contaminé.",
+     "Hold the click and rub the whole purple stain. Do not go back over a spot that is already clear: the swab would be contaminated."),
+    # microscope
+    ("Lame ", "Slide "), ("Erreurs : ", "Mistakes: "),
+    ("Règle la mise au point avec les molettes (<< >> grossière, < > fine). Une fois l'image nette, clique la cellule à deux noyaux.",
+     "Focus with the knobs (<< >> coarse, < > fine). Once the image is sharp, click the cell that has two nuclei."),
+    # chromatographie
+    ("Bandelettes : ", "Strips: "),
+    ("Le petit repère gris donne l'écart minimal entre deux bandes.", "The small grey mark shows the minimum gap between two bands."),
+    ("Clique une bandelette pour l'arrêter quand ses trois bandes sont bien séparées, mais avant que le solvant atteigne le haut.",
+     "Click a strip to stop it once its three bands are well apart, but before the solvent reaches the top."),
+    # parenté
+    ("Lignée ", "Lineage "), ("Échantillon", "Sample"),
+    ("À chaque nœud, prends la branche qui ressemble à l'échantillon.", "At each node, take the branch that matches the sample."),
+    ("Pars du haut : à chaque embranchement, suis la branche dont le symbole correspond à l'échantillon, puis clique la case où tu arrives.",
+     "Start at the top: at each fork, follow the branch whose symbol matches the sample, then click the box you end up on."),
+    # dosage
+    ("Trop lent", "Too slow"), ("Virage net", "Clean endpoint"), ("Virage dépassé", "Endpoint overshot"), ("Dosage ", "Titration "),
+    ("Gouttes : ", "Drops: "), ("Goutte", "Drop"), ("Jet ×3", "Squirt ×3"),
+    ("Verse jusqu'au virage au rose vif. Va vite au jet, puis goutte à goutte dès que le liquide rosit : dépasser de deux gouttes rate le dosage.",
+     "Pour until the liquid turns bright pink. Squirt at first, then go drop by drop as soon as it blushes: two drops too many and it fails."),
+    # morsure
+    ("Morsure ", "Bite "), ("Moulage ", "Cast "), ("Glisser le moulage", "Slide the cast"), ("Emboîter", "Fit"),
+    ("Un seul des trois moulages épouse la morsure. Choisis-le, fais-le glisser pour mettre chaque dent face à son creux, puis emboîte.",
+     "Only one of the three casts matches the bite. Pick it, slide it until every tooth faces its hollow, then fit it."),
+    # apnée
+    ("Air", "Air"), ("Fiole", "Vial"),
+    ("Suis la trace sans la lâcher. 40 % d'air restant : une dose de plus.", "Stay on the trace. 40% air left at the end: one extra dose."),
+    ("Maintiens le clic sur la trace lumineuse pour remplir la fiole. Le courant la déplace, et ta réserve d'air baisse.",
+     "Hold the click on the glowing trace to fill the vial. The current moves it, and your air is running out."),
+    # dégel
+    ("Dégel : ", "Thawed: "), ("Surchauffes : ", "Overheats: "),
+    ("La glace ne fond que dans la plage verte. Elle se déplace : accompagne-la.", "The ice only melts in the green range. It drifts: follow it."),
+    ("Maintiens le clic pour chauffer, relâche pour laisser refroidir. Garde la température dans la plage verte sans atteindre le rouge.",
+     "Hold the click to heat, let go to cool down. Keep the temperature in the green range without reaching the red."),
+    # filtrage
+    ("Clarté", "Clarity"), ("Cri isolé", "Cry isolated"),
+    ("Fie-toi au son : plus il est aigu, plus tu es près.", "Trust the sound: the higher it gets, the closer you are."),
+    ("Déplace la souris de gauche à droite pour régler le filtre. Garde le cri net assez longtemps : la bonne fréquence dérive.",
+     "Move the mouse left and right to tune the filter. Keep the cry clear long enough: the right frequency drifts."),
+    # grimpe
+    ("Prises : ", "Holds: "), ("Glissades : ", "Slips: "),
+    ("Clique du côté de la prise quand elle traverse la bande claire. Le rythme s'accélère.",
+     "Click on the side of the hold as it crosses the light band. The pace picks up."),
+    ("Les prises défilent le long du tronc. Clique à gauche ou à droite, du côté de la prise, quand elle passe dans la bande claire.",
+     "Holds scroll down the trunk. Click left or right, on the side of the hold, when it passes through the light band."),
+    # rappel
+    ("Traces atteintes : ", "Traces reached: "), ("Trop bas : ", "Too low: "), ("Vitesse", "Speed"),
+    ("La corde met du temps à freiner : relâche avant la bande.", "The rope takes a while to brake: let go before the band."),
+    ("Maintiens le clic pour laisser filer la corde, relâche pour freiner. Arrête-toi dans la bande jaune de chaque trace, sans la dépasser.",
+     "Hold the click to let the rope run, let go to brake. Stop in the yellow band of each trace without going past it."),
+    # lampe UV
+    ("Taches relevées : ", "Stains found: "), ("Batterie", "Battery"),
+    ("Les taches ne brillent que sous le faisceau. Un clic dans le vide use la batterie.",
+     "Stains only glow under the beam. A click on nothing drains the battery."),
+    ("Balaie le sol avec la lampe : les taches n'apparaissent que dans le faisceau. Clique chacune avant que la batterie soit vide.",
+     "Sweep the ground with the lamp: stains only show inside the beam. Click each one before the battery runs out."),
+]
+_deja = {f for f, _ in UI}
+UI += [t for t in NOUVEAUX if t[0] not in _deja]
+
 # Clés qui ne viennent pas d'un littéral du code : (clé sans le préfixe cobblemon_field_investigations., anglais, français)
 CLES = [
     ("ui.vents", "N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW,NW,NNW", "N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSO,SO,OSO,O,ONO,NO,NNO"),
@@ -358,6 +446,14 @@ CLES = [
     ("trace.type1", "Elemental residue", "Résidu élémentaire"), ("trace.type2", "Strange deposit", "Dépôt étrange"), ("trace.taille", "Footprint", "Empreinte"),
     ("trace.oeuf", "Abandoned nest", "Nid abandonné"), ("trace.stat", "Signs of a struggle", "Traces de lutte"),
     ("enfoui.taille", "Buried bone", "Ossement enfoui"), ("enfoui.oeuf", "Buried eggshells", "Coquilles enfouies"), ("enfoui.stat", "Broken fang", "Croc brisé"),
+    ("enfoui.taille_1", "Buried tooth", "Dent enfouie"), ("enfoui.oeuf_1", "Buried feather", "Plume enfouie"), ("enfoui.oeuf_2", "Buried moult", "Mue enfouie"),
+    ("enfoui.stat_1", "Broken claw", "Griffe brisée"), ("enfoui.stat_2", "Torn-off scale", "Écaille arrachée"),
+    ("jeu.tamisage", "Sieving", "Tamisage"), ("jeu.moulage", "Footprint cast", "Moulage de l'empreinte"), ("jeu.pince", "Tweezers", "Pince à épiler"),
+    ("jeu.photo", "Trace photo", "Photo de la trace"), ("jeu.ecouvillon", "Swabbing", "Écouvillonnage"), ("jeu.apnee", "Free dive", "Apnée"),
+    ("jeu.grimpe", "Tree climb", "Grimpe"), ("jeu.rappel", "Abseil", "Rappel"), ("jeu.lampe", "UV lamp", "Lampe UV"),
+    ("jeu.filtrage", "Cry filter", "Filtrage du cri"), ("jeu.microscope", "Microscope", "Microscope"),
+    ("jeu.chromatographie", "Chromatography", "Chromatographie"), ("jeu.parente", "Family tree", "Arbre de parenté"),
+    ("jeu.dosage", "Drop titration", "Dosage au goutte-à-goutte"), ("jeu.morsure", "Bite cast", "Empreinte dentaire"), ("jeu.degel", "Thawing", "Dégel"),
     ("jeu.sequencage", "Sequencing", "Séquençage"), ("jeu.appariement", "Strand pairing", "Appariement des brins"), ("jeu.centrifugation", "Centrifugation", "Centrifugation"),
     ("jeu.fragments", "Fragment assembly", "Assemblage de fragments"), ("jeu.spectre", "Spectrum tuning", "Accord du spectre"),
     ("jeu.gel", "Electrophoresis", "Électrophorèse"), ("jeu.titrage", "Colorimetry", "Colorimétrie"), ("jeu.pcr", "PCR cycles", "Cycles PCR"),

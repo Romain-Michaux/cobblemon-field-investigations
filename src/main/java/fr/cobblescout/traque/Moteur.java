@@ -168,6 +168,8 @@ public final class Moteur {
         public boolean enfoui, degage, perdue;
         public String origine;
         public int brossage;
+        // Quel objet est enfoui (voir Genetique.VARIANTES) : os ou dent, coquilles, plume ou mue, croc, griffe ou écaille.
+        public int variante;
 
         boolean finie() {
             return recolte || perdue;
@@ -226,6 +228,7 @@ public final class Moteur {
     private static final Map<UUID, PokemonEntity> ENTITES = new HashMap<>();
     private static final Map<UUID, Boolean> ANALYSES = new HashMap<>();
     private static final Map<UUID, BlockPos> PRELEVEMENTS = new HashMap<>();
+    private static final Map<UUID, Boolean> FILTRAGES = new HashMap<>();
     // Vrai pendant que le mod remplace lui-même un sol remué (dégagement, nettoyage) : ce n'est pas une destruction.
     private static boolean remplacement;
 
@@ -251,6 +254,7 @@ public final class Moteur {
         ENTITES.clear();
         ANALYSES.clear();
         PRELEVEMENTS.clear();
+        FILTRAGES.clear();
     }
 
     static Dossier dossier(ServerPlayer joueur) {
@@ -333,6 +337,7 @@ public final class Moteur {
                 c.putString("genre", tr.genre);
                 c.putBoolean("recolte", tr.recolte);
                 c.putBoolean("enfoui", tr.enfoui);
+                c.putInt("variante", tr.variante);
                 c.putBoolean("degage", tr.degage);
                 c.putBoolean("perdue", tr.perdue);
                 c.putBoolean("epingle", d.epingles.contains(tr.genre));
@@ -479,6 +484,7 @@ public final class Moteur {
         p.donnees().putString("genre", donnees.getString("genre"));
         p.donnees().putString("jeu", Genetique.jeuAnalyse(donnees.getString("genre"), donnees.getString("jeu")));
         p.donnees().putBoolean("enfoui", donnees.getBoolean("enfoui"));
+        p.donnees().putInt("variante", donnees.getInt("variante"));
         p.donnees().putLong("graine", HASARD.nextLong());
         p.donnees().putInt("doses", donnees.getInt("doses"));
         envoyer(joueur, p);
@@ -673,7 +679,7 @@ public final class Moteur {
                 }
                 d.traces.add(t);
             }
-            // Un à trois indices sont enfouis (os, coquilles, croc) : au moins un par enquête.
+            // Un seul indice est enfoui par enquête (le brossage reste une exception), et ce qu'on déterre varie.
             List<Trace> enfouissables = new ArrayList<>();
             for (Trace t : d.traces) {
                 if (Genetique.NOMS_ENFOUIS.containsKey(t.genre)) enfouissables.add(t);
@@ -681,7 +687,9 @@ public final class Moteur {
             Collections.shuffle(enfouissables, HASARD);
             // Fouille : tout est enfoui. Sous l'eau : rien ne l'est (on ne brosse pas au fond d'un lac).
             for (int i = 0; i < enfouissables.size(); i++) {
-                enfouissables.get(i).enfoui = !eau && (i == 0 || "fouille".equals(special) || HASARD.nextInt(3) == 0);
+                Trace t = enfouissables.get(i);
+                t.enfoui = !eau && (i == 0 || "fouille".equals(special));
+                t.variante = HASARD.nextInt(Genetique.VARIANTES.getOrDefault(t.genre, 1));
             }
             d.suspects = suspects(cible.espece, bassin, "exceptionnel".equals(special), eau);
             return d;
@@ -815,8 +823,9 @@ public final class Moteur {
         Paquet p = Paquet.de("ouvrir");
         p.donnees().putString("ecran", "prelevement");
         p.donnees().putString("genre", trace.genre);
-        p.donnees().putString("jeu", Genetique.jeuPrelevement(trace.genre, trace.enfoui));
+        p.donnees().putString("jeu", Genetique.jeuPrelevement(trace.genre, trace.enfoui, d.special, new Random(d.graine ^ trace.genre.hashCode())));
         p.donnees().putBoolean("enfoui", trace.enfoui);
+        p.donnees().putInt("variante", trace.variante);
         p.donnees().putLong("graine", HASARD.nextLong());
         envoyer(joueur, p);
     }
@@ -843,8 +852,10 @@ public final class Moteur {
         donnees.putString("genre", trace.genre);
         donnees.putInt("doses", doses);
         donnees.putBoolean("enfoui", trace.enfoui);
+        donnees.putInt("variante", trace.variante);
         List<String> jeux = Genetique.JEUX_ANALYSE.getOrDefault(trace.genre, List.of("sequencage"));
-        donnees.putString("jeu", jeux.get(HASARD.nextInt(jeux.size())));
+        // Piste gelée : une fois sur deux, l'échantillon doit d'abord être dégelé.
+        donnees.putString("jeu", est(d, "givre") && HASARD.nextBoolean() ? "degel" : jeux.get(HASARD.nextInt(jeux.size())));
         echantillon.set(DataComponents.CUSTOM_DATA, CustomData.of(donnees));
         joueur.getInventory().placeItemBackInInventory(echantillon);
         trace.recolte = true;
@@ -856,7 +867,7 @@ public final class Moteur {
         progres(joueur, "premier_prelevement");
         long reste = d.traces.stream().filter(t -> !t.finie()).count();
         annonce(joueur, tr("annonce." + (succes ? (parfait ? "prelevement_parfait" : "prelevement_ok") : "prelevement_abime") + ".titre"),
-                tr("annonce.prelevement.texte", Component.translatable(Genetique.nomTrace(trace.genre, trace.enfoui)), doses,
+                tr("annonce.prelevement.texte", Component.translatable(Genetique.nomTrace(trace.genre, trace.enfoui, trace.variante)), doses,
                         reste > 0 ? tr("annonce.prelevement.reste", reste) : tr("annonce.prelevement.fini")), succes ? 0x6CCB5F : 0xF2C93A);
         synchroniser(joueur);
     }
@@ -1018,7 +1029,7 @@ public final class Moteur {
         fixer(monde, trace, pos, Direction.UP);
         joueur.playNotifySound(SoundEvents.BRUSH_SAND_COMPLETED, SoundSource.PLAYERS, 1f, 1f);
         progres(joueur, "indice_degage");
-        annonce(joueur, "indice_degage", 0x6CCB5F, Component.translatable(Genetique.nomTrace(trace.genre, true)));
+        annonce(joueur, "indice_degage", 0x6CCB5F, Component.translatable(Genetique.nomTrace(trace.genre, true, trace.variante)));
         synchroniser(joueur);
     }
 
@@ -1038,7 +1049,7 @@ public final class Moteur {
                 ServerPlayer proprietaire = serveur.getServer().getPlayerList().getPlayer(en.getKey());
                 if (proprietaire != null) {
                     proprietaire.playNotifySound(SoundEvents.TURTLE_EGG_BREAK, SoundSource.PLAYERS, 1f, 0.8f);
-                    annonce(proprietaire, "indice_detruit", 0xE8543A, Component.translatable(Genetique.nomTrace(t.genre, true)));
+                    annonce(proprietaire, "indice_detruit", 0xE8543A, Component.translatable(Genetique.nomTrace(t.genre, true, t.variante)));
                     synchroniser(proprietaire);
                 }
                 return;
@@ -1060,7 +1071,7 @@ public final class Moteur {
 
     private static void fixer(ServerLevel monde, Trace t, BlockPos pos, Direction appui) {
         int genre = Genetique.MARQUEURS.indexOf(t.genre);
-        if (t.enfoui) genre = t.genre.equals("taille") ? 5 : t.genre.equals("oeuf") ? 6 : 7;
+        if (t.enfoui) genre = Genetique.blocEnfoui(t.genre, t.variante);
         monde.setBlock(pos, Contenu.TRACE.defaultBlockState().setValue(Contenu.BlocTrace.GENRE, genre)
                 .setValue(Contenu.BlocTrace.APPUI, appui).setValue(Contenu.BlocTrace.EAU, monde.getFluidState(pos).is(FluidTags.WATER)), 3);
         t.px = pos.getX();
@@ -1194,6 +1205,28 @@ public final class Moteur {
             annonce(joueur, "nocturne_silence", 0xF2C93A);
             return;
         }
+        if (est(d, "brume")) {
+            // Dans la brume, il faut d'abord isoler le cri du bruit : le relevé se fait à l'issue du mini-jeu.
+            FILTRAGES.put(joueur.getUUID(), Boolean.TRUE);
+            Paquet p = Paquet.de("ouvrir");
+            p.donnees().putString("ecran", "filtrage");
+            p.donnees().putLong("graine", HASARD.nextLong());
+            envoyer(joueur, p);
+            return;
+        }
+        relever(joueur, d, 1);
+    }
+
+    // Résultat du filtrage du cri : réussi, le relevé est aussi précis qu'ailleurs ; raté, il est nettement plus flou.
+    static void resultatFiltrage(ServerPlayer joueur, boolean succes) {
+        if (FILTRAGES.remove(joueur.getUUID()) == null) return;
+        Dossier d = dossier(joueur);
+        if (d == null || !"TRAQUE".equals(d.phase) || !d.monde.equals(dimension(joueur))) return;
+        relever(joueur, d, succes ? 1 : 1.8);
+    }
+
+    private static void relever(ServerPlayer joueur, Dossier d, double flou) {
+        long maintenant = System.currentTimeMillis();
         Releve dernier = d.releves.isEmpty() ? null : d.releves.get(d.releves.size() - 1);
         if (dernier != null && !dernier.perime && distance(joueur, dernier.x, dernier.z) < reglages.distanceEntreReleves) {
             annonce(joueur, "meme_ecoute", 0xF2C93A, reglages.distanceEntreReleves);
@@ -1204,7 +1237,7 @@ public final class Moteur {
         double dx = d.taniereX - joueur.getX(), dz = d.taniereZ - joueur.getZ();
         double dist = Math.sqrt(dx * dx + dz * dz);
         double vrai = Math.toDegrees(Math.atan2(dx, -dz));
-        double erreur = Math.max(reglages.erreurMinDegres, Math.min(reglages.erreurMaxDegres, dist / 22)) * (est(d, "brume") ? 1.8 : 1);
+        double erreur = Math.max(reglages.erreurMinDegres, Math.min(reglages.erreurMaxDegres, dist / 22)) * flou;
         // Le bruit dépend de l'endroit (et pas du moment) : refaire le relevé au même endroit ne l'améliore pas.
         Random bruit = new Random(d.graine ^ (((long) joueur.getBlockX() >> 3) * 73428767L) ^ (((long) joueur.getBlockZ() >> 3) * 912931L) ^ d.fuites);
         Releve r = new Releve();

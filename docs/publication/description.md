@@ -26,7 +26,8 @@ The cleaner your investigation, the better the reward: up to **four perfect IVs*
 
 ## Features
 
-- **15 mini-games**: memory, timing, steady hand, code breaking, colour mixing, pattern matching and more.
+- **31 mini-games**: memory, timing, rhythm, steady hand, code breaking, colour mixing, pattern matching and more,
+  including games tied to the kind of case (free dive, tree climb, abseil, UV lamp, thawing, cry filter).
 - **Buried clues** to dig up and brush out, like suspicious sand.
 - **Ten kinds of special investigations**, several tied to the biome: aquatic cases with traces on the bottom of the
   water, dig sites in the desert, canopy cases in forests, highlands, frost, mist, plus nocturnal, skittish, restless

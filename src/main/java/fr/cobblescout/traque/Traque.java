@@ -44,6 +44,7 @@ public class Traque implements ModInitializer {
                         case "abandonner" -> Moteur.abandonner(joueur);
                         case "ecarter" -> Moteur.ecarter(joueur, d.getString("espece"));
                         case "analyse" -> Moteur.resultatAnalyse(joueur, d.getBoolean("succes"));
+                        case "filtrage" -> Moteur.resultatFiltrage(joueur, d.getBoolean("succes"));
                         case "prelevement" -> Moteur.resultatPrelevement(joueur, d.getBoolean("succes"), d.getBoolean("parfait"));
                         default -> {}
                     }

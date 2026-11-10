@@ -532,8 +532,8 @@ final class JeuxTerrain {
         int temps = DUREE, fautes, flash, repos, trouves, tic;
         double sx = -1, sy = -1, cx, cy;
 
-        Degagement(Random h, String genre) {
-            indice = Dessin.texture("enfoui_" + genre);
+        Degagement(Random h, String genre, int variante) {
+            indice = Dessin.iconeEnfoui(genre, variante);
             java.util.Arrays.fill(terre, 1f);
             // Les fragments sont enfouis n'importe où, sans se chevaucher.
             for (int i = 0; i < FRAGMENTS; i++) {

@@ -96,9 +96,10 @@ public class TraqueClient implements ClientModInitializer {
                             case "tableau" -> mc.setScreen(new EcranTableau());
                             case "kit" -> mc.setScreen(new EcranKit());
                             case "analyse" -> mc.setScreen(new EcranAnalyse(d.getString("genre"), d.getString("jeu"), d.getLong("graine"),
-                                    d.getInt("doses"), d.getBoolean("filet"), d.getBoolean("enfoui"), false));
+                                    d.getInt("doses"), d.getBoolean("filet"), d.getBoolean("enfoui"), false, d.getInt("variante")));
                             case "prelevement" -> mc.setScreen(new EcranAnalyse(d.getString("genre"), d.getString("jeu"), d.getLong("graine"),
-                                    0, false, d.getBoolean("enfoui"), true));
+                                    0, false, d.getBoolean("enfoui"), true, d.getInt("variante")));
+                            case "filtrage" -> mc.setScreen(new EcranAnalyse("", "filtrage", d.getLong("graine"), 0, false, false, true, 0));
                             default -> {}
                         }
                     }
