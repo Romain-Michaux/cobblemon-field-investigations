@@ -541,14 +541,15 @@ final class JeuxNouveaux {
         }
     }
 
-    // ---------- Tri des fragments (nid) : glisser chaque objet dans son compartiment, sans pousser les autres au mauvais endroit ----------
+    // ---------- Tri des fragments (nid) : lancer chaque coquille dans la boîte, vite, sans que les chocs envoient le reste n'importe où ----------
 
     static final class Tri extends Jeu {
         static final ResourceLocation PLATEAU = Dessin.texture("plateau");
         static final ResourceLocation[] DEBRIS = {Dessin.texture("debris_coquille"), Dessin.texture("debris_brindille"),
                 Dessin.texture("debris_feuille"), Dessin.texture("debris_caillou")};
-        static final int N = 13, COQUILLES = 5, DUREE = 560, RAYON = 7, REBUT = 26, BOITE = L - 26;
-        final double[] x = new double[N], y = new double[N];
+        static final int N = 13, COQUILLES = 5, DUREE = 260, RAYON = 7, REBUT = 26, BOITE = L - 26;
+        static final double FROTTEMENT = 0.94, REBOND = 0.75, VITESSE_MAX = 11;
+        final double[] x = new double[N], y = new double[N], vx = new double[N], vy = new double[N];
         final int[] sorte = new int[N];
         final boolean[] sorti = new boolean[N];
         int tenu = -1, rangees, restantes = COQUILLES, fautes, temps = DUREE, flash, tic, dernierChoc;
@@ -582,18 +583,32 @@ final class JeuxNouveaux {
             }
             presser(temps, DUREE);
             tic++;
-            if (!appui) tenu = -1;
+            if (!appui) tenu = -1; // lâché : l'objet garde son élan et continue sur sa lancée
             if (tenu >= 0) {
-                // L'objet tenu suit la souris, sans jamais aller plus vite que trois pixels par tic : il pousse, il ne saute pas.
-                double dx = cx - ox - 4 - x[tenu], dy = cy - oy - 3 - y[tenu], d = Math.hypot(dx, dy);
-                if (d > 0.5) {
-                    double pas = Math.min(3, d);
-                    x[tenu] += dx / d * pas;
-                    y[tenu] += dy / d * pas;
+                // L'objet tenu file vers la souris ; sa vitesse est celle qu'il gardera quand on le lâchera.
+                double dx = (cx - ox - 4 - x[tenu]) * 0.55, dy = (cy - oy - 3 - y[tenu]) * 0.55, v = Math.hypot(dx, dy);
+                if (v > VITESSE_MAX) {
+                    dx *= VITESSE_MAX / v;
+                    dy *= VITESSE_MAX / v;
                 }
+                vx[tenu] = dx;
+                vy[tenu] = dy;
             }
-            // Les objets se repoussent : celui qu'on tient ne cède pas, les autres s'écartent (et poussent à leur tour).
-            for (int passe = 0; passe < 3; passe++) {
+            // Deux demi-pas par tic, pour qu'un objet lancé vite ne traverse pas ses voisins.
+            for (int pas = 0; pas < 2; pas++) {
+                for (int i = 0; i < N; i++) {
+                    if (sorti[i]) continue;
+                    x[i] += vx[i] / 2;
+                    y[i] += vy[i] / 2;
+                    // Les bords du haut et du bas renvoient l'objet.
+                    if (y[i] < RAYON) {
+                        y[i] = RAYON;
+                        vy[i] = Math.abs(vy[i]) * 0.5;
+                    } else if (y[i] > H - RAYON) {
+                        y[i] = H - RAYON;
+                        vy[i] = -Math.abs(vy[i]) * 0.5;
+                    }
+                }
                 for (int i = 0; i < N; i++) {
                     for (int k = i + 1; k < N; k++) {
                         if (sorti[i] || sorti[k]) continue;
@@ -604,22 +619,46 @@ final class JeuxNouveaux {
                             dy = 0;
                             d = 1;
                         }
+                        double nx = dx / d, ny = dy / d;
+                        // Celui qu'on tient ne cède pas ; sinon chacun recule de moitié.
                         double pi = i == tenu ? 0 : k == tenu ? 1 : 0.5;
-                        x[i] -= dx / d * manque * pi;
-                        y[i] -= dy / d * manque * pi;
-                        x[k] += dx / d * manque * (1 - pi);
-                        y[k] += dy / d * manque * (1 - pi);
-                        if (tenu >= 0 && tic - dernierChoc > 5) {
+                        x[i] -= nx * manque * pi;
+                        y[i] -= ny * manque * pi;
+                        x[k] += nx * manque * (1 - pi);
+                        y[k] += ny * manque * (1 - pi);
+                        // Choc : la vitesse d'approche passe de l'un à l'autre, comme au billard.
+                        double approche = (vx[k] - vx[i]) * nx + (vy[k] - vy[i]) * ny;
+                        if (approche >= 0) continue;
+                        double elan = (1 + REBOND) * approche;
+                        if (i == tenu) {
+                            vx[k] -= elan * nx;
+                            vy[k] -= elan * ny;
+                        } else if (k == tenu) {
+                            vx[i] += elan * nx;
+                            vy[i] += elan * ny;
+                        } else {
+                            vx[i] += elan / 2 * nx;
+                            vy[i] += elan / 2 * ny;
+                            vx[k] -= elan / 2 * nx;
+                            vy[k] -= elan / 2 * ny;
+                        }
+                        if (approche < -1.2 && tic - dernierChoc > 2) {
                             dernierChoc = tic;
-                            Dessin.bip(SoundEvents.STONE_HIT, 1.5f, 0.3f);
+                            Dessin.bip(SoundEvents.STONE_HIT, (float) Math.min(2, 1 - approche / 10), (float) Math.min(0.8, 0.2 - approche / 12));
                         }
                     }
                 }
             }
             for (int i = 0; i < N; i++) {
                 if (sorti[i]) continue;
-                x[i] = Math.max(RAYON, Math.min(L - RAYON, x[i]));
-                y[i] = Math.max(RAYON, Math.min(H - RAYON, y[i]));
+                if (i != tenu) {
+                    vx[i] *= FROTTEMENT;
+                    vy[i] *= FROTTEMENT;
+                    if (Math.hypot(vx[i], vy[i]) < 0.06) {
+                        vx[i] = 0;
+                        vy[i] = 0;
+                    }
+                }
                 boolean rebut = x[i] < REBUT - 2, boite = x[i] > BOITE + 2;
                 if (!rebut && !boite) continue;
                 // Tombé dans un compartiment : il n'en ressort plus.
@@ -647,7 +686,7 @@ final class JeuxNouveaux {
 
         @Override
         void clic(double mx, double my) {
-            double lx = mx - ox - 4, ly = my - oy - 3, proche = RAYON + 3;
+            double lx = mx - ox - 4, ly = my - oy - 3, proche = RAYON + 4;
             tenu = -1;
             for (int i = 0; i < N; i++) {
                 double d = Math.hypot(lx - x[i], ly - y[i]);
@@ -676,22 +715,25 @@ final class JeuxNouveaux {
             Dessin.image(g, DEBRIS[3], bx + 5, by + 26, 16, 16);
             Dessin.image(g, DEBRIS[0], bx + BOITE + 5, by + 6, 16, 16);
             g.setColor(1f, 1f, 1f, 1f);
+            g.enableScissor(bx, by, bx + L, by + H);
             for (int i = 0; i < N; i++) {
                 if (sorti[i]) continue;
-                int x0 = bx + (int) Math.round(x[i]), y0 = by + (int) Math.round(y[i]);
+                // Entre deux tics, l'objet est dessiné là où son élan le porte : le mouvement reste fluide.
+                int x0 = bx + (int) Math.round(x[i] + (fini ? 0 : vx[i] * pt)), y0 = by + (int) Math.round(y[i] + (fini ? 0 : vy[i] * pt));
                 if (i == tenu) Dessin.cercle(g, x0 - 0.5, y0 - 0.5, RAYON + 2, 1, Dessin.JAUNE);
                 Dessin.image(g, DEBRIS[sorte[i]], x0 - 8, y0 - 8, 16, 16);
             }
+            g.disableScissor();
             int tx = ox + 172;
             texte(g, T.f("shells_2") + rangees + " / " + COQUILLES, tx, oy + 10, Dessin.TEXTE);
             texte(g, T.f("mistakes") + fautes + " / 3", tx, oy + 22, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS);
-            Dessin.paragraphe(g, T.f("objects_push_each_other_clear"), tx, oy + 42, 104, Dessin.SOMBRE);
+            Dessin.paragraphe(g, T.f("throw_the_shells_they_keep"), tx, oy + 42, 104, Dessin.SOMBRE);
             jaugeTemps(g, tx, oy + 104, 100, temps / (double) DUREE);
         }
 
         @Override
         String consigne() {
-            return T.f("drag_the_shells_into_the");
+            return T.f("grab_a_shell_and_throw");
         }
     }
 
@@ -1253,6 +1295,8 @@ final class JeuxNouveaux {
                     }
                 } else if (montee >= 22 && !emboite) {
                     montee = -1; // elle retombe : on peut réessayer ailleurs
+                } else if (emboite && pause > 0 && --pause == 0 && !fini) {
+                    nouvelle(); // la réglette reste emboîtée un instant, puis la morsure suivante arrive
                 }
                 return;
             }
@@ -1279,6 +1323,16 @@ final class JeuxNouveaux {
 
         boolean libre() {
             return pause == 0 && montee < 0 && !fini;
+        }
+
+        // Une dent : un corps plein et une pointe qui s'affine sur ses quatre derniers pixels (vers le bas ou vers le haut).
+        static void dent(GuiGraphics g, int x, int racine, int pointe, int couleur, int ombre) {
+            int l = COL - 1, sens = pointe > racine ? 1 : -1, longueur = Math.abs(pointe - racine);
+            for (int k = 0; k < longueur; k++) {
+                int reste = longueur - 1 - k, r = reste < 2 ? 3 : reste < 4 ? 1 : 0, y = sens > 0 ? racine + k : racine - 1 - k;
+                g.fill(x + r, y, x + l - r, y + 1, couleur);
+                g.fill(x + l - r - 2, y, x + l - r, y + 1, ombre);
+            }
         }
 
         @Override
@@ -1310,23 +1364,24 @@ final class JeuxNouveaux {
             boolean bute = montee >= 8 && !emboite;
             int x0 = ax + 2 + 3 * COL, haut = ay + 6, base = haut + MAX * U + REPOS + 6 - leve;
             // La morsure : une gencive en haut, des dents qui pendent.
-            g.fill(x0 - 4, haut - 4, x0 + N * COL + 3, haut, 0xFFB5746A);
+            g.fill(x0 - 4, haut - 5, x0 + N * COL + 3, haut + 1, 0xFFC97A70);
+            g.fill(x0 - 4, haut - 5, x0 + N * COL + 3, haut - 3, 0xFFE0A096);
             for (int i = 0; i < N; i++) {
                 int x = x0 + i * COL, bas = haut + morsure[i] * U;
                 boolean contact = bute && jeu(i, position) == course;
-                g.fill(x, haut, x + COL - 1, bas, contact ? Dessin.ALERTE : emboite ? 0xFFBFE8C8 : 0xFFEDE6D2);
-                g.fill(x, bas - 2, x + COL - 1, bas, contact ? 0xFF8E2B26 : 0xFFC9BFA4);
+                dent(g, x, haut, bas, contact ? Dessin.ALERTE : emboite ? 0xFFBFE8C8 : 0xFFF4EEDC, contact ? 0xFF8E2B26 : emboite ? 0xFF8FC8A0 : 0xFFCFC4A6);
             }
             // La réglette de moulage : treize dents, dont sept seulement se trouvent sous la morsure.
-            g.fill(ax + 2, base, ax + 2 + M * COL - 1, base + 6, 0xFF7C8FA3);
+            g.fill(ax + 2, base - 1, ax + 2 + M * COL - 1, base + 6, 0xFFC97A70);
+            g.fill(ax + 2, base + 4, ax + 2 + M * COL - 1, base + 6, 0xFF9C5850);
             for (int j = 0; j < M; j++) {
                 int ecran = j - position + 3;
                 if (ecran < 0 || ecran >= M) continue;
                 int x = ax + 2 + ecran * COL, sommet = base - reglette[j] * U;
                 boolean dessous = ecran >= 3 && ecran < 3 + N;
                 boolean contact = bute && dessous && jeu(ecran - 3, position) == course;
-                g.fill(x, sommet, x + COL - 1, base, contact ? Dessin.ALERTE : !dessous ? 0xFF55606C : emboite ? 0xFF8FD8A0 : 0xFFE9A15B);
-                g.fill(x, sommet, x + COL - 1, sommet + 2, contact ? 0xFFFFB0A0 : dessous ? 0xFFFFD9A8 : 0xFF6E7A88);
+                dent(g, x, base - 1, sommet - 1, contact ? Dessin.ALERTE : !dessous ? 0xFF6E7A88 : emboite ? 0xFF8FD8A0 : 0xFFF2B56A,
+                        contact ? 0xFF8E2B26 : !dessous ? 0xFF55606C : emboite ? 0xFF5FA870 : 0xFFC98A3A);
             }
             // Repères : la partie de la réglette qui sera pressée contre la morsure.
             g.fill(x0 - 2, ay + H - 6, x0 + N * COL + 1, ay + H - 4, Dessin.JAUNE);
@@ -1595,6 +1650,9 @@ final class JeuxNouveaux {
 
     static final class Grimpe extends Jeu {
         static final ResourceLocation ECORCE = Dessin.texture("ecorce");
+        // Branches vivantes et mortes, tournées vers la gauche ou vers la droite.
+        static final ResourceLocation[][] BRANCHES = {{Dessin.texture("branche_g"), Dessin.texture("branche_d")},
+                {Dessin.texture("branche_morte_g"), Dessin.texture("branche_morte_d")}};
         static final int N = 20, LIGNE = 84, MARGE = 7;
         final int[] cote = new int[N], hauteur = new int[N];
         final boolean[] morte = new boolean[N];
@@ -1670,16 +1728,16 @@ final class JeuxNouveaux {
             g.fill(bx, by + LIGNE - MARGE, bx + L, by + LIGNE + MARGE, 0x30FFFFFF);
             g.fill(bx, by + LIGNE - MARGE, bx + L, by + LIGNE - MARGE + 1, 0xA0FFFFFF);
             g.fill(bx, by + LIGNE + MARGE - 1, bx + L, by + LIGNE + MARGE, 0xA0FFFFFF);
+            g.enableScissor(bx, by, bx + L, by + H);
             for (int i = 0; i < N; i++) {
                 double y = y(i);
-                if (etat[i] != 0 || y < -6 || y > H + 6) continue;
-                int x = bx + (cote[i] == 0 ? 40 : 120), py = by + (int) y;
+                if (etat[i] != 0 || y < -18 || y > H + 18) continue;
+                int x = bx + (cote[i] == 0 ? 44 : 116), py = by + (int) y;
                 boolean pret = i == prochaine && Math.abs(y - LIGNE) <= MARGE && !morte[i];
-                g.fill(x - 11, Math.max(by, py - 5), x + 11, Math.min(by + H, py + 5), pret ? Dessin.VERT : 0xFF2A1C10);
-                g.fill(x - 9, Math.max(by, py - 3), x + 9, Math.min(by + H, py + 3), morte[i] ? 0xFF6B4A4A : 0xFFC89A62);
-                // Une branche morte est grise et fendue.
-                if (morte[i]) g.fill(x - 1, Math.max(by, py - 3), x + 1, Math.min(by + H, py + 3), 0xFF2A1C10);
+                if (pret) g.fill(x - 18, py - 9, x + 18, py + 9, 0x7040E070);
+                Dessin.image(g, BRANCHES[morte[i] ? 1 : 0][cote[i]], x - 16, py - 16, 32, 32);
             }
+            g.disableScissor();
             int tx = ox + 172;
             texte(g, T.f("holds") + prises + " / " + bonnes, tx, oy + 10, Dessin.TEXTE);
             texte(g, T.f("slips_2") + fautes + " / 3", tx, oy + 22, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS);

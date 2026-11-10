@@ -189,3 +189,13 @@ sauver(verre, "gui", "erlenmeyer")
 sauver(liquide, "gui", "erlenmeyer_liquide")
 
 # Les fichiers de langue sont écrits par outils/gen_langues.py.
+
+# Branches de la grimpe : l'image PixelLab pointe vers la droite ; celle de gauche est son miroir.
+from PIL import ImageOps
+for nom in ("branche", "branche_morte"):
+    brut = ouvrir(nom)
+    decoupe = brut.crop(brut.getbbox())
+    im = Image.new("RGBA", (32, 32))
+    im.alpha_composite(decoupe, ((32 - decoupe.width) // 2, (32 - decoupe.height) // 2))  # centrée sur sa case
+    sauver(im, "gui", nom + "_d")
+    sauver(ImageOps.mirror(im), "gui", nom + "_g")

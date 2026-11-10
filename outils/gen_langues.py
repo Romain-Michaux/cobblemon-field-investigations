@@ -458,6 +458,12 @@ NOUVEAUX += [
     ("Fais glisser les coquilles dans la boîte de droite. Un débris qui y tombe, ou une coquille poussée au rebut à gauche, compte comme une erreur.",
      "Drag the shells into the box on the right. Debris falling into it, or a shell pushed into the bin on the left, counts as a mistake."),
 ]
+NOUVEAUX += [
+    ("Lance les coquilles : elles gardent leur élan, et cognent ce qu'elles croisent.",
+     "Throw the shells: they keep their momentum and knock into whatever is in the way."),
+    ("Attrape une coquille et lance-la dans la boîte de droite. Le temps presse, mais un débris cogné dans la boîte ou une coquille au rebut est une erreur.",
+     "Grab a shell and throw it into the box on the right. Time is short, but debris knocked into the box or a shell in the bin is a mistake."),
+]
 _deja = {f for f, _ in UI}
 UI += [t for t in NOUVEAUX if t[0] not in _deja]
 
