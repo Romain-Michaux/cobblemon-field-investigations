@@ -38,7 +38,7 @@ final class Demo {
             CompoundTag t = new CompoundTag();
             t.putInt("reussies", 3);
             ListTag pistes = new ListTag();
-            String[] speciaux = {"", "nocturne", "exceptionnel"};
+            String[] speciaux = {"", "aquatique", "fouille"};
             for (int i = 0; i < 3; i++) {
                 CompoundTag c = new CompoundTag();
                 c.putInt("rang", i);

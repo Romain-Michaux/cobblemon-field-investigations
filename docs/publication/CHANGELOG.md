@@ -4,11 +4,15 @@
 
 - **Pick your case**: the kit now reports up to three leads. Each shows the rarity of the species, where the zone is,
   whether you already caught that species, and what it rewards.
-- **Special investigations**, each with its own rule and reward:
-  - Nocturnal: traces, cries and the target only show at night. Shiny odds ×2.
-  - Skittish: the target senses you from much farther away. Double special loot.
-  - Exceptional: one more analysis result required, look-alike suspects. Hidden ability guaranteed.
-  - New loot table `traque/speciale`, rolled for every special case.
+- **Ten kinds of special investigations**, each with its own rule and reward:
+  - Anywhere: nocturnal (night only, shiny odds ×2), skittish (senses you from farther, double special loot),
+    exceptional (one more result required, look-alike suspects, hidden ability), restless (moves twice as often,
+    farther lair, double special loot).
+  - By biome: aquatic (water species, traces on the bottom, target in the water), dig site (every remain buried),
+    canopy (traces in the trees), highlands (traces on rock faces, wider zone), frost (one dose fewer per sample),
+    mist (less precise bearings).
+  - New loot tables: `traque/speciale` for every special case, `traque/type_<kind>` for the biome kinds.
+  - Traces can now sit under water.
 - **Advancements**: nine of them, from the first sample to ten solved cases.
 - **Accessibility**: per-player colour aid (colorimetry shows the match percentage while you mix); server setting
   `difficulteMiniJeux` (`easy`, `normal`, `hard`) for the pace of every mini-game.

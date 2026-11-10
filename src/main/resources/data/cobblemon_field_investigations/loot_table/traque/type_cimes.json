@@ -1,0 +1,60 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:nest_ball",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3,
+                "max": 5
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:leaf_stone",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:miracle_seed",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:big_root",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:green_apricorn",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3,
+                "max": 6
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:silk_scarf",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

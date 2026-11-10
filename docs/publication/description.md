@@ -28,8 +28,9 @@ The cleaner your investigation, the better the reward: up to **four perfect IVs*
 
 - **15 mini-games**: memory, timing, steady hand, code breaking, colour mixing, pattern matching and more.
 - **Buried clues** to dig up and brush out, like suspicious sand.
-- **Special investigations**: nocturnal targets that only show at night, skittish ones to scan from afar, exceptional
-  specimens with their hidden ability.
+- **Ten kinds of special investigations**, several tied to the biome: aquatic cases with traces on the bottom of the
+  water, dig sites in the desert, canopy cases in forests, highlands, frost, mist, plus nocturnal, skittish, restless
+  and exceptional targets. Each has its own rule and its own loot.
 - **Advancements** for your first steps and your best cases.
 - **Accessibility**: a colour aid for the colour-based mini-game and a server-side pace setting for all mini-games.
 - **A 5-star rating** for every case. Failed mini-games, a fleeing target or a wrong guess cost stars; stars decide the

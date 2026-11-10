@@ -52,6 +52,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -114,15 +116,48 @@ public final class Moteur {
         public int nombrePistes = 3;
         public int minutesValiditePistes = 10;
         // Chance qu'un signalement (autre que le premier) soit une enquête spéciale : nocturne, craintive ou exceptionnelle.
-        public double chanceEnqueteSpeciale = 0.3;
+        public double chanceEnqueteSpeciale = 0.5;
         // Rythme des mini-jeux : "easy" (un tiers plus lent), "normal" ou "hard" (un quart plus rapide).
         public String difficulteMiniJeux = "normal";
     }
 
-    // Enquêtes spéciales. Nocturne : traces, cris et cible seulement la nuit (chance de chromatique doublée).
-    // Craintive : elle repère le joueur de bien plus loin (butin spécial doublé). Exceptionnelle : un résultat d'analyse
-    // de plus est exigé et les suspects se ressemblent tous (talent caché garanti). Toutes donnent le butin « speciale ».
-    static final List<String> SPECIAUX = List.of("nocturne", "craintive", "exceptionnel");
+    // Enquêtes spéciales : chacune a sa règle et sa récompense (toutes donnent le butin « speciale », et « type_<nom> » s'il existe).
+    // Possibles partout :
+    //  - nocturne : traces, cris et cible seulement la nuit (chance de chromatique doublée) ;
+    //  - craintive : elle repère le joueur de bien plus loin (butin spécial doublé) ;
+    //  - exceptionnel : un résultat d'analyse de plus, suspects tous ressemblants (talent caché garanti) ;
+    //  - migratrice : elle se déplace deux fois plus souvent et sa tanière est plus loin (butin spécial doublé).
+    // Liées au biome de la zone de traces :
+    //  - aquatique (océan, rivière) : espèces d'eau, traces au fond de l'eau, cible dans l'eau ;
+    //  - fouille (désert, badlands, plage) : tous les restes sont enfouis ;
+    //  - cimes (forêt, jungle, taïga) : traces sur les troncs et au sommet des arbres ;
+    //  - altitude (montagne, collines) : traces sur les parois, zone de recherche bien plus vaste ;
+    //  - givre (biomes enneigés) : échantillons fragiles, une dose de moins ;
+    //  - brume (marais) : les cris portent mal, relevés moins précis.
+    static final List<String> GENERIQUES = List.of("nocturne", "craintive", "exceptionnel", "migratrice");
+
+    // Type lié au biome : il s'applique si le biome porte l'une de ces étiquettes, ou si son nom contient l'un de ces mots
+    // (pour les biomes de mods qui ne sont pas étiquetés).
+    private record Milieu(String type, List<String> etiquettes, List<String> mots) {}
+
+    private static final List<Milieu> MILIEUX = List.of(
+            new Milieu("fouille", List.of("c:is_desert", "minecraft:is_badlands", "minecraft:is_beach", "c:is_sandy"), List.of("desert", "badlands", "beach", "dune")),
+            new Milieu("cimes", List.of("minecraft:is_forest", "minecraft:is_jungle", "minecraft:is_taiga"), List.of("forest", "jungle", "taiga", "woods")),
+            new Milieu("altitude", List.of("minecraft:is_mountain", "minecraft:is_hill", "c:is_mountain"), List.of("mountain", "peak", "hills", "highland", "cliff")),
+            new Milieu("givre", List.of("c:is_snowy", "c:is_icy"), List.of("snow", "frozen", "ice", "glacier", "tundra")),
+            new Milieu("brume", List.of("c:is_swamp"), List.of("swamp", "marsh", "bog", "bayou", "mangrove")));
+
+    private static List<String> typesDuBiome(Holder<Biome> biome) {
+        String nom = biome.unwrapKey().map(k -> k.location().getPath()).orElse("");
+        List<String> types = new ArrayList<>();
+        for (Milieu m : MILIEUX) {
+            boolean ok = false;
+            for (String e : m.etiquettes) ok |= biome.is(TagKey.create(Registries.BIOME, ResourceLocation.parse(e)));
+            for (String mot : m.mots) ok |= nom.contains(mot);
+            if (ok) types.add(m.type);
+        }
+        return types;
+    }
 
     public static class Trace {
         public String genre;
@@ -288,7 +323,7 @@ public final class Moteur {
             t.putBoolean("nouvelle", d.nouvelle);
             t.putDouble("zoneX", d.zoneX);
             t.putDouble("zoneZ", d.zoneZ);
-            t.putInt("rayonZone", reglages.rayonZone);
+            t.putInt("rayonZone", rayon(d));
             t.putInt("requis", requis(d));
             t.putString("special", d.special == null ? "" : d.special);
             t.putString("pronostic", d.pronostic == null ? "" : d.pronostic);
@@ -389,6 +424,17 @@ public final class Moteur {
     // Distance en dessous de laquelle la cible repère le joueur.
     static int alerte(Dossier d) {
         return est(d, "craintive") ? (int) Math.round(reglages.rayonAlerte * 1.6) : reglages.rayonAlerte;
+    }
+
+    // Rayon de la zone de traces.
+    static int rayon(Dossier d) {
+        return est(d, "altitude") ? (int) Math.round(reglages.rayonZone * 1.5) : reglages.rayonZone;
+    }
+
+    // Délai avant que la cible change d'endroit pendant la traque (0 = jamais).
+    private static long prochainDeplacement(Dossier d) {
+        if (reglages.minutesAvantDeplacement <= 0) return 0;
+        return System.currentTimeMillis() + reglages.minutesAvantDeplacement * 60_000L / (est(d, "migratrice") ? 2 : 1);
     }
 
     // Une cible nocturne ne laisse rien voir ni entendre en plein jour.
@@ -500,8 +546,9 @@ public final class Moteur {
         Set<String> prises = new HashSet<>();
         for (int i = 0; i < voulu; i++) {
             // Le premier signalement est toujours ordinaire : il y a toujours une enquête classique au choix.
-            String special = i > 0 && HASARD.nextDouble() < reglages.chanceEnqueteSpeciale ? SPECIAUX.get(HASARD.nextInt(SPECIAUX.size())) : null;
+            boolean special = i > 0 && HASARD.nextDouble() < reglages.chanceEnqueteSpeciale;
             Dossier d = signalement(joueur, monde, dim, pokedex, prises, special);
+            if (d == null && special) d = signalement(joueur, monde, dim, pokedex, prises, false);
             if (d == null) break;
             prises.add(d.espece);
             pistes.add(d);
@@ -558,18 +605,30 @@ public final class Moteur {
     }
 
     // Tire un signalement autour du joueur : une zone de traces, une tanière, une espèce du biome et ses suspects.
-    private static Dossier signalement(ServerPlayer joueur, ServerLevel monde, String dim, PokedexManager pokedex, Set<String> prises, String special) {
+    // Avec « specialVoulu », le type dépend de l'endroit tiré : aquatique si la zone tombe dans l'eau, sinon un type
+    // possible partout ou (trois fois plus souvent) un type propre au biome de la zone.
+    private static Dossier signalement(ServerPlayer joueur, ServerLevel monde, String dim, PokedexManager pokedex, Set<String> prises, boolean specialVoulu) {
         for (int essai = 0; essai < 60; essai++) {
             double a1 = HASARD.nextDouble() * Math.PI * 2;
             double d1 = reglages.zoneDistanceMin + HASARD.nextDouble() * (reglages.zoneDistanceMax - reglages.zoneDistanceMin);
             double zx = joueur.getX() + Math.cos(a1) * d1, zz = joueur.getZ() + Math.sin(a1) * d1;
-            if (aquatique(monde, zx, zz)) continue;
+            boolean eau = aquatique(monde, zx, zz);
+            if (eau && !specialVoulu) continue;
+            String special = null;
+            if (eau) {
+                special = "aquatique";
+            } else if (specialVoulu) {
+                List<String> possibles = new ArrayList<>(GENERIQUES);
+                for (String t : typesDuBiome(monde.getBiome(BlockPos.containing(zx, 100, zz)))) possibles.addAll(List.of(t, t, t));
+                special = possibles.get(HASARD.nextInt(possibles.size()));
+            }
             double a2 = HASARD.nextDouble() * Math.PI * 2;
-            double d2 = reglages.taniereDistanceMin + HASARD.nextDouble() * (reglages.taniereDistanceMax - reglages.taniereDistanceMin);
+            double d2 = (reglages.taniereDistanceMin + HASARD.nextDouble() * (reglages.taniereDistanceMax - reglages.taniereDistanceMin))
+                    * ("migratrice".equals(special) ? 1.5 : 1);
             double tx = zx + Math.cos(a2) * d2, tz = zz + Math.sin(a2) * d2;
-            if (aquatique(monde, tx, tz)) continue;
+            if (aquatique(monde, tx, tz) != eau) continue; // la tanière est dans le même milieu que les traces
             Holder<Biome> biome = monde.getBiome(BlockPos.containing(tx, 100, tz));
-            List<Candidat> bassin = bassin(biome, monde.dimension().location());
+            List<Candidat> bassin = bassin(biome, monde.dimension().location(), eau);
             bassin.removeIf(c -> prises.contains(c.espece)); // jamais deux signalements pour la même espèce
             if (bassin.size() < 3) continue;
             double total = 0;
@@ -605,7 +664,7 @@ public final class Moteur {
                 Trace t = new Trace();
                 t.genre = m;
                 for (int k = 0; k < 20; k++) {
-                    double a = HASARD.nextDouble() * Math.PI * 2, r = 6 + HASARD.nextDouble() * (reglages.rayonZone - 6);
+                    double a = HASARD.nextDouble() * Math.PI * 2, r = 6 + HASARD.nextDouble() * (rayon(d) - 6);
                     t.x = Math.floor(zx + Math.cos(a) * r) + 0.5;
                     t.z = Math.floor(zz + Math.sin(a) * r) + 0.5;
                     boolean libre = true;
@@ -620,16 +679,20 @@ public final class Moteur {
                 if (Genetique.NOMS_ENFOUIS.containsKey(t.genre)) enfouissables.add(t);
             }
             Collections.shuffle(enfouissables, HASARD);
-            for (int i = 0; i < enfouissables.size(); i++) enfouissables.get(i).enfoui = i == 0 || HASARD.nextInt(3) == 0;
-            d.suspects = suspects(cible.espece, bassin, "exceptionnel".equals(special));
+            // Fouille : tout est enfoui. Sous l'eau : rien ne l'est (on ne brosse pas au fond d'un lac).
+            for (int i = 0; i < enfouissables.size(); i++) {
+                enfouissables.get(i).enfoui = !eau && (i == 0 || "fouille".equals(special) || HASARD.nextInt(3) == 0);
+            }
+            d.suspects = suspects(cible.espece, bassin, "exceptionnel".equals(special), eau);
             return d;
         }
         return null;
     }
 
     private static boolean aquatique(ServerLevel monde, double x, double z) {
-        String nom = monde.getBiome(BlockPos.containing(x, 100, z)).unwrapKey().map(k -> k.location().getPath()).orElse("");
-        return nom.contains("ocean") || nom.contains("river");
+        Holder<Biome> biome = monde.getBiome(BlockPos.containing(x, 100, z));
+        String nom = biome.unwrapKey().map(k -> k.location().getPath()).orElse("");
+        return nom.contains("ocean") || nom.contains("river") || biome.is(net.minecraft.tags.BiomeTags.IS_OCEAN) || biome.is(net.minecraft.tags.BiomeTags.IS_RIVER);
     }
 
     private static boolean possede(PokedexManager pokedex, String espece) {
@@ -637,13 +700,14 @@ public final class Moteur {
         return s != null && pokedex.getHighestKnowledgeForSpecies(s.getResourceIdentifier()) == PokedexEntryProgress.OWNED;
     }
 
-    // Espèces terrestres de surface que Cobblemon fait apparaître dans ce biome (null = partout).
-    private static List<Candidat> bassin(Holder<Biome> biome, ResourceLocation dimension) {
+    // Espèces de surface que Cobblemon fait apparaître dans ce biome (null = partout) : terrestres, ou vivant dans l'eau.
+    private static List<Candidat> bassin(Holder<Biome> biome, ResourceLocation dimension, boolean eau) {
         Map<String, Candidat> resultat = new HashMap<>();
         for (SpawnDetail detail : CobblemonSpawnPools.WORLD_SPAWN_POOL.getDetails()) {
             if (!(detail instanceof PokemonSpawnDetail pokemon)) continue;
             int rang = CATEGORIES.indexOf(detail.getBucket());
-            if (rang < 0 || !"grounded".equals(detail.getSpawnablePositionType().getName())) continue;
+            String position = detail.getSpawnablePositionType().getName();
+            if (rang < 0 || !(eau ? "submerged".equals(position) || "surface".equals(position) : "grounded".equals(position))) continue;
             if (pokemon.getPokemon().getForm() != null || (biome != null && !convient(detail, biome, dimension))) continue;
             String nom = pokemon.getPokemon().getSpecies();
             if (nom == null) continue;
@@ -691,12 +755,12 @@ public final class Moteur {
 
     // La cible + des leurres au profil proche (mais jamais identique : les 5 marqueurs désignent toujours une seule espèce).
     // « serre » (enquête exceptionnelle) : tous les leurres sont pris parmi les profils les plus proches.
-    private static List<String> suspects(String cible, List<Candidat> locaux, boolean serre) {
+    private static List<String> suspects(String cible, List<Candidat> locaux, boolean serre, boolean eau) {
         Species s = PokemonSpecies.getByName(cible);
         Set<String> duCoin = new HashSet<>();
         for (Candidat c : locaux) duCoin.add(c.espece);
         Map<String, Double> notes = new HashMap<>();
-        for (Candidat c : bassin(null, null)) {
+        for (Candidat c : bassin(null, null, eau)) {
             if (c.espece.equals(cible)) continue;
             Species autre = PokemonSpecies.getByName(c.espece);
             int communs = Genetique.communs(s, autre);
@@ -772,6 +836,7 @@ public final class Moteur {
         if (fiole < 0 && !joueur.isCreative()) return;
         if (fiole >= 0 && !joueur.isCreative()) joueur.getInventory().getItem(fiole).shrink(1);
         int doses = succes ? reglages.dosesParEchantillon + (parfait ? 1 : 0) : 1;
+        if (est(d, "givre")) doses = Math.max(1, doses - 1); // échantillon gelé, fragile
         ItemStack echantillon = new ItemStack(Contenu.ECHANTILLON);
         CompoundTag donnees = new CompoundTag();
         donnees.putLong("enquete", d.id);
@@ -815,7 +880,15 @@ public final class Moteur {
             if (monde.getBlockState(trou).canBeReplaced()) fixer(monde, t, trou, Direction.UP);
             return;
         }
+        if (est(d, "aquatique")) {
+            if (!sousLEau(monde, t, bx, bz)) ailleurs(d, t);
+            return;
+        }
         Random h = new Random(d.graine + t.genre.hashCode());
+        // Cimes : tout se trouve dans les arbres. Altitude : sur les parois rocheuses.
+        if (est(d, "cimes") && (h.nextBoolean() ? surCime(monde, t, bx, bz) || surParoi(monde, t, bx, bz, true)
+                : surParoi(monde, t, bx, bz, true) || surCime(monde, t, bx, bz))) return;
+        if (est(d, "altitude") && surParoi(monde, t, bx, bz, false)) return;
         boolean griffures = t.genre.equals("stat");
         boolean paroi = griffures || (t.genre.equals("type2") && h.nextBoolean()) || (t.genre.equals("type1") && h.nextInt(3) == 0);
         boolean cime = t.genre.equals("oeuf") && h.nextBoolean();
@@ -838,13 +911,41 @@ public final class Moteur {
                 }
             }
         }
-        // Rien de praticable à vingt blocs à la ronde (lac, marais...) : la trace est déplacée ailleurs dans la zone
-        // et sera posée au prochain passage. Sans cela, le kit guiderait vers un endroit où il n'y a rien.
-        double a = HASARD.nextDouble() * Math.PI * 2, r = 6 + HASARD.nextDouble() * (reglages.rayonZone - 6);
+        ailleurs(d, t);
+    }
+
+    // Rien de praticable à vingt blocs à la ronde (lac, marais, terre ferme pour une trace aquatique...) : la trace est
+    // déplacée ailleurs dans la zone et sera posée au prochain passage. Sans cela, le kit guiderait vers un endroit vide.
+    private static void ailleurs(Dossier d, Trace t) {
+        double a = HASARD.nextDouble() * Math.PI * 2, r = 6 + HASARD.nextDouble() * (rayon(d) - 6);
         t.x = Math.floor(d.zoneX + Math.cos(a) * r) + 0.5;
         t.z = Math.floor(d.zoneZ + Math.sin(a) * r) + 0.5;
         t.posee = false;
         sauver();
+    }
+
+    // Enquête aquatique : la trace repose au fond de l'eau, de préférence par petit fond (14 blocs au plus).
+    private static boolean sousLEau(ServerLevel monde, Trace t, int bx, int bz) {
+        for (int fondMax : new int[] {14, 48}) {
+            for (int rayon = 0; rayon <= 20; rayon++) {
+                for (int dx = -rayon; dx <= rayon; dx++) {
+                    for (int dz = -rayon; dz <= rayon; dz++) {
+                        if (Math.max(Math.abs(dx), Math.abs(dz)) != rayon) continue;
+                        int x = bx + dx, z = bz + dz;
+                        if (!monde.hasChunk(x >> 4, z >> 4)) continue;
+                        var chunk = monde.getChunk(x >> 4, z >> 4);
+                        int y = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x & 15, z & 15) + 1;
+                        int surface = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x & 15, z & 15);
+                        BlockPos pos = new BlockPos(x, y, z);
+                        if (surface - y < 1 || surface - y > fondMax || !monde.getBlockState(pos).is(Blocks.WATER)) continue;
+                        if (!monde.getFluidState(pos).isSource() || !monde.getBlockState(pos.below()).isFaceSturdy(monde, pos.below(), Direction.UP)) continue;
+                        fixer(monde, t, pos, Direction.UP);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static int matiere(BlockState sol) {
@@ -961,7 +1062,7 @@ public final class Moteur {
         int genre = Genetique.MARQUEURS.indexOf(t.genre);
         if (t.enfoui) genre = t.genre.equals("taille") ? 5 : t.genre.equals("oeuf") ? 6 : 7;
         monde.setBlock(pos, Contenu.TRACE.defaultBlockState().setValue(Contenu.BlocTrace.GENRE, genre)
-                .setValue(Contenu.BlocTrace.APPUI, appui), 3);
+                .setValue(Contenu.BlocTrace.APPUI, appui).setValue(Contenu.BlocTrace.EAU, monde.getFluidState(pos).is(FluidTags.WATER)), 3);
         t.px = pos.getX();
         t.py = pos.getY();
         t.pz = pos.getZ();
@@ -1052,7 +1153,7 @@ public final class Moteur {
         if (cible == null || choix == null || !d.suspects.contains(pronostic) || (d.ecartes != null && d.ecartes.contains(pronostic))) return;
         d.pronostic = pronostic;
         d.phase = "TRAQUE";
-        d.prochainDeplacement = reglages.minutesAvantDeplacement > 0 ? System.currentTimeMillis() + reglages.minutesAvantDeplacement * 60_000L : 0;
+        d.prochainDeplacement = prochainDeplacement(d);
         if (d.monde.equals(dimension(joueur))) retirerTraces(joueur.serverLevel(), d);
         sauver();
         joueur.playNotifySound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.6f, 1.3f);
@@ -1103,7 +1204,7 @@ public final class Moteur {
         double dx = d.taniereX - joueur.getX(), dz = d.taniereZ - joueur.getZ();
         double dist = Math.sqrt(dx * dx + dz * dz);
         double vrai = Math.toDegrees(Math.atan2(dx, -dz));
-        double erreur = Math.max(reglages.erreurMinDegres, Math.min(reglages.erreurMaxDegres, dist / 22));
+        double erreur = Math.max(reglages.erreurMinDegres, Math.min(reglages.erreurMaxDegres, dist / 22)) * (est(d, "brume") ? 1.8 : 1);
         // Le bruit dépend de l'endroit (et pas du moment) : refaire le relevé au même endroit ne l'améliore pas.
         Random bruit = new Random(d.graine ^ (((long) joueur.getBlockX() >> 3) * 73428767L) ^ (((long) joueur.getBlockZ() >> 3) * 912931L) ^ d.fuites);
         Releve r = new Releve();
@@ -1169,12 +1270,19 @@ public final class Moteur {
         return new Recoupement(true, ex, ez, Math.max(10, incertitude), "cobblemon_field_investigations.rec.ok");
     }
 
-    private static void deplacer(Dossier d, double min, double max) {
-        double a = HASARD.nextDouble() * Math.PI * 2, dist = min + HASARD.nextDouble() * (max - min);
-        d.taniereX += Math.cos(a) * dist;
-        d.taniereZ += Math.sin(a) * dist;
+    // La cible change d'endroit, en restant dans son milieu : une cible aquatique reste dans l'eau, les autres à terre.
+    private static void deplacer(Dossier d, ServerLevel monde, double min, double max) {
+        double x = d.taniereX, z = d.taniereZ;
+        for (int essai = 0; essai < 16; essai++) {
+            double a = HASARD.nextDouble() * Math.PI * 2, dist = min + HASARD.nextDouble() * (max - min);
+            x = d.taniereX + Math.cos(a) * dist;
+            z = d.taniereZ + Math.sin(a) * dist;
+            if (aquatique(monde, x, z) == est(d, "aquatique")) break;
+        }
+        d.taniereX = x;
+        d.taniereZ = z;
         for (Releve r : d.releves) r.perime = true;
-        d.prochainDeplacement = reglages.minutesAvantDeplacement > 0 ? System.currentTimeMillis() + reglages.minutesAvantDeplacement * 60_000L : 0;
+        d.prochainDeplacement = prochainDeplacement(d);
         d.annonceApproche = false;
     }
 
@@ -1225,7 +1333,7 @@ public final class Moteur {
             }
             case "TRAQUE": {
                 if (d.prochainDeplacement > 0 && maintenant > d.prochainDeplacement) {
-                    deplacer(d, 70, 120);
+                    deplacer(d, monde, 70, 120);
                     sauver();
                     annonce(joueur, "cible_deplacee", 0xF2C93A);
                     synchroniser(joueur);
@@ -1259,7 +1367,7 @@ public final class Moteur {
                         d.phase = "TRAQUE";
                         d.annonceApproche = false;
                         d.scan = 0;
-                        if (morte) deplacer(d, 60, 110);
+                        if (morte) deplacer(d, monde, 60, 110);
                         sauver();
                         annonce(joueur, morte ? "cible_disparue" : "contact_perdu", 0xF2C93A);
                         synchroniser(joueur);
@@ -1279,7 +1387,7 @@ public final class Moteur {
                         d.phase = "TRAQUE";
                         d.fuites++;
                         d.scan = 0;
-                        deplacer(d, 80, 130);
+                        deplacer(d, monde, 80, 130);
                         sauver();
                         joueur.playNotifySound(SoundEvents.VILLAGER_NO, SoundSource.PLAYERS, 1f, 1.4f);
                         annonce(joueur, senti ? "senti" : "entendu", 0xE8543A, alerte(d), etoilesTexte(etoiles(d, false)));
@@ -1400,9 +1508,10 @@ public final class Moteur {
             }
         }
         // Elle apparaît sur la terre ferme : jamais dans l'eau, la lave ou au-dessus du vide.
-        BlockPos sol = solFerme(monde, (int) Math.floor(d.taniereX), (int) Math.floor(d.taniereZ));
+        BlockPos sol = est(d, "aquatique") ? pleineEau(monde, (int) Math.floor(d.taniereX), (int) Math.floor(d.taniereZ))
+                : solFerme(monde, (int) Math.floor(d.taniereX), (int) Math.floor(d.taniereZ));
         if (sol == null) {
-            deplacer(d, 40, 80); // rien de praticable ici : elle est repérée un peu plus loin
+            deplacer(d, monde, 40, 80); // rien de praticable ici : elle est repérée un peu plus loin
             sauver();
             synchroniser(joueur);
             return;
@@ -1424,6 +1533,23 @@ public final class Moteur {
             annonce(joueur, "tout_pres", 0xF2C93A, alerte(d));
         }
         synchroniser(joueur);
+    }
+
+    // Pour une cible aquatique : un endroit où il y a au moins deux blocs d'eau au-dessus du fond.
+    private static BlockPos pleineEau(ServerLevel monde, int bx, int bz) {
+        for (int rayon = 0; rayon <= 16; rayon++) {
+            for (int dx = -rayon; dx <= rayon; dx++) {
+                for (int dz = -rayon; dz <= rayon; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != rayon) continue;
+                    int x = bx + dx, z = bz + dz;
+                    if (!monde.hasChunk(x >> 4, z >> 4)) continue;
+                    int y = monde.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.OCEAN_FLOOR, x & 15, z & 15) + 1;
+                    BlockPos pos = new BlockPos(x, y, z);
+                    if (monde.getBlockState(pos).is(Blocks.WATER) && monde.getBlockState(pos.above()).is(Blocks.WATER)) return pos;
+                }
+            }
+        }
+        return null;
     }
 
     private static BlockPos solFerme(ServerLevel monde, int bx, int bz) {
@@ -1477,7 +1603,8 @@ public final class Moteur {
         if (palier) gains.addAll(butin(joueur, "traque/palier"));
         if (d.special != null) {
             gains.addAll(butin(joueur, "traque/speciale"));
-            if (est(d, "craintive")) gains.addAll(butin(joueur, "traque/speciale"));
+            if (est(d, "craintive") || est(d, "migratrice")) gains.addAll(butin(joueur, "traque/speciale"));
+            gains.addAll(butin(joueur, "traque/type_" + d.special)); // table propre au type, vide si elle n'existe pas
             progres(joueur, "enquete_speciale");
         }
         progres(joueur, "premiere_enquete");

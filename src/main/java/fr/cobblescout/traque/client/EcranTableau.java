@@ -204,11 +204,18 @@ public class EcranTableau extends Screen {
 
     private static final int CARTE_L = 104, CARTE_H = 130, CARTE_Y = 21, CARTE_PAS = 110;
 
-    static String nomSpecial(String special) {
+static String nomSpecial(String special) {
         return switch (special) {
             case "nocturne" -> T.f("nocturnal");
             case "craintive" -> T.f("skittish");
             case "exceptionnel" -> T.f("exceptional");
+            case "migratrice" -> T.f("restless");
+            case "aquatique" -> T.f("aquatic");
+            case "fouille" -> T.f("dig_site");
+            case "cimes" -> T.f("canopy");
+            case "altitude" -> T.f("highlands");
+            case "givre" -> T.f("frost");
+            case "brume" -> T.f("mist");
             default -> T.f("standard");
         };
     }
@@ -218,6 +225,13 @@ public class EcranTableau extends Screen {
             case "nocturne" -> 0xFF8FA8FF;
             case "craintive" -> Dessin.JAUNE;
             case "exceptionnel" -> 0xFFE9A15B;
+            case "migratrice" -> 0xFFF0906A;
+            case "aquatique" -> 0xFF5BB8F0;
+            case "fouille" -> 0xFFD9B36A;
+            case "cimes" -> 0xFF7CC66A;
+            case "altitude" -> 0xFFC9B8AA;
+            case "givre" -> 0xFFA8E4F0;
+            case "brume" -> 0xFFB7A8DC;
             default -> Dessin.GRIS;
         };
     }
@@ -227,6 +241,13 @@ public class EcranTableau extends Screen {
             case "nocturne" -> new String[] {T.f("7traces_and_cries_only_at"), T.f("7the_target_only_comes_out")};
             case "craintive" -> new String[] {T.f("7it_senses_you_from_much"), T.f("7scan_it_from_a_long")};
             case "exceptionnel" -> new String[] {T.f("7one_more_analysis_result_required"), T.f("7and_suspects_that_all_look")};
+            case "migratrice" -> new String[] {T.f("7it_moves_twice_as_often"), T.f("7and_its_lair_is_farther")};
+            case "aquatique" -> new String[] {T.f("7traces_on_the_bottom_target"), T.f("7the_water_be_ready_to")};
+            case "fouille" -> new String[] {T.f("7every_remain_is_buried"), T.f("7dig_and_brush_with_care")};
+            case "cimes" -> new String[] {T.f("7traces_on_trunks_and_up"), T.f("7treetops_look_up")};
+            case "altitude" -> new String[] {T.f("7traces_on_rock_faces_across"), T.f("7a_much_wider_zone")};
+            case "givre" -> new String[] {T.f("7frozen_fragile_samples"), T.f("7one_dose_fewer_per_sample")};
+            case "brume" -> new String[] {T.f("7cries_carry_poorly_bearings"), T.f("7are_much_less_precise")};
             default -> new String[] {T.f("7a_regular_investigation")};
         };
     }
@@ -234,8 +255,14 @@ public class EcranTableau extends Screen {
     static String gainSpecial(String special) {
         return switch (special) {
             case "nocturne" -> T.f("shiny_odds_2_special_loot");
-            case "craintive" -> T.f("double_special_loot");
+            case "craintive", "migratrice" -> T.f("double_special_loot");
             case "exceptionnel" -> T.f("hidden_ability_special_loot");
+            case "aquatique" -> T.f("special_loot_water_items");
+            case "fouille" -> T.f("special_loot_fossils");
+            case "cimes" -> T.f("special_loot_forest_items");
+            case "altitude" -> T.f("special_loot_rare_stones");
+            case "givre" -> T.f("special_loot_ice_items");
+            case "brume" -> T.f("special_loot_swamp_items");
             default -> T.f("ivs_and_loot_by_your");
         };
     }

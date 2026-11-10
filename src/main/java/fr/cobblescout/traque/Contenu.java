@@ -76,7 +76,9 @@ public final class Contenu {
     }
 
     // Trace laissée par le Pokémon : un décalque posé au sol, qu'on prélève avec le kit de terrain.
-    public static class BlocTrace extends Block {
+    public static class BlocTrace extends Block implements net.minecraft.world.level.block.SimpleWaterloggedBlock {
+        // Vrai quand la trace est au fond de l'eau (enquêtes aquatiques) : l'eau reste en place autour d'elle.
+        public static final net.minecraft.world.level.block.state.properties.BooleanProperty EAU = BlockStateProperties.WATERLOGGED;
         // 0 à 4 : les cinq traces de surface ; 5 à 7 : les indices dégagés du sol (os, coquilles, croc).
         public static final IntegerProperty GENRE = IntegerProperty.create("genre", 0, 7);
         // UP = posée au sol (ou sur un feuillage) ; sinon plaquée contre le bloc situé derrière elle (tronc, falaise).
@@ -87,12 +89,23 @@ public final class Contenu {
 
         public BlocTrace(Properties p) {
             super(p);
-            registerDefaultState(stateDefinition.any().setValue(GENRE, 0).setValue(APPUI, Direction.UP));
+            registerDefaultState(stateDefinition.any().setValue(GENRE, 0).setValue(APPUI, Direction.UP).setValue(EAU, false));
         }
 
         @Override
         protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) {
-            b.add(GENRE, APPUI);
+            b.add(GENRE, APPUI, EAU);
+        }
+
+        @Override
+        protected net.minecraft.world.level.material.FluidState getFluidState(BlockState etat) {
+            return etat.getValue(EAU) ? net.minecraft.world.level.material.Fluids.WATER.getSource(false) : super.getFluidState(etat);
+        }
+
+        @Override
+        protected BlockState updateShape(BlockState etat, Direction dir, BlockState voisin, net.minecraft.world.level.LevelAccessor monde, BlockPos pos, BlockPos posVoisin) {
+            if (etat.getValue(EAU)) monde.scheduleTick(pos, net.minecraft.world.level.material.Fluids.WATER, net.minecraft.world.level.material.Fluids.WATER.getTickDelay(monde));
+            return super.updateShape(etat, dir, voisin, monde, pos, posVoisin);
         }
 
         @Override

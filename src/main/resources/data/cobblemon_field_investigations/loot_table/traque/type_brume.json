@@ -1,0 +1,60 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:dusk_ball",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3,
+                "max": 5
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:dusk_stone",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:smoke_ball",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:black_sludge",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:poison_barb",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cobblemon:moon_ball",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 4
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

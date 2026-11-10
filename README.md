@@ -54,11 +54,28 @@ Every investigation is rated from 1 to 5 stars. You start at 5:
 
 Some leads come with their own rule and their own reward. There is always at least one standard lead to pick instead.
 
+Possible anywhere:
+
 | Kind | Rule | Reward |
 | --- | --- | --- |
 | Nocturnal | Traces, cries and the target itself only show at night | Shiny odds ×2, special loot |
 | Skittish | The target senses you from much farther away: scan it from a long distance | Double special loot |
 | Exceptional | One more analysis result is required and the suspects all look alike | Hidden ability, special loot |
+| Restless | The target moves twice as often during the hunt and its lair is farther away | Double special loot |
+
+Tied to the biome of the trace zone (biome tags, with a fallback on the biome name for untagged modded biomes):
+
+| Kind | Where | Rule | Extra loot |
+| --- | --- | --- | --- |
+| Aquatic | Oceans, rivers | Water species; traces on the bottom, target in the water | Water items |
+| Dig site | Deserts, badlands, beaches | Every remain is buried | Fossils |
+| Canopy | Forests, jungles, taigas | Traces on trunks and up in the treetops | Forest items |
+| Highlands | Mountains, hills | Traces on rock faces, across a zone 1.5× wider | Rare stones |
+| Frost | Snowy biomes | Frozen samples: one dose fewer each | Ice items |
+| Mist | Swamps | Cries carry poorly: bearings 1.8× less precise | Swamp items |
+
+Every special case rolls the `traque/speciale` loot table; biome kinds also roll `traque/type_<kind>`. Half of the
+extra leads are special by default (`chanceEnqueteSpeciale`).
 
 ## Advancements
 
