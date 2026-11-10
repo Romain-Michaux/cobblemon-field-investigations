@@ -1682,6 +1682,29 @@ public final class Moteur {
 
     // ---------- Outils de test (op) ----------
 
+    // Ouvre un mini-jeu à blanc : rien n'est prélevé, analysé ni compté, quelle que soit l'issue.
+    static boolean essayer(ServerPlayer joueur, String jeu, int variante) {
+        boolean terrain = Genetique.JEUX_TERRAIN.contains(jeu);
+        if (!terrain && !Genetique.JEUX_LABO.contains(jeu)) return false;
+        // Une trace qui convient au jeu, pour l'habillage de l'écran.
+        String genre = "type1";
+        for (Map.Entry<String, List<String>> e : (terrain ? Genetique.JEUX_PRELEVEMENT : Genetique.JEUX_ANALYSE).entrySet()) {
+            if (e.getValue().contains(jeu)) genre = e.getKey();
+        }
+        boolean enfoui = jeu.equals("degagement") || jeu.equals("tamisage");
+        if (enfoui) genre = List.of("taille", "oeuf", "stat").get(HASARD.nextInt(3));
+        Paquet p = Paquet.de("ouvrir");
+        p.donnees().putString("ecran", "essai");
+        p.donnees().putString("jeu", jeu);
+        p.donnees().putString("genre", genre);
+        p.donnees().putBoolean("terrain", terrain);
+        p.donnees().putBoolean("enfoui", enfoui);
+        p.donnees().putInt("variante", variante >= 0 ? variante : HASARD.nextInt(Genetique.VARIANTES.getOrDefault(genre, 1)));
+        p.donnees().putLong("graine", HASARD.nextLong());
+        envoyer(joueur, p);
+        return true;
+    }
+
     static void reinitialiser(ServerPlayer joueur) {
         Dossier d = dossier(joueur);
         if (d != null && d.monde.equals(dimension(joueur))) retirerTraces(joueur.serverLevel(), d);

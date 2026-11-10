@@ -19,6 +19,8 @@ public class EcranAnalyse extends Screen {
     private final boolean prelevement, filet, enfoui, filtrage;
     private final int doses, variante;
     private final Jeu jeu;
+    // Partie d'essai (commande /hunt game) : rien n'est envoyé au serveur à la fin.
+    boolean essai;
     private boolean envoye;
     private int finDepuis = -1;
     private int ticks;
@@ -101,7 +103,7 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public void removed() {
-        if (!envoye) {
+        if (!envoye && !essai) {
             envoye = true;
             Paquet p = Paquet.de(filtrage ? "filtrage" : prelevement ? "prelevement" : "analyse");
             p.donnees().putBoolean("succes", jeu.fini && jeu.succes);

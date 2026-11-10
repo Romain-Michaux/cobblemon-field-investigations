@@ -143,6 +143,8 @@ Required on **both** the client and the server.
 | --- | --- | --- |
 | `/hunt abandon` | everyone | Drop the current investigation |
 | `/hunt gear` | operators | Give a kit, vials and a brush |
+| `/hunt game` | operators | List every mini-game id |
+| `/hunt game <id>` | operators | Open that mini-game as a dry run: nothing is sampled, analysed or counted |
 | `/hunt reset` | operators | Clear your investigation and its cooldown |
 | `/hunt reveal` | operators | Show the hidden details of your investigation (testing) |
 

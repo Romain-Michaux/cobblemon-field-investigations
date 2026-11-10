@@ -83,6 +83,24 @@ public class Traque implements ModInitializer {
                     j.getInventory().placeItemBackInInventory(new ItemStack(net.minecraft.world.item.Items.BRUSH));
                     return 1;
                 }))
+                .then(Commands.literal("game").requires(src -> src.hasPermission(2))
+                        .executes(ctx -> {
+                            ctx.getSource().sendSuccess(() -> Component.literal("Field: " + String.join(", ", Genetique.JEUX_TERRAIN)).withStyle(ChatFormatting.AQUA), false);
+                            ctx.getSource().sendSuccess(() -> Component.literal("Lab: " + String.join(", ", Genetique.JEUX_LABO)).withStyle(ChatFormatting.AQUA), false);
+                            return 1;
+                        })
+                        .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                .suggests((ctx, b) -> {
+                                    java.util.List<String> tous = new ArrayList<>(Genetique.JEUX_TERRAIN);
+                                    tous.addAll(Genetique.JEUX_LABO);
+                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(tous, b);
+                                })
+                                .executes(ctx -> {
+                                    String id = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id");
+                                    if (Moteur.essayer(ctx.getSource().getPlayerOrException(), id, -1)) return 1;
+                                    ctx.getSource().sendFailure(Component.literal("Unknown mini-game: " + id + " (run /hunt game for the list)"));
+                                    return 0;
+                                })))
                 .then(Commands.literal("reset").requires(src -> src.hasPermission(2)).executes(ctx -> {
                     Moteur.reinitialiser(ctx.getSource().getPlayerOrException());
                     ctx.getSource().sendSuccess(() -> Component.translatable("cobblemon_field_investigations.commande.reset").withStyle(ChatFormatting.GREEN), false);

@@ -36,6 +36,12 @@ public final class Genetique {
     public static final Map<String, List<String>> JEUX_PRELEVEMENT = Map.of(
             "type1", List.of("memoire", "photo"), "type2", List.of("pipette", "ecouvillon"), "taille", List.of("mesure", "moulage"),
             "oeuf", List.of("tri", "pince"), "stat", List.of("trace", "photo"));
+    // Tous les mini-jeux, pour la commande d'essai /hunt game : prélèvements, puis analyses.
+    public static final List<String> JEUX_TERRAIN = List.of("memoire", "pipette", "mesure", "tri", "trace", "degagement", "tamisage", "moulage",
+            "pince", "photo", "ecouvillon", "apnee", "grimpe", "rappel", "lampe", "filtrage");
+    public static final List<String> JEUX_LABO = List.of("sequencage", "appariement", "centrifugation", "fragments", "spectre", "gel", "titrage",
+            "pcr", "comptage", "microscope", "chromatographie", "parente", "dosage", "morsure", "degel");
+
     // Clé de traduction du nom d'un mini-jeu.
     public static String nomJeu(String jeu) {
         return "cobblemon_field_investigations.jeu." + jeu;
