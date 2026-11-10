@@ -205,6 +205,21 @@ final class Dessin {
         g.pose().popPose();
     }
 
+    private static ItemStack pokeBall;
+
+    // Petite Poké Ball (l'objet de Cobblemon, aux trois quarts de sa taille) : marque une espèce que le joueur possède déjà.
+    static void pokeBall(GuiGraphics g, int x, int y) {
+        if (pokeBall == null) {
+            pokeBall = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("cobblemon", "poke_ball")));
+        }
+        if (pokeBall.isEmpty()) return;
+        g.pose().pushPose();
+        g.pose().translate(x, y, 0);
+        g.pose().scale(0.75f, 0.75f, 1f);
+        g.renderItem(pokeBall, 0, 0);
+        g.pose().popPose();
+    }
+
     static String nomEspece(String espece) {
         Species s = PokemonSpecies.getByName(espece);
         return s == null ? espece : s.getTranslatedName().getString();

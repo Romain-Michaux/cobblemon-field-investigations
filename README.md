@@ -24,8 +24,9 @@ Everything fits in one item: the **Field Kit**. No workstation to carry around.
    destroys the clue.
 4. **Analyse the samples.** Right-click a sample with the kit on you. Each of the five genetic markers (two elements,
    growth, lineage, aptitude) has two possible lab mini-games.
-5. **Rule out suspects.** Every analysed marker crosses out the suspects that do not match. With three markers you can
-   name your guess and start the hunt.
+5. **Rule out suspects.** Every suspect shows its five markers. Compare them with your results and cross out the ones
+   that do not fit yourself (right-click); nothing is done for you. With three markers analysed you can name your guess
+   (left-click) and start the hunt.
 6. **Track it.** Right-click with the kit to pick up the target's cry and get a bearing. Take several bearings from
    different spots: the kit map computes a fix.
 7. **Scan it.** Once the target is in sight, hold right-click with the kit, crosshair on the Pokémon, for three seconds.

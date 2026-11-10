@@ -107,8 +107,8 @@ UI = [
     ("très rare", "very rare"),
     ("Tableau d'enquête", "Investigation Board"),
     ("TABLEAU D'ENQUÊTE", "CASE BOARD"),
-    ("Ouvre une enquête pour recevoir un signalement : des traces à prélever avec ton kit, des fioles vides et un pinceau.",
-     "Open an investigation to get a report: traces to sample with your kit, empty vials and a brush."),
+    ("Ouvre une enquête : des traces à prélever (kit, fioles vides, pinceau), puis à toi de barrer les suspects qui ne collent pas (clic droit).",
+     "Open an investigation to get traces to sample (kit, empty vials, brush), then cross out the suspects that do not fit yourself (right-click)."),
     ("Chaque étoile au-delà de la première donne un IV parfait au Pokémon capturé (4 au mieux) et un meilleur butin.",
      "Each star you keep (5 at best) past the first gives the caught Pokémon a perfect IV, and better loot."),
     ("Ouvrir une enquête", "Open an investigation"),
@@ -271,6 +271,11 @@ UI = [
     ("Ce n'est pas ta cible", "This is not your target"),
     ("Verrouillage…", "Locking on…"),
     ("Vise le Pokémon", "Aim at the Pokémon"),
+    # --- suspects ---
+    ("§8Clic gauche : désigner ce suspect", "§8Left-click: name this suspect"),
+    ("§8Clic droit : écarter / rétablir", "§8Right-click: rule out / restore"),
+    ("§aDéjà capturé", "§aAlready caught"),
+    ("§7Pas encore capturé", "§7Not caught yet"),
     # --- petits mots ---
     ("à ", "at "),
     # --- fouille au pinceau ---

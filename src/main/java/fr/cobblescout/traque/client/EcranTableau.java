@@ -48,15 +48,15 @@ public class EcranTableau extends Screen {
 
         if (!e.getBoolean("actif")) {
             long attente = e.getLong("attente") - (System.currentTimeMillis() - TraqueClient.etatRecu);
-            Dessin.plaque(g, x + 38, y + 26, L - 76, 96);
+            Dessin.plaque(g, x + 38, y + 26, L - 76, 110);
             Dessin.centre(g, T.f("no_investigation_in_progress"), x + L / 2, y + 38, Dessin.TEXTE);
             int ly0 = Dessin.paragraphe(g, T.f("open_an_investigation_to_get"),
                     x + 50, y + 52, L - 100, Dessin.GRIS);
             Dessin.paragraphe(g, T.f("each_star_you_keep_5"), x + 50, ly0 + 2, L - 100, Dessin.JAUNE);
             boolean pret = attente <= 0;
             String libelle = pret ? T.f("open_an_investigation") : T.f("next_report_in") + (attente / 60000 + 1) + T.f("min");
-            Dessin.bouton(g, x + L / 2 - 90, y + 132, 180, 22, libelle, Dessin.dans(mx, my, x + L / 2 - 90, y + 132, 180, 22), pret, Dessin.ACCENT);
-            Dessin.centre(g, T.f("cases_solved") + e.getInt("reussies"), x + L / 2, y + 166, Dessin.ENCRE);
+            Dessin.bouton(g, x + L / 2 - 90, y + 144, 180, 22, libelle, Dessin.dans(mx, my, x + L / 2 - 90, y + 144, 180, 22), pret, Dessin.ACCENT);
+            Dessin.centre(g, T.f("cases_solved") + e.getInt("reussies"), x + L / 2, y + 173, Dessin.ENCRE);
             return;
         }
 
@@ -129,6 +129,7 @@ public class EcranTableau extends Screen {
                 g.fill(cx + 4 + m * 8, cy + 50, cx + 11 + m * 8, cy + 56, Dessin.ENCRE);
                 g.fill(cx + 5 + m * 8, cy + 51, cx + 10 + m * 8, cy + 55, c);
             }
+            if (s.getBoolean("possede")) Dessin.pokeBall(g, cx + 32, cy + 9);
             if (elimine) {
                 g.fill(cx + 1, cy + 5, cx + 47, cy + 59, 0x9C241A12);
                 Dessin.image(g, Dessin.CROIX, cx + 10, cy + 14, 28, 28);
@@ -171,6 +172,11 @@ public class EcranTableau extends Screen {
                 String marqueur = Genetique.MARQUEURS.get(m);
                 lignes.add(Component.literal("§7" + T.c(Genetique.NOMS_MARQUEURS.get(marqueur)) + " : §f").append(Genetique.libelle(marqueur, valeurs.getString(m))));
             }
+            lignes.add(Component.literal(survole.getBoolean("possede") ? T.f("aalready_caught") : T.f("7not_caught_yet")));
+            if (prelevements) {
+                lignes.add(Component.literal(T.f("8left_click_name_this_suspect")));
+                lignes.add(Component.literal(T.f("8right_click_rule_out_restore")));
+            }
             Dessin.infobulle(g, lignes, mx, my, width);
         }
     }
@@ -181,7 +187,7 @@ public class EcranTableau extends Screen {
         int x = F.x(width), y = F.y(height);
         if (!e.getBoolean("actif")) {
             long attente = e.getLong("attente") - (System.currentTimeMillis() - TraqueClient.etatRecu);
-            if (attente <= 0 && Dessin.dans(mx, my, x + L / 2 - 90, y + 132, 180, 22)) {
+            if (attente <= 0 && Dessin.dans(mx, my, x + L / 2 - 90, y + 144, 180, 22)) {
                 Dessin.son(1f);
                 TraqueClient.envoyer(Paquet.de("ouvrir_enquete"));
             }
@@ -204,11 +210,21 @@ public class EcranTableau extends Screen {
         for (int i = 0; i < suspects.size() && i < 12; i++) {
             CompoundTag s = suspects.getCompound(i);
             int cx = x + GRILLE_X + (i % 4) * PAS_X, cy = y + (i / 4) * PAS_Y;
-            if (Dessin.dans(mx, my, cx, cy + 4, 48, 56) && !s.getBoolean("elimine")) {
+            if (!Dessin.dans(mx, my, cx, cy + 4, 48, 56)) continue;
+            if (bouton == 1) {
+                // Clic droit : le joueur barre (ou rétablit) lui-même ce suspect.
+                boolean barre = !s.getBoolean("elimine");
+                s.putBoolean("elimine", barre);
+                if (barre && choix.equals(s.getString("espece"))) choix = "";
+                Paquet p = Paquet.de("ecarter");
+                p.donnees().putString("espece", s.getString("espece"));
+                TraqueClient.envoyer(p);
+                Dessin.son(barre ? 0.8f : 1.1f);
+            } else if (!s.getBoolean("elimine")) {
                 choix = s.getString("espece");
                 Dessin.son(1.3f);
-                return true;
             }
+            return true;
         }
         if (Dessin.dans(mx, my, bx, by, 122, 18) && !choix.isEmpty()) {
             Paquet p = Paquet.de("lancer");

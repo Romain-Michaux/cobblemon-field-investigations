@@ -147,6 +147,8 @@ public final class Moteur {
         public List<Trace> traces = new ArrayList<>();
         public List<String> suspects = new ArrayList<>();
         public List<String> epingles = new ArrayList<>();
+        // Suspects que le joueur a lui-même barrés sur son tableau (le mod n'écarte personne à sa place).
+        public List<String> ecartes = new ArrayList<>();
         public List<Releve> releves = new ArrayList<>();
         public long prochainReleve, prochainDeplacement, finLueur;
         public UUID pokemon, entite;
@@ -266,6 +268,7 @@ public final class Moteur {
             }
             t.put("traces", traces);
             ListTag suspects = new ListTag();
+            PokedexManager pokedex = Cobblemon.playerDataManager.getPokedexData(joueur);
             for (String s : d.suspects) {
                 Species esp = PokemonSpecies.getByName(s);
                 if (esp == null) continue;
@@ -274,7 +277,9 @@ public final class Moteur {
                 ListTag valeurs = new ListTag();
                 for (String m : Genetique.MARQUEURS) valeurs.add(StringTag.valueOf(Genetique.valeur(m, esp)));
                 c.put("valeurs", valeurs);
-                c.putBoolean("elimine", elimine(d, cible, esp));
+                c.putBoolean("elimine", d.ecartes != null && d.ecartes.contains(s));
+                // Une petite Poké Ball signale au joueur les espèces qu'il possède déjà.
+                c.putBoolean("possede", possede(pokedex, s));
                 suspects.add(c);
             }
             t.put("suspects", suspects);
@@ -307,12 +312,14 @@ public final class Moteur {
         envoyer(joueur, p);
     }
 
-    private static boolean elimine(Dossier d, Species cible, Species suspect) {
-        if (cible == null) return false;
-        for (String m : d.epingles) {
-            if (!Genetique.valeur(m, cible).equals(Genetique.valeur(m, suspect))) return true;
-        }
-        return false;
+    // Le joueur barre (ou rétablit) un suspect sur son tableau, d'après ce qu'il déduit des marqueurs analysés.
+    static void ecarter(ServerPlayer joueur, String espece) {
+        Dossier d = dossier(joueur);
+        if (d == null || !"PRELEVEMENTS".equals(d.phase) || !d.suspects.contains(espece)) return;
+        if (d.ecartes == null) d.ecartes = new ArrayList<>();
+        if (!d.ecartes.remove(espece)) d.ecartes.add(espece);
+        sauver();
+        synchroniser(joueur);
     }
 
     // Qualité de l'enquête, de 1 à 5 étoiles. On part de 5 ; un raté de mini-jeu coûte une demi-étoile (le premier est
@@ -900,7 +907,9 @@ public final class Moteur {
         Dossier d = dossier(joueur);
         if (d == null || !"PRELEVEMENTS".equals(d.phase) || d.epingles.size() < reglages.epinglesPourTraquer) return;
         Species cible = PokemonSpecies.getByName(d.espece), choix = PokemonSpecies.getByName(pronostic);
-        if (cible == null || choix == null || !d.suspects.contains(pronostic) || elimine(d, cible, choix)) return;
+        // Le joueur peut désigner n'importe quel suspect qu'il n'a pas barré, même si les analyses le contredisent :
+        // se tromper lui coûtera des étoiles.
+        if (cible == null || choix == null || !d.suspects.contains(pronostic) || (d.ecartes != null && d.ecartes.contains(pronostic))) return;
         d.pronostic = pronostic;
         d.phase = "TRAQUE";
         d.prochainDeplacement = reglages.minutesAvantDeplacement > 0 ? System.currentTimeMillis() + reglages.minutesAvantDeplacement * 60_000L : 0;

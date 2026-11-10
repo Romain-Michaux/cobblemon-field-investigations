@@ -15,11 +15,13 @@ The cleaner your investigation, the better the reward: up to **four perfect IVs*
    kit's proximity radar leads you to them.
 3. **Dig up buried clues.** Bones, eggshells and fangs are hidden underground. Dig carefully and uncover them with a
    brush. Break the block and the clue is lost.
-4. **Analyse your samples** in the pocket sequencer. Each genetic marker you identify crosses suspects off the board.
-5. **Name your suspect** and start the hunt.
-6. **Track the target by its cries.** Take bearings from several spots and the kit map gives you a fix.
-7. **Scan it from afar** to confirm its identity. Get too close too soon and it runs.
-8. **Sneak in and catch it.**
+4. **Analyse your samples** in the pocket sequencer to reveal the genetic markers of the target.
+5. **Work the case board.** Compare each suspect with your results and cross out the ones that do not fit. It is your
+   deduction: the mod does not do it for you.
+6. **Name your suspect** and start the hunt.
+7. **Track the target by its cries.** Take bearings from several spots and the kit map gives you a fix.
+8. **Scan it from afar** to confirm its identity. Get too close too soon and it runs.
+9. **Sneak in and catch it.**
 
 ## Features
 

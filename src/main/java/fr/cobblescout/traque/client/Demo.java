@@ -167,6 +167,7 @@ final class Demo {
             }
             c.put("valeurs", valeurs);
             c.putBoolean("elimine", elimine);
+            c.putBoolean("possede", f[0].equals("charmander") || f[0].equals("pikachu") || f[0].equals("growlithe"));
             suspects.add(c);
         }
         t.put("suspects", suspects);
