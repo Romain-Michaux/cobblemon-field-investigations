@@ -41,13 +41,13 @@ public class EcranAnalyse extends Screen {
             case "memoire" -> new JeuxTerrain.Cristaux(h);
             case "pipette" -> new JeuxTerrain.Pipette(h);
             case "mesure" -> new JeuxTerrain.Mesure(h);
-            case "tri" -> new JeuxTerrain.Tri(h);
+            case "tri" -> new JeuxNouveaux.Tri(h);
             case "trace" -> new JeuxTerrain.Trace(h);
             case "degagement" -> new JeuxTerrain.Degagement(h, genre, variante);
             case "tamisage" -> new JeuxNouveaux.Tamis(h, genre, variante);
             case "moulage" -> new JeuxNouveaux.Moulage(h);
             case "pince" -> new JeuxNouveaux.Pince(h);
-            case "photo" -> new JeuxNouveaux.Photo(h, genre);
+            case "photo" -> new JeuxNouveaux.Photo(h);
             case "ecouvillon" -> new JeuxNouveaux.Ecouvillon(h);
             case "apnee" -> new JeuxNouveaux.Apnee(h);
             case "grimpe" -> new JeuxNouveaux.Grimpe(h);

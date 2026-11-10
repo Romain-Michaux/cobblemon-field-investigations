@@ -139,7 +139,7 @@ for nom in ("ecorce", "terre", "petri", "grand_os", "grand_coquille", "grand_cro
 for _, nom, genre, variante in ENFOUIS:
     sauver(ouvrir(nom), "gui", "enfoui_" + genre + ("_%d" % variante if variante else ""))
 # Accessoires et décors des mini-jeux ajoutés en 1.1.
-for nom in ("tamis", "pince", "ecouvillon", "burette", "glacon", "paroi", "fond_eau", "nuit"):
+for nom in ("tamis", "pince", "ecouvillon", "burette", "glacon", "paroi", "fond_eau", "nuit", "sous_bois", "nid", "plateau"):
     sauver(ouvrir(nom), "gui", nom)
 sauver(ouvrir("radar_b"), "gui", "radar")  # détecteur du HUD : sonar à gauche (centre 33,24), afficheur à droite (55..177 x 14..33)
 sauver(ouvrir("cristal_a"), "gui", "cristal")  # teinté en jeu : terne, turquoise (stable) ou rouge (instable)

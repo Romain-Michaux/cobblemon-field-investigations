@@ -434,6 +434,30 @@ NOUVEAUX = [
     ("Balaie le sol avec la lampe : les taches n'apparaissent que dans le faisceau. Clique chacune avant que la batterie soit vide.",
      "Sweep the ground with the lamp: stains only show inside the beam. Click each one before the battery runs out."),
 ]
+NOUVEAUX += [
+    # moulage (mâchoire)
+    ("Alvéoles pleines : ", "Sockets full: "),
+    ("Remplis jusqu'aux repères verts, puis relève le bec. Les alvéoles n'ont pas toutes la même profondeur.",
+     "Fill up to the green marks, then lift the spout. The sockets are not all the same depth."),
+    ("Place le bec sur une alvéole et maintiens le clic pour couler le plâtre. Remplis-les toutes à ras bord sans déborder, puis relâche.",
+     "Put the spout over a socket and hold the click to pour plaster. Fill them all to the brim without overflowing, then let go."),
+    # photo
+    ("Un Pokémon du coin passe près de la trace. Suis-le avec le viseur et clique quand il est net (viseur vert). Trois photos avant la nuit.",
+     "A local Pokémon walks past the trace. Follow it with the viewfinder and click when it is sharp (green viewfinder). Three photos before dark."),
+    # empreinte dentaire
+    ("Emboîté !", "It fits!"), ("Ça bute en rouge", "Red teeth are blocking"), ("Glisser la réglette", "Slide the strip"), ("Presser", "Press"),
+    ("Fais glisser la réglette orange (boutons ou flèches) pour que chaque dent arrive sous son creux, puis presse-la : elle doit toucher partout à la fois.",
+     "Slide the orange strip (buttons or arrow keys) until every tooth sits under its hollow, then press it: it must touch everywhere at once."),
+    # grimpe
+    ("Les branches grises et fendues sont mortes : laisse-les passer sans cliquer.", "Grey, split branches are dead: let them go by without clicking."),
+    ("Clique à gauche ou à droite, du côté de la prise, quand elle passe dans la bande claire. Ne touche pas aux branches mortes. Ça accélère.",
+     "Click left or right, on the side of the hold, when it crosses the light band. Leave the dead branches alone. It speeds up."),
+    # tri
+    ("Coquilles : ", "Shells: "),
+    ("Les objets se poussent : dégage le passage avant d'amener une coquille.", "Objects push each other: clear the way before bringing a shell over."),
+    ("Fais glisser les coquilles dans la boîte de droite. Un débris qui y tombe, ou une coquille poussée au rebut à gauche, compte comme une erreur.",
+     "Drag the shells into the box on the right. Debris falling into it, or a shell pushed into the bin on the left, counts as a mistake."),
+]
 _deja = {f for f, _ in UI}
 UI += [t for t in NOUVEAUX if t[0] not in _deja]
 
@@ -448,8 +472,8 @@ CLES = [
     ("enfoui.taille", "Buried bone", "Ossement enfoui"), ("enfoui.oeuf", "Buried eggshells", "Coquilles enfouies"), ("enfoui.stat", "Broken fang", "Croc brisé"),
     ("enfoui.taille_1", "Buried tooth", "Dent enfouie"), ("enfoui.oeuf_1", "Buried feather", "Plume enfouie"), ("enfoui.oeuf_2", "Buried moult", "Mue enfouie"),
     ("enfoui.stat_1", "Broken claw", "Griffe brisée"), ("enfoui.stat_2", "Torn-off scale", "Écaille arrachée"),
-    ("jeu.tamisage", "Sieving", "Tamisage"), ("jeu.moulage", "Footprint cast", "Moulage de l'empreinte"), ("jeu.pince", "Tweezers", "Pince à épiler"),
-    ("jeu.photo", "Trace photo", "Photo de la trace"), ("jeu.ecouvillon", "Swabbing", "Écouvillonnage"), ("jeu.apnee", "Free dive", "Apnée"),
+    ("jeu.tamisage", "Sieving", "Tamisage"), ("jeu.moulage", "Plaster cast", "Moulage au plâtre"), ("jeu.pince", "Tweezers", "Pince à épiler"),
+    ("jeu.photo", "Field photo", "Photo de terrain"), ("jeu.ecouvillon", "Swabbing", "Écouvillonnage"), ("jeu.apnee", "Free dive", "Apnée"),
     ("jeu.grimpe", "Tree climb", "Grimpe"), ("jeu.rappel", "Abseil", "Rappel"), ("jeu.lampe", "UV lamp", "Lampe UV"),
     ("jeu.filtrage", "Cry filter", "Filtrage du cri"), ("jeu.microscope", "Microscope", "Microscope"),
     ("jeu.chromatographie", "Chromatography", "Chromatographie"), ("jeu.parente", "Family tree", "Arbre de parenté"),
