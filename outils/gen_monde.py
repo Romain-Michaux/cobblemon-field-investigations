@@ -204,7 +204,7 @@ for nom in ("branche", "branche_morte"):
 for nom in ("caractere_aile", "caractere_nageoire"):
     sauver(ouvrir(nom), "gui", nom)
 
-# Décor de la grimpe : le tronc et la forêt du fond défilent. Les deux images se raccordent en hauteur : PixelLab a
-# redessiné leur jonction (image décalée d'une demi-hauteur, puis bande centrale régénérée), elles se répètent donc sans couture.
+# Décor de la grimpe : la forêt du fond est fixe ; le tronc est une bande droite de 56 px (la partie sans racines d'une
+# image PixelLab, raccordée par un fondu sur dix lignes) qui se répète sans couture et défile.
 for nom in ("tronc", "foret"):
     sauver(ouvrir(nom), "gui", nom)

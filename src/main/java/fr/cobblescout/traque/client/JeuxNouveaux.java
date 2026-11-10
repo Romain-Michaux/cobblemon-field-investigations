@@ -1686,9 +1686,9 @@ final class JeuxNouveaux {
     // ---------- Grimpe (enquête des cimes) : attraper chaque prise du bon côté, au bon moment, sans toucher aux branches mortes ----------
 
     static final class Grimpe extends Jeu {
-        // Le tronc et la forêt du fond sont des images de 112 px de haut qui se répètent sans couture : elles défilent en boucle.
+        // Le tronc est une bande de 56 px de haut, bien droite, qui se répète sans couture et défile ; la forêt du fond reste fixe.
         static final ResourceLocation TRONC = Dessin.texture("tronc"), FORET = Dessin.texture("foret");
-        static final int BANDE = 112, TRONC_X = 56, TRONC_L = 48;
+        static final int BANDE = 56, TRONC_X = 56, TRONC_L = 48;
         // Branches vivantes et mortes, tournées vers la gauche ou vers la droite.
         static final ResourceLocation[][] BRANCHES = {{Dessin.texture("branche_g"), Dessin.texture("branche_d")},
                 {Dessin.texture("branche_morte_g"), Dessin.texture("branche_morte_d")}};
@@ -1768,24 +1768,23 @@ final class JeuxNouveaux {
             // Entre deux tics, tout est dessiné un peu plus loin : la montée reste fluide.
             double glisse = fini ? 0 : pt * vitesse(), monte = avancee + glisse;
             g.enableScissor(bx, by, bx + L, by + H);
-            // La forêt, loin derrière, défile trois fois moins vite que le tronc : c'est ce qui donne la profondeur.
-            int fond = (int) (monte * 0.33) % BANDE, tronc = (int) monte % BANDE;
-            for (int k = -1; k <= 0; k++) Dessin.image(g, FORET, bx, by + fond + k * BANDE, L, BANDE);
-            g.fill(bx + TRONC_X - 3, by, bx + TRONC_X + TRONC_L + 3, by + H, 0x48000000);
-            for (int k = -1; k <= 0; k++) Dessin.image(g, TRONC, bx + TRONC_X, by + tronc + k * BANDE, TRONC_L, BANDE);
+            Dessin.image(g, FORET, bx, by, L, H);
+            // Les branches sont dessinées avant le tronc, qui recouvre leur base : elles ont l'air d'en sortir.
+            for (int i = 0; i < N; i++) {
+                double y = y(i) + glisse;
+                if (etat[i] != 0 || y < -18 || y > H + 18) continue;
+                int x = bx + (cote[i] == 0 ? TRONC_X - 26 : TRONC_X + TRONC_L - 6), py = by + (int) y;
+                boolean pret = i == prochaine && Math.abs(y(i) - LIGNE) <= MARGE && !morte[i];
+                if (pret) g.fill(x - 2, py - 10, x + 34, py + 10, 0x7040E070);
+                Dessin.image(g, BRANCHES[morte[i] ? 1 : 0][cote[i]], x, py - 16, 32, 32);
+            }
+            int tronc = (int) monte % BANDE;
+            g.fill(bx + TRONC_X - 2, by, bx + TRONC_X + TRONC_L + 2, by + H, 0x60000000);
+            for (int k = -1; k <= 1; k++) Dessin.image(g, TRONC, bx + TRONC_X, by + tronc + k * BANDE, TRONC_L, BANDE);
             // La zone d'atteinte : c'est là qu'il faut saisir la branche.
             g.fill(bx, by + LIGNE - MARGE, bx + L, by + LIGNE + MARGE, 0x30FFFFFF);
             g.fill(bx, by + LIGNE - MARGE, bx + L, by + LIGNE - MARGE + 1, 0xA0FFFFFF);
             g.fill(bx, by + LIGNE + MARGE - 1, bx + L, by + LIGNE + MARGE, 0xA0FFFFFF);
-            for (int i = 0; i < N; i++) {
-                double y = y(i) + glisse;
-                if (etat[i] != 0 || y < -18 || y > H + 18) continue;
-                // Chaque branche part du bord du tronc, vers la gauche ou vers la droite.
-                int x = bx + (cote[i] == 0 ? TRONC_X - 30 : TRONC_X + TRONC_L - 2), py = by + (int) y;
-                boolean pret = i == prochaine && Math.abs(y(i) - LIGNE) <= MARGE && !morte[i];
-                if (pret) g.fill(x - 2, py - 9, x + 34, py + 9, 0x7040E070);
-                Dessin.image(g, BRANCHES[morte[i] ? 1 : 0][cote[i]], x, py - 16, 32, 32);
-            }
             g.disableScissor();
             int tx = ox + 172;
             texte(g, T.f("holds") + prises + " / " + bonnes, tx, oy + 10, Dessin.TEXTE);
