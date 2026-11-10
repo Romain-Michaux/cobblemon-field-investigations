@@ -69,9 +69,9 @@ First public release.
 
 ## À vérifier avant de cliquer sur « Publier »
 
-- [ ] Une enquête complète jouée de bout en bout avec ce jar (prélèvements, indice enfoui, analyses, traque, scan, capture, butin).
-- [ ] Le mod testé sur un serveur dédié (il n'a tourné qu'en solo).
-- [ ] Les conditions de PixelLab relues pour la redistribution des images générées (leur page indique que l'utilisateur
-      reste propriétaire de ce qu'il crée, mais renvoie aussi à une licence Open RAIL-M).
+- [x] Une enquête complète jouée de bout en bout (testé sur le serveur CobbleScout le 10/11/2026).
+- [x] Le mod testé sur un serveur dédié.
+- [x] Conditions de PixelLab relues (version du 30/10/2026) : l'article 1.3 autorise l'usage commercial des créations
+      et l'article 3.3 leur libre distribution ; seule interdiction, entraîner d'autres modèles avec.
 - [ ] L'icône reprend le cadre « MOD » utilisé par la plupart des add-ons Cobblemon, reconstitué à partir d'une icône
       existante : si l'équipe Cobblemon ou une plateforme le refuse, remplacer par une icône sans ce cadre.
