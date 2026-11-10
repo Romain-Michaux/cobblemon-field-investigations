@@ -1686,7 +1686,9 @@ final class JeuxNouveaux {
     // ---------- Grimpe (enquête des cimes) : attraper chaque prise du bon côté, au bon moment, sans toucher aux branches mortes ----------
 
     static final class Grimpe extends Jeu {
-        static final ResourceLocation ECORCE = Dessin.texture("ecorce");
+        // Le tronc et la forêt du fond sont des bandes de 224 px de haut qui se raccordent : elles défilent sans couture.
+        static final ResourceLocation TRONC = Dessin.texture("tronc"), FORET = Dessin.texture("foret");
+        static final int BANDE = 224, TRONC_X = 56, TRONC_L = 48;
         // Branches vivantes et mortes, tournées vers la gauche ou vers la droite.
         static final ResourceLocation[][] BRANCHES = {{Dessin.texture("branche_g"), Dessin.texture("branche_d")},
                 {Dessin.texture("branche_morte_g"), Dessin.texture("branche_morte_d")}};
@@ -1714,6 +1716,10 @@ final class JeuxNouveaux {
             return avancee - 20 - hauteur[i];
         }
 
+        double vitesse() {
+            return 1.7 + avancee / 330;
+        }
+
         void rate() {
             etat[prochaine++] = 2;
             flash = 8;
@@ -1731,7 +1737,7 @@ final class JeuxNouveaux {
         @Override
         void tick() {
             if (flash > 0) flash--;
-            avancee += 1.7 + avancee / 330;
+            avancee += vitesse();
             if (prochaine < N && y(prochaine) > LIGNE + MARGE) {
                 if (morte[prochaine]) etat[prochaine++] = 1; // une branche morte qu'on a laissée passer : c'est ce qu'il fallait
                 else rate();
@@ -1759,20 +1765,26 @@ final class JeuxNouveaux {
         void dessiner(GuiGraphics g, int mx, int my, float pt) {
             int bx = ox + 4, by = oy + 3;
             cadre(g, bx, by, flash > 0);
-            Dessin.image(g, ECORCE, bx, by, L, H);
-            g.fill(bx + 79, by, bx + 81, by + H, 0x60000000);
-            // La zone d'atteinte : c'est là qu'il faut saisir la prise.
+            // Entre deux tics, tout est dessiné un peu plus loin : la montée reste fluide.
+            double glisse = fini ? 0 : pt * vitesse(), monte = avancee + glisse;
+            g.enableScissor(bx, by, bx + L, by + H);
+            // La forêt, loin derrière, défile trois fois moins vite que le tronc : c'est ce qui donne la profondeur.
+            int fond = (int) (monte * 0.33) % BANDE, tronc = (int) monte % BANDE;
+            for (int k = -1; k <= 0; k++) Dessin.image(g, FORET, bx, by + fond + k * BANDE, L, BANDE);
+            g.fill(bx + TRONC_X - 3, by, bx + TRONC_X + TRONC_L + 3, by + H, 0x48000000);
+            for (int k = -1; k <= 0; k++) Dessin.image(g, TRONC, bx + TRONC_X, by + tronc + k * BANDE, TRONC_L, BANDE);
+            // La zone d'atteinte : c'est là qu'il faut saisir la branche.
             g.fill(bx, by + LIGNE - MARGE, bx + L, by + LIGNE + MARGE, 0x30FFFFFF);
             g.fill(bx, by + LIGNE - MARGE, bx + L, by + LIGNE - MARGE + 1, 0xA0FFFFFF);
             g.fill(bx, by + LIGNE + MARGE - 1, bx + L, by + LIGNE + MARGE, 0xA0FFFFFF);
-            g.enableScissor(bx, by, bx + L, by + H);
             for (int i = 0; i < N; i++) {
-                double y = y(i);
+                double y = y(i) + glisse;
                 if (etat[i] != 0 || y < -18 || y > H + 18) continue;
-                int x = bx + (cote[i] == 0 ? 44 : 116), py = by + (int) y;
-                boolean pret = i == prochaine && Math.abs(y - LIGNE) <= MARGE && !morte[i];
-                if (pret) g.fill(x - 18, py - 9, x + 18, py + 9, 0x7040E070);
-                Dessin.image(g, BRANCHES[morte[i] ? 1 : 0][cote[i]], x - 16, py - 16, 32, 32);
+                // Chaque branche part du bord du tronc, vers la gauche ou vers la droite.
+                int x = bx + (cote[i] == 0 ? TRONC_X - 30 : TRONC_X + TRONC_L - 2), py = by + (int) y;
+                boolean pret = i == prochaine && Math.abs(y(i) - LIGNE) <= MARGE && !morte[i];
+                if (pret) g.fill(x - 2, py - 9, x + 34, py + 9, 0x7040E070);
+                Dessin.image(g, BRANCHES[morte[i] ? 1 : 0][cote[i]], x, py - 16, 32, 32);
             }
             g.disableScissor();
             int tx = ox + 172;

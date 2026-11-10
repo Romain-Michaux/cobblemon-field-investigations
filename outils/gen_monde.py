@@ -196,10 +196,19 @@ for nom in ("branche", "branche_morte"):
     brut = ouvrir(nom)
     decoupe = brut.crop(brut.getbbox())
     im = Image.new("RGBA", (32, 32))
-    im.alpha_composite(decoupe, ((32 - decoupe.width) // 2, (32 - decoupe.height) // 2))  # centrée sur sa case
+    im.alpha_composite(decoupe, (0, (32 - decoupe.height) // 2))  # calée à gauche : c'est le côté qui touche le tronc
     sauver(im, "gui", nom + "_d")
     sauver(ImageOps.mirror(im), "gui", nom + "_g")
 
 # Pictogrammes de l'arbre de parenté (les autres caractères reprennent les dessins des objets enfouis).
 for nom in ("caractere_aile", "caractere_nageoire"):
     sauver(ouvrir(nom), "gui", nom)
+
+# Décor de la grimpe : le tronc et la forêt du fond défilent ; chaque bande est l'image suivie de son reflet vertical,
+# pour que le bas de l'une se raccorde au haut de la suivante.
+for nom in ("tronc", "foret"):
+    im = ouvrir(nom)
+    bande = Image.new("RGBA", (im.width, im.height * 2))
+    bande.paste(im, (0, 0))
+    bande.paste(ImageOps.flip(im), (0, im.height))
+    sauver(bande, "gui", nom)
