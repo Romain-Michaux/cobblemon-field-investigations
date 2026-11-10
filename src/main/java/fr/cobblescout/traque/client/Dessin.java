@@ -46,7 +46,7 @@ final class Dessin {
     static final Fond KIT = new Fond(texture("fond_kit"), 368, 216, 24, 22, 320, 170);
     static final Fond TABLEAU = new Fond(texture("fond_tableau"), 378, 236, 20, 23, 336, 189);
     static final Fond SEQUENCEUR = new Fond(texture("fond_sequenceur"), 324, 225, 18, 13, 288, 167);
-    static final ResourceLocation PAPIER = texture("papier"), POLAROID = texture("polaroid"), BOUTON = texture("bouton"),
+    static final ResourceLocation PAPIER = texture("papier"), POLAROID = texture("polaroid"), EPINGLE = texture("epingle"), BOUTON = texture("bouton"),
             PLAQUE = texture("plaque"), CADRAN = texture("cadran"), ROTOR = texture("rotor"), FIOLE = texture("fiole"),
             TUILE = texture("tuile"), RADAR = texture("radar"), VISEUR = texture("viseur"), ENCART_TEXTURE = texture("encart"), CROIX = texture("croix");
 

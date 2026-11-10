@@ -101,7 +101,16 @@ fond("tableau", colonnes=[(30, 62, 118), (24, 150, 200), (30, 234, 290)], rangee
 fond("sequenceur", colonnes=[(66, 106, 212)], rangees=[(58, 54, 94)], seuil=12)
 
 # ---------- Polaroïd, cadran, rotor, fiole : tels quels ----------
-sauver(ouvrir("polaroid"), "polaroid")
+polaroid = ouvrir("polaroid")
+sauver(polaroid, "polaroid")
+# L'épingle seule (12 x 10), redessinée par-dessus les photos voisines : sans cela, la photo de la rangée du dessus la coupe.
+epingle = Image.new("RGBA", (12, 10))
+for y in range(10):
+    for x in range(12):
+        r, g, b, a = polaroid.getpixel((18 + x, y))
+        if a and (y < 4 or r > g + 50):
+            epingle.putpixel((x, y), (r, g, b, a))
+sauver(epingle, "epingle")
 cadran = ouvrir("cadran")
 sauver(cadran, "cadran")
 sauver(ouvrir("rotor"), "rotor")

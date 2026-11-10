@@ -137,6 +137,13 @@ public class EcranTableau extends Screen {
             g.pose().popPose();
             if (Dessin.dans(mx, my, cx, cy + 4, 48, 56)) survole = s;
         }
+        // Les épingles passent par-dessus tout : sinon la photo de la rangée du dessus (et son voile) en cache le haut.
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 320);
+        for (int i = 0; i < suspects.size() && i < 12; i++) {
+            Dessin.image(g, Dessin.EPINGLE, x + GRILLE_X + (i % 4) * PAS_X + 18, y + (i / 4) * PAS_Y, 12, 10);
+        }
+        g.pose().popPose();
         if (restants == 1 && prelevements) choix = seul;
 
         // Barre du bas : le bouton de traque dit lui-même ce qu'il attend.
