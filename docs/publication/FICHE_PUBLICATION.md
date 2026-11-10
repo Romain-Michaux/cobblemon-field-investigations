@@ -9,7 +9,7 @@ Tout ce qu'il faut saisir sur Modrinth et CurseForge. Les textes à coller sont 
 | Le mod | `build/libs/cobblemon-field-investigations-1.0.0.jar` |
 | Icône (carrée, 768 px) | `icon.png` |
 | Description longue | `docs/publication/description.md` (Markdown, accepté par les deux sites) |
-| Galerie | `docs/gallery/*.png` (la première sert d'image vedette) |
+| Galerie | `docs/gallery/*.png` : 24 captures en anglais, numérotées dans l'ordre du jeu. Image vedette conseillée : `02_case_board.png` ou `23_scanner.png` |
 
 ## Champs communs
 

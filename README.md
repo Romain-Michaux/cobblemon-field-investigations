@@ -10,7 +10,9 @@ The cleaner your investigation, the better the Pokémon and the loot.
 
 Everything fits in one item: the **Field Kit**. No workstation to carry around.
 
-![Case board](docs/gallery/case_board.png)
+![Case board](docs/gallery/02_case_board.png)
+
+![Scanner](docs/gallery/23_scanner.png)
 
 ## How an investigation goes
 
