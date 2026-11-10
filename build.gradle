@@ -1,0 +1,36 @@
+plugins {
+    id 'fabric-loom' version '1.13.6'
+}
+version = project.mod_version
+group = 'fr.cobblescout'
+base { archivesName = 'cobblemon-field-investigations' }
+
+repositories {
+    mavenCentral()
+    // Cobblemon
+    maven { url = 'https://maven.impactdev.net/repository/development/' }
+}
+
+dependencies {
+    minecraft 'com.mojang:minecraft:1.21.1'
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.16.14'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.116.17+1.21.1'
+    // Cobblemon is only needed to compile against; players install it themselves.
+    modCompileOnly('com.cobblemon:fabric:1.8.4+1.21.1') { transitive = false }
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib:2.2.0'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand 'version': project.version }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+jar {
+    from('LICENSE') { rename { "${it}_${base.archivesName.get()}" } }
+}

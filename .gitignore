@@ -1,0 +1,20 @@
+# Gradle / Loom
+.gradle/
+build/
+run/
+*.log
+build_log.txt
+
+# Jars locaux (Cobblemon vient maintenant du dépôt Maven) et anciens prototypes
+libs/
+prototype_plugin/
+
+# Captures de travail (la galerie publiée est dans docs/gallery)
+captures/
+
+# Divers
+__pycache__/
+*.pyc
+.idea/
+.vscode/
+*.iml

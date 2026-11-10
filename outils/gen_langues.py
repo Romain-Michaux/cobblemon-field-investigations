@@ -1,0 +1,440 @@
+# Fichiers de langue du mod (anglais par défaut, français fourni) et passage des textes de l'interface par ces fichiers.
+#  - UI : (texte français tel qu'il était écrit dans le code, texte anglais). Chaque texte reçoit une clé
+#    cobblemon_field_investigations.ui.<nom> et le littéral du code est remplacé par T.f("<nom>").
+#  - CLES : le reste (annonces du serveur, noms des traces, marqueurs, mini-jeux, objets, blocs).
+# Usage : python outils/gen_langues.py   (à relancer après avoir ajouté un texte ; outils/extraire_textes.py liste les oublis)
+import io
+import json
+import os
+import re
+
+ICI = os.path.dirname(os.path.abspath(__file__))
+RES = os.path.join(ICI, "..", "src", "main", "resources", "assets", "cobblemon_field_investigations", "lang")
+CLIENT = os.path.join(ICI, "..", "src", "main", "java", "fr", "cobblescout", "traque", "client")
+FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "JeuxLabo.java", "JeuxTerrain.java", "TraqueClient.java"]
+
+UI = [
+    # --- commun ---
+    ("Séquenceur ADN", "DNA Sequencer"),
+    ("SÉQUENCEUR ADN · ", "DNA SEQUENCER · "),
+    (" · doses : ", " · doses: "),
+    (" · première erreur sans frais", " · first mistake is free"),
+    ("PRÉLÈVEMENT PARFAIT", "PERFECT SAMPLE"),
+    ("PRÉLÈVEMENT RÉUSSI", "SAMPLE TAKEN"),
+    ("PRÉLÈVEMENT ABÎMÉ", "SAMPLE DAMAGED"),
+    ("une dose de plus", "one extra dose"),
+    ("échantillon complet", "full sample"),
+    ("une seule dose · −½ étoile", "a single dose · −½ star"),
+    ("ANALYSE RÉUSSIE", "ANALYSIS COMPLETE"),
+    ("ANALYSE RATÉE", "ANALYSIS FAILED"),
+    ("marqueur ", "marker "),
+    (" ajouté au dossier", " added to the case file"),
+    ("le séquenceur a sauvé la dose", "the sequencer saved the dose"),
+    ("une dose perdue · −½ étoile", "one dose lost · −½ star"),
+    # --- séquençage ---
+    ("Lire", "Read"),
+    ("bien placée", "right place"),
+    ("mal placée", "wrong place"),
+    ("Lectures : ", "Reads left: "),
+    ("Clique les cases pour choisir les 4 bases, puis Lire. Tu as 6 lectures pour retrouver la séquence.",
+     "Click the slots to pick the 4 bases, then Read. You have 6 reads to find the sequence."),
+    # --- appariement ---
+    ("Brin à compléter", "Strand to complete"),
+    ("Erreurs : ", "Mistakes: "),
+    ("Donne la base complémentaire de la grande case (A avec T, C avec G) avant la fin de la barre. Boutons ou touches A, T, C, G.",
+     "Give the base that pairs with the big slot (A with T, C with G) before the bar runs out. Buttons or keys A, T, C, G."),
+    # --- centrifugation ---
+    ("Phases séparées : ", "Phases separated: "),
+    ("Ratés : ", "Misses: "),
+    ("Arrêter (Espace)", "Stop (Space)"),
+    ("Clique (ou Espace) quand l'aiguille passe dans la zone verte. Trois arrêts réussis ; la zone rétrécit et le rotor accélère.",
+     "Click (or Space) when the needle crosses the green zone. Three good stops; the zone shrinks and the rotor speeds up."),
+    # --- fragments ---
+    ("La fin d'un fragment", "The end of a fragment"),
+    ("= le début du suivant", "= the start of the next"),
+    ("Jonctions justes : ", "Correct joints: "),
+    ("Essais : ", "Tries: "),
+    ("Assembler", "Assemble"),
+    ("Clique deux fragments pour les échanger. Dans le bon ordre, les 2 dernières bases de chaque fragment sont les 2 premières du suivant.",
+     "Click two fragments to swap them. In the right order, the last 2 bases of each fragment are the first 2 of the next."),
+    # --- spectre ---
+    ("Fréquence", "Frequency"),
+    ("Amplitude", "Amplitude"),
+    ("Phase", "Phase"),
+    ("gris : échantillon", "grey: sample"),
+    ("Accord : ", "Match: "),
+    ("Règle fréquence, amplitude et phase jusqu'à superposer ta courbe (bleue) à celle de l'échantillon (grise), avant la fin de la barre.",
+     "Tune frequency, amplitude and phase until your curve (blue) overlaps the sample's (grey), before the bar runs out."),
+    # --- kit ---
+    ("Kit de terrain", "Field Kit"),
+    ("en veille", "standby"),
+    ("prélèvements", "sampling"),
+    ("traque", "tracking"),
+    ("repérage", "spotting"),
+    ("approche", "approach"),
+    ("débusqué", "flushed out"),
+    ("KIT DE TERRAIN", "FIELD KIT"),
+    ("Aucune enquête en cours", "No investigation in progress"),
+    ("ÉCHANTILLONS", "SAMPLES"),
+    ("indice détruit", "clue destroyed"),
+    ("analysé · au dossier", "analysed · in the file"),
+    ("prélevé · à analyser", "sampled · to analyse"),
+    ("dégagé · à prélever", "uncovered · to sample"),
+    ("enfoui · pinceau requis", "buried · brush needed"),
+    ("à prélever dans la zone", "to sample in the zone"),
+    ("ZONE DES TRACES", "TRACE ZONE"),
+    (" blocs · ", " blocks · "),
+    ("Dossier", "Case file"),
+    ("1 carreau = 50 blocs", "1 square = 50 blocks"),
+    ("RELEVÉS (", "BEARINGS ("),
+    ("CIBLE EN VUE", "TARGET IN SIGHT"),
+    ("DÉBUSQUÉ", "FLUSHED OUT"),
+    ("La cible est en vue. Reste à distance et scanne-la : clic droit maintenu avec le kit, viseur sur le Pokémon, pendant trois secondes.",
+     "The target is in sight. Keep your distance and scan it: hold right-click with the kit, crosshair on the Pokémon, for three seconds."),
+    ("Si tu t'approches avant de l'avoir identifiée, elle file.", "If you get close before identifying it, it runs away."),
+    (" IV parfaits à la capture", " perfect IVs on capture"),
+    ("Il est là : combats-le ou capture-le.", "There it is: battle it or catch it."),
+    ("Avance sans courir : à quelques blocs, elle sera débusquée.", "Walk, don't run: a few blocks away, it will be flushed out."),
+    ("Recoupement", "Fix"),
+    (" blocs", " blocks"),
+    ("Blanc : tes relevés. Trait clair : cap entendu, traits sombres : marge d'erreur. Cercle jaune : zone probable. ",
+     "White: your bearings. Bright line: bearing heard, dark lines: margin of error. Yellow circle: likely area. "),
+    ("Plus tu es près, plus le cap est précis.", "The closer you are, the more accurate the bearing."),
+    # --- tableau ---
+    ("commune", "common"),
+    ("peu commune", "uncommon"),
+    ("rare", "rare"),
+    ("très rare", "very rare"),
+    ("Tableau d'enquête", "Investigation Board"),
+    ("TABLEAU D'ENQUÊTE", "CASE BOARD"),
+    ("Ouvre une enquête pour recevoir un signalement : des traces à prélever avec ton kit, des fioles vides et un pinceau.",
+     "Open an investigation to get a report: traces to sample with your kit, empty vials and a brush."),
+    ("Chaque étoile au-delà de la première donne un IV parfait au Pokémon capturé (4 au mieux) et un meilleur butin.",
+     "Each star you keep (5 at best) past the first gives the caught Pokémon a perfect IV, and better loot."),
+    ("Ouvrir une enquête", "Open an investigation"),
+    ("Prochain signalement dans ", "Next report in "),
+    (" min", " min"),
+    ("Enquêtes résolues : ", "Cases solved: "),
+    ("Espèce ", "Species: "),
+    ("à analyser", "to analyse"),
+    ("à déterrer", "to dig up"),
+    ("à prélever", "to sample"),
+    ("Zone : ", "Zone: "),
+    ("> boussole · ", "> compass · "),
+    ("Traque en cours", "Hunt in progress"),
+    ("> carte du kit", "> kit map"),
+    ("Résultats : ", "Results: "),
+    ("Désigne un suspect", "Pick a suspect"),
+    ("Traquer ", "Track "),
+    ("Lancer la traque", "Start the hunt"),
+    ("Pronostic : ", "Guess: "),
+    ("Cible débusquée !", "Target flushed out!"),
+    ("Sur le terrain avec le kit", "In the field with the kit"),
+    ("Abandonner", "Give up"),
+    ("Qualité de l'enquête : ", "Investigation quality: "),
+    (" IV parfaits §7sur le Pokémon capturé", " perfect IVs §7on the caught Pokémon"),
+    ("§7et un butin plus riche à chaque étoile", "§7and richer loot with each star"),
+    ("§8(une étoile = aucun IV parfait, cinq = quatre)", "§8(one star = no perfect IV, five = four)"),
+    ("§8Raté de mini-jeu : −½ (", "§8Mini-game failure: −½ ("),
+    ("§8Fuite de la cible : −1 (", "§8Target ran away: −1 ("),
+    ("§8Mauvais pronostic : −2", "§8Wrong guess: −2"),
+    (" (écarté)", " (ruled out)"),
+    # --- électrophorèse ---
+    ("éch.", "smp."),
+    ("Gel", "Gel"),
+    ("Err.", "Err."),
+    ("Oui !", "Yes!"),
+    ("Non", "No"),
+    ("Clique la piste identique à l'échantillon (éch.) : position, épaisseur et éclat de chaque bande comptent. Trois gels ; deux erreurs au plus.",
+     "Click the lane identical to the sample (smp.): position, thickness and brightness of every band matter. Three gels; two mistakes at most."),
+    # --- colorimétrie ---
+    ("Rouge", "Red"),
+    ("Jaune", "Yellow"),
+    ("Bleu", "Blue"),
+    ("Blanc", "White"),
+    ("Mémorise !", "Memorise!"),
+    ("Cible", "Target"),
+    ("Ton mélange", "Your mix"),
+    ("· réussi", "· passed"),
+    ("· raté", "· failed"),
+    ("seuil : ", "needed: "),
+    (" gouttes", " drops"),
+    ("Fiole ", "Flask "),
+    ("Échecs : ", "Fails: "),
+    ("Vider", "Empty"),
+    ("Valider", "Confirm"),
+    ("Mémorise la teinte, puis recrée-la de tête en mélangeant les réactifs. Il faut au moins 85 % de ressemblance. Trois fioles ; deux échecs au plus.",
+     "Memorise the colour, then recreate it from memory by mixing the reagents. You need at least 85 % likeness. Three flasks; two fails at most."),
+    # --- PCR ---
+    ("Cycle ", "Cycle "),
+    ("Observe le programme…", "Watch the program…"),
+    ("À toi : reproduis-le", "Your turn: repeat it"),
+    ("Le programme s'allonge d'un palier à chaque cycle.", "The program gets one step longer each cycle."),
+    ("Observe la suite de paliers de température, puis reproduis-la en cliquant les boutons dans le même ordre. Trois cycles ; deux erreurs au plus.",
+     "Watch the sequence of temperature steps, then repeat it by clicking the buttons in the same order. Three cycles; two mistakes at most."),
+    # --- comptage ---
+    ("Boîte ", "Dish "),
+    (" / 3 · erreurs ", " / 3 · mistakes "),
+    ("Exact : ", "Correct: "),
+    (" colonies", " colonies"),
+    ("Raté : il y en avait ", "Wrong: there were "),
+    ("Compte les colonies…", "Count the colonies…"),
+    ("Combien y en avait-il ?", "How many were there?"),
+    ("La boîte n'est visible qu'un instant : compte les colonies, puis choisis le bon nombre. Trois boîtes ; deux erreurs au plus.",
+     "The dish is only visible for a moment: count the colonies, then pick the right number. Three dishes; two mistakes at most."),
+    # --- cristaux ---
+    ("Gisement ", "Deposit "),
+    ("Observe bien…", "Watch closely…"),
+    ("Gisement prélevé", "Deposit sampled"),
+    ("À toi : prélève", "Your turn: sample"),
+    ("stable : ", "stable: "),
+    ("instable : évite", "unstable: avoid"),
+    ("Fautes : ", "Faults: "),
+    ("Sans faute : une dose de plus.", "No fault: one extra dose."),
+    ("Cristaux stables (turquoise) et instables (rouges) brillent un instant : mémorise, puis prélève les stables sans toucher aux rouges. Trois fautes au plus.",
+     "Stable (teal) and unstable (red) crystals glow for a moment: memorise them, then sample the stable ones without touching the red ones. Three faults at most."),
+    # --- pipetage ---
+    ("Dose ", "Dose "),
+    ("Dose juste !", "Right dose!"),
+    ("Débordement…", "Overflow…"),
+    ("Dose à côté", "Wrong dose"),
+    ("Relâche dans le vert", "Release in the green"),
+    ("Maintiens le clic", "Hold the click"),
+    ("La zone verte rétrécit et l'aspiration accélère à chaque dose.", "The green zone shrinks and the suction speeds up with each dose."),
+    ("Maintiens le clic pour aspirer, relâche quand le niveau est dans la zone verte. Trois doses justes à réussir ; trois fautes abîment l'échantillon.",
+     "Hold the click to draw liquid, release when the level is in the green zone. Three right doses to get; three faults damage the sample."),
+    # --- mesure ---
+    ("bord gauche", "left edge"),
+    ("bord droit", "right edge"),
+    ("bord haut", "top edge"),
+    ("bord bas", "bottom edge"),
+    ("Mâchoire ", "Jaw "),
+    ("Largeur : ", "Width: "),
+    (" cm", " cm"),
+    ("Longueur : ", "Length: "),
+    ("Clique quand la règle touche le bord demandé.", "Click when the ruler touches the requested edge."),
+    ("Clique quand la règle touche le bord gauche de l'empreinte, puis le droit, le haut et le bas. Deux mesures ratées faussent le relevé.",
+     "Click when the ruler touches the left edge of the footprint, then the right, top and bottom. Two bad measurements spoil the reading."),
+    # --- tri ---
+    ("Coquilles", "Shells"),
+    ("Fautes", "Faults"),
+    ("Ramasse les six éclats de coquille parmi les brindilles, feuilles et cailloux avant la fin de la barre. Trois erreurs au plus.",
+     "Pick up the six eggshell shards among the twigs, leaves and pebbles before the bar runs out. Three mistakes at most."),
+    # --- griffures ---
+    ("Griffure ", "Scratch "),
+    ("Écarts : ", "Slips: "),
+    ("Suis l'entaille…", "Follow the groove…"),
+    ("Relâche et reprends", "Release and retry"),
+    ("Pars du point", "Start from the dot"),
+    ("Clic maintenu, du haut vers le bas.", "Hold the click, from top to bottom."),
+    ("Clic maintenu sur le point de départ, puis suis l'entaille jusqu'en bas sans t'en écarter. Trois griffures ; trois écarts abîment le relevé.",
+     "Hold the click on the starting dot, then follow the groove to the bottom without straying. Three scratches; three slips damage the reading."),
+    # --- dégagement ---
+    ("Dégagé : ", "Uncovered: "),
+    ("Accrocs : ", "Snags: "),
+    ("Trop brusque !", "Too rough!"),
+    ("Brosse doucement", "Brush gently"),
+    ("Clic maintenu : balaie la terre au centre.", "Hold the click: sweep the soil in the middle."),
+    ("Clic maintenu : balaie la terre pour dégager l'indice à 90 % avant la fin de la barre. Un geste trop brusque l'abîme (trois accrocs au plus).",
+     "Hold the click: sweep the soil to uncover 90 % of the clue before the bar runs out. A rough stroke damages it (three snags at most)."),
+    # --- radar ---
+    ("aucun signe", "no sign"),
+    ("signes ténus", "faint signs"),
+    ("signes nets", "clear signs"),
+    ("signes frais", "fresh signs"),
+    ("trace toute proche", "trace very close"),
+    ("juste là", "right here"),
+    ("Tout est prélevé", "All sampled"),
+    ("enfoui · à ", "buried · "),
+    ("indice enfoui", "buried clue"),
+    ("zone à ", "zone at "),
+    ("très lointain", "very far"),
+    ("lointain", "far"),
+    ("net", "clear"),
+    ("proche", "close"),
+    ("Cri ", "Cry: "),
+    ("Clic droit : écoute", "Right-click: listen"),
+    ("Recalibrage…", "Recalibrating…"),
+    ("Accroupi : carte", "Sneak: map"),
+    ("Analyse… ", "Scanning… "),
+    ("Scanne la cible", "Scan the target"),
+    ("pas ta cible", "not your target"),
+    ("trop près : recule !", "too close: back off!"),
+    ("clic droit · à ", "right-click · "),
+    ("Cible à ", "Target at "),
+    ("NE COURS PAS !", "DON'T RUN!"),
+    ("Approche en douceur", "Approach quietly"),
+    ("Débusqué !", "Flushed out!"),
+    ("capture-le", "catch it"),
+    # --- scanner ---
+    ("SCANNER", "SCANNER"),
+    ("Ce n'est pas ta cible", "This is not your target"),
+    ("Verrouillage…", "Locking on…"),
+    ("Vise le Pokémon", "Aim at the Pokémon"),
+    # --- petits mots ---
+    ("à ", "at "),
+    # --- fouille au pinceau ---
+    ("Fragments : ", "Fragments: "),
+    ("Ils sont enfouis n'importe où : cherche en brossant.", "They are buried anywhere: brush around to find them."),
+    ("Passe lentement : une pâleur trahit ce qui est enfoui.", "Go slowly: a pale patch gives away what is buried."),
+    ("Brosse lentement (clic maintenu) : la terre part peu à peu. Dégage les trois fragments avant la fin de la barre ; trois gestes brusques les gâchent.",
+     "Brush the soil (hold the click) slowly: it comes off bit by bit. Uncover the three fragments before the bar runs out; three rough strokes ruin them."),
+]
+
+# Clés qui ne viennent pas d'un littéral du code : (clé sans le préfixe cobblemon_field_investigations., anglais, français)
+CLES = [
+    ("ui.vents", "N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW,NW,NNW", "N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSO,SO,OSO,O,ONO,NO,NNO"),
+    ("aucun", "none", "aucun"),
+    ("marqueur.type1", "Element α", "Élément α"), ("marqueur.type2", "Element β", "Élément β"), ("marqueur.taille", "Growth", "Croissance"),
+    ("marqueur.oeuf", "Lineage", "Lignée"), ("marqueur.stat", "Aptitude", "Aptitude"),
+    ("trace.type1", "Elemental residue", "Résidu élémentaire"), ("trace.type2", "Strange deposit", "Dépôt étrange"), ("trace.taille", "Footprint", "Empreinte"),
+    ("trace.oeuf", "Abandoned nest", "Nid abandonné"), ("trace.stat", "Signs of a struggle", "Traces de lutte"),
+    ("enfoui.taille", "Buried bone", "Ossement enfoui"), ("enfoui.oeuf", "Buried eggshells", "Coquilles enfouies"), ("enfoui.stat", "Broken fang", "Croc brisé"),
+    ("jeu.sequencage", "Sequencing", "Séquençage"), ("jeu.appariement", "Strand pairing", "Appariement des brins"), ("jeu.centrifugation", "Centrifugation", "Centrifugation"),
+    ("jeu.fragments", "Fragment assembly", "Assemblage de fragments"), ("jeu.spectre", "Spectrum tuning", "Accord du spectre"),
+    ("jeu.gel", "Electrophoresis", "Électrophorèse"), ("jeu.titrage", "Colorimetry", "Colorimétrie"), ("jeu.pcr", "PCR cycles", "Cycles PCR"),
+    ("jeu.comptage", "Colony count", "Comptage de colonies"), ("jeu.memoire", "Residual crystals", "Cristaux résiduels"), ("jeu.pipette", "Pipetting", "Pipetage"),
+    ("jeu.mesure", "Footprint measurement", "Mesure de l'empreinte"), ("jeu.tri", "Fragment sorting", "Tri des fragments"),
+    ("jeu.trace", "Scratch tracing", "Relevé des griffures"), ("jeu.degagement", "Brush excavation", "Dégagement au pinceau"),
+    ("taille.0", "tiny", "minuscule"), ("taille.1", "small", "petit"), ("taille.2", "medium", "moyen"), ("taille.3", "large", "grand"), ("taille.4", "huge", "énorme"),
+    ("oeuf.monster", "Monster", "Monstrueux"), ("oeuf.water_1", "Water 1", "Aquatique 1"), ("oeuf.bug", "Bug", "Insectoïde"), ("oeuf.flying", "Flying", "Aérien"),
+    ("oeuf.field", "Field", "Terrestre"), ("oeuf.fairy", "Fairy", "Féerique"), ("oeuf.grass", "Grass", "Végétal"), ("oeuf.human_like", "Human-like", "Humanoïde"),
+    ("oeuf.water_3", "Water 3", "Aquatique 3"), ("oeuf.mineral", "Mineral", "Minéral"), ("oeuf.amorphous", "Amorphous", "Amorphe"), ("oeuf.water_2", "Water 2", "Aquatique 2"),
+    ("oeuf.ditto", "Ditto", "Métamorph"), ("oeuf.dragon", "Dragon", "Draconique"), ("oeuf.undiscovered", "Unknown", "Inconnu"),
+    ("echantillon.nom", "Sample · %s", "Échantillon · %s"), ("echantillon.nom_analyse", "Analysed sample · %s", "Échantillon analysé · %s"),
+    ("echantillon.marqueur", "Marker %s: %s", "Marqueur %s : %s"), ("echantillon.analyse", "Analysis: %s", "Analyse : %s"),
+    ("echantillon.aide1", "Right-click with a field kit on you to analyse it", "Clic droit avec un kit de terrain sur soi pour l'analyser"),
+    ("echantillon.doses", "Doses left: %s", "Doses restantes : %s"),
+    ("commande.reset", "Investigation and cooldown reset.", "Enquête et délai remis à zéro."),
+    ("rec.deux", "You need at least two bearings taken far apart to get a fix", "Il faut au moins deux relevés éloignés pour recouper"),
+    ("rec.alignes", "Bearings too aligned: move well off to the side", "Relevés trop alignés : décale-toi nettement sur le côté"),
+    ("rec.impossible", "No fix possible", "Recoupement impossible"),
+    ("rec.contredisent", "The bearings contradict each other: take another one further away", "Les relevés se contredisent : prends-en un autre plus loin"),
+    ("rec.ok", "Fix computed", "Recoupement établi"),
+    # --- annonces ---
+    ("annonce.kit_requis.titre", "Trace", "Trace"), ("annonce.kit_requis.texte", "You need a field kit to sample it", "Il faut un kit de terrain pour la prélever"),
+    ("annonce.sol_remue.titre", "Disturbed soil", "Sol remué"),
+    ("annonce.sol_remue.texte", "Something is buried here: uncover it with a brush, without breaking the block", "Quelque chose est enfoui ici : dégage-le au pinceau, sans casser le bloc"),
+    ("annonce.echantillon_kit.titre", "Sample", "Échantillon"),
+    ("annonce.echantillon_kit.texte", "You need a field kit on you (pocket sequencer) to analyse it", "Il faut un kit de terrain sur soi (séquenceur de poche) pour l'analyser"),
+    ("annonce.trop_ancien.titre", "DNA Sequencer", "Séquenceur ADN"),
+    ("annonce.trop_ancien.texte", "This sample matches no investigation in progress", "Cet échantillon ne correspond à aucune enquête en cours"),
+    ("annonce.analyse_reussie.titre", "Analysis complete", "Analyse réussie"),
+    ("annonce.analyse_reussie.texte", "Marker %s: %s · added to the case file (%s / %s needed)", "Marqueur %s : %s · ajouté au dossier (%s / %s requis)"),
+    ("annonce.echantillon_detruit.titre", "Analysis failed", "Analyse ratée"),
+    ("annonce.echantillon_detruit.texte", "The sample is destroyed: this marker will stay unknown · quality %s", "L'échantillon est détruit : ce marqueur restera inconnu · qualité %s"),
+    ("annonce.dose_perdue.titre", "Analysis failed", "Analyse ratée"),
+    ("annonce.dose_perdue.texte", "One dose lost (%s left) · quality %s", "Une dose est perdue (reste %s) · qualité %s"),
+    ("annonce.dimension.titre", "Investigation Board", "Tableau d'enquête"), ("annonce.dimension.texte", "No reports in this dimension", "Aucun signalement dans cette dimension"),
+    ("annonce.nouvelle_enquete.titre", "New investigation", "Nouvelle enquête"),
+    ("annonce.nouvelle_enquete.texte", "Traces have been reported: head to the zone with your kit, vials and a brush", "Des traces ont été signalées : rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.aucun_signalement.titre", "Investigation Board", "Tableau d'enquête"),
+    ("annonce.aucun_signalement.texte", "No usable report around here, try somewhere else", "Aucun signalement exploitable par ici, essaie ailleurs"),
+    ("annonce.trace_autre.titre", "Trace", "Trace"), ("annonce.trace_autre.texte", "It does not belong to your investigation", "Elle ne correspond pas à ton enquête"),
+    ("annonce.trace_ancienne.titre", "Trace", "Trace"), ("annonce.trace_ancienne.texte", "Too old: it crumbles under your fingers", "Trop ancienne : elle s'effrite sous tes doigts"),
+    ("annonce.fiole_requise.titre", "Field Kit", "Kit de terrain"), ("annonce.fiole_requise.texte", "You need an empty vial to take a sample", "Il te faut une fiole vide pour prélever"),
+    ("annonce.prelevement_parfait.titre", "Perfect sample", "Prélèvement parfait"), ("annonce.prelevement_ok.titre", "Sample taken", "Échantillon prélevé"),
+    ("annonce.prelevement_abime.titre", "Sample damaged (−½ star)", "Prélèvement abîmé (−½ étoile)"),
+    ("annonce.prelevement.texte", "%s · %s dose(s)%s", "%s · %s dose(s)%s"),
+    ("annonce.prelevement.reste", " · %s more trace(s) in the zone", " · encore %s trace(s) dans la zone"),
+    ("annonce.prelevement.fini", " · every trace is sampled, off to the sequencer", " · toutes les traces sont prélevées, direction le séquenceur"),
+    ("annonce.indice_degage.titre", "Clue uncovered", "Indice dégagé"), ("annonce.indice_degage.texte", "%s: sample it now with the kit", "%s : prélève-le maintenant avec le kit"),
+    ("annonce.indice_detruit.titre", "Clue destroyed (−½ star)", "Indice détruit (−½ étoile)"),
+    ("annonce.indice_detruit.texte", "The disturbed soil was broken: %s is lost, this marker will stay unknown", "Le sol remué a été cassé : %s est perdu, ce marqueur restera inconnu"),
+    ("annonce.kit_calibre.titre", "Kit calibrated", "Kit calibré"),
+    ("annonce.kit_calibre.texte", "In the field, right-click with the kit to pick up its cry and get a fix on its position", "Sur le terrain, clic droit avec le kit pour capter son cri et recouper sa position"),
+    ("annonce.classee.titre", "Case closed", "Enquête classée"), ("annonce.classee.texte", "You give up the trail", "Tu abandonnes la piste"),
+    ("annonce.meme_ecoute.titre", "Same spot", "Même écoute"),
+    ("annonce.meme_ecoute.texte", "Move at least %s blocks before taking another bearing", "Déplace-toi d'au moins %s blocs avant un nouveau relevé"),
+    ("annonce.cible_deplacee.titre", "The target has moved", "La cible s'est déplacée"),
+    ("annonce.cible_deplacee.texte", "Your earlier bearings are no longer reliable", "Tes anciens relevés ne sont plus fiables"),
+    ("annonce.contact_perdu.titre", "Contact lost", "Contact perdu"), ("annonce.contact_perdu.texte", "Take new bearings with the kit", "Reprends tes relevés avec le kit"),
+    ("annonce.cible_disparue.titre", "Target lost", "Cible perdue"),
+    ("annonce.cible_disparue.texte", "The target died before you could defeat or catch it: it does not count. Another one has been reported nearby, take new bearings",
+     "La cible est morte sans que tu l'aies vaincue ni capturée : ça ne compte pas. Une autre est signalée dans les environs, reprends tes relevés"),
+    ("annonce.senti.titre", "It sensed you!", "Il t'a senti !"),
+    ("annonce.senti.texte", "You came within %s blocks before scanning it: the target fled (−1 star, quality %s)", "Tu es passé à moins de %s blocs avant de l'avoir scanné : la cible a filé (−1 étoile, qualité %s)"),
+    ("annonce.entendu.titre", "It heard you!", "Il t'a entendu !"),
+    ("annonce.entendu.texte", "You ran within %s blocks of it: the target fled (−1 star, quality %s)", "Tu as couru à moins de %s blocs : la cible a filé (−1 étoile, qualité %s)"),
+    ("annonce.tout_pres.titre", "Target in sight", "Cible en vue"),
+    ("annonce.tout_pres.texte", "Spot it and scan it from afar (hold right-click with the kit, crosshair on it). Stay more than %s blocks away until it is identified",
+     "Repère-la et scanne-la de loin (clic droit maintenu avec le kit, viseur dessus). Reste à plus de %s blocs tant qu'elle n'est pas identifiée"),
+    ("annonce.identifie.titre", "Target identified %s", "Cible identifiée %s"),
+    ("annonce.identifie.texte", "It is a %s%s. %s perfect IVs if you catch it: approach without running", "C'est un %s%s. %s IV parfaits si tu le captures : approche sans courir"),
+    ("annonce.identifie.juste", ": your guess was right", " : ton pronostic était le bon"),
+    ("annonce.identifie.faux", ": not what you guessed (−2 stars)", " : ce n'était pas ton pronostic (−2 étoiles)"),
+    ("annonce.debusque.titre", "Flushed out!", "Débusqué !"),
+    ("annonce.debusque.texte", "%s is right there: battle it or catch it (%s perfect IVs)", "%s est là : combats-le ou capture-le (%s IV parfaits)"),
+    ("annonce.annulee.titre", "Investigation cancelled", "Enquête annulée"), ("annonce.annulee.texte", "This species no longer exists", "Cette espèce n'existe plus"),
+    ("annonce.trop_tard.titre", "Too late", "Trop tard"), ("annonce.trop_tard.texte", "Someone else caught your target", "Quelqu'un d'autre a capturé ta cible"),
+    ("annonce.resolue.titre", "Case solved! %s", "Enquête résolue ! %s"),
+    ("annonce.resolue.texte", "%s %s · case no. %s%s%s", "%s %s · dossier n° %s%s%s"),
+    ("annonce.resolue.capture", "caught", "capturé"), ("annonce.resolue.vaincu", "defeated", "vaincu"),
+    ("annonce.resolue.palier", " (milestone!)", " (palier !)"), ("annonce.resolue.butin", " · Loot: %s", " · Butin : %s"),
+]
+
+# Objets et blocs (clés complètes).
+OBJETS = [
+    ("item.cobblemon_field_investigations.kit_terrain", "Field Kit", "Kit de terrain"),
+    ("item.cobblemon_field_investigations.kit_terrain.aide1", "All-in-one: case file, sampling, pocket sequencer, tracking, scanner",
+     "Tout-en-un : dossier d'enquête, prélèvement, séquenceur de poche, pistage, scanner"),
+    ("item.cobblemon_field_investigations.kit_terrain.aide2", "Right-click: case file · on a trace: sample it (empty vial needed) · buried clue: brush",
+     "Clic droit : dossier · sur une trace : prélever (fiole vide requise) · indice enfoui : pinceau"),
+    ("item.cobblemon_field_investigations.fiole", "Empty Vial", "Fiole vide"),
+    ("item.cobblemon_field_investigations.echantillon", "Sample", "Échantillon"),
+    ("block.cobblemon_field_investigations.trace", "Trace", "Trace"),
+    ("block.cobblemon_field_investigations.sol_remue", "Disturbed Soil", "Sol remué"),
+]
+
+
+def nom(anglais, pris):
+    mots = re.findall(r"[a-z0-9]+", anglais.lower().replace("½", "half"))[:5] or ["texte"]
+    base = "_".join(mots)[:40]
+    cle, n = base, 2
+    while cle in pris:
+        cle = base + "_" + str(n)
+        n += 1
+    pris.add(cle)
+    return cle
+
+
+def java(texte):
+    return texte.replace("\\", "\\\\").replace('"', '\\"')
+
+
+if __name__ == "__main__":
+    en, fr, pris, cles = {}, {}, set(), {}
+    for francais, anglais in UI:
+        cle = nom(anglais, pris)
+        cles[francais] = cle
+        en["cobblemon_field_investigations.ui." + cle] = anglais
+        fr["cobblemon_field_investigations.ui." + cle] = francais
+    for cle, anglais, francais in CLES:
+        en["cobblemon_field_investigations." + cle] = anglais
+        fr["cobblemon_field_investigations." + cle] = francais
+    for cle, anglais, francais in OBJETS:
+        en[cle] = anglais
+        fr[cle] = francais
+    for langue, textes in (("en_us", en), ("fr_fr", fr)):
+        with open(os.path.join(RES, langue + ".json"), "w", encoding="utf-8", newline="\n") as f:
+            json.dump(textes, f, ensure_ascii=False, indent=2, sort_keys=True)
+    print(len(en), "clés écrites")
+
+    # Remplacement des littéraux français du code par T.f("<clé>"), du plus long au plus court.
+    for fichier in FICHIERS:
+        chemin = os.path.join(CLIENT, fichier)
+        source = io.open(chemin, encoding="utf-8").read()
+        lignes = source.split("\n")
+        for i, ligne in enumerate(lignes):
+            if ligne.strip().startswith("//"):
+                continue
+            for francais in sorted(cles, key=len, reverse=True):
+                litteral = '"' + java(francais) + '"'
+                if litteral in ligne:
+                    # jamais à l'intérieur d'un T.f("...") déjà posé (la clé « rare » est aussi un mot français)
+                    ligne = re.sub(r'(?<!T\.f\()' + re.escape(litteral), lambda m: 'T.f("' + cles[francais] + '")', ligne)
+            lignes[i] = ligne
+        nouveau = "\n".join(lignes)
+        if nouveau != source:
+            io.open(chemin, "w", encoding="utf-8", newline="\n").write(nouveau)
+            print("mis à jour :", fichier)

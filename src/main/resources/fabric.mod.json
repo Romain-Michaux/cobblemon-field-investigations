@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "cobblemon_field_investigations",
+  "version": "${version}",
+  "name": "Cobblemon: Field Investigations",
+  "description": "A field investigation add-on for Cobblemon: sample the traces left by an unknown Pokémon, dig up buried clues, analyse their DNA in mini-games, rule out suspects on your case board, then track the target by its cries, scan it from afar and catch it. The cleaner the investigation, the better the Pokémon and the loot.",
+  "authors": [
+    "Romain Michaux"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "fr.cobblescout.traque.Traque"
+    ],
+    "client": [
+      "fr.cobblescout.traque.client.TraqueClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "cobblemon": ">=1.8.0"
+  },
+  "mixins": [
+    "cobblemon_field_investigations.mixins.json"
+  ],
+  "contact": {
+    "sources": "https://github.com/Romain-Michaux/cobblemon-field-investigations",
+    "issues": "https://github.com/Romain-Michaux/cobblemon-field-investigations/issues",
+    "homepage": "https://github.com/Romain-Michaux/cobblemon-field-investigations"
+  },
+  "icon": "assets/cobblemon_field_investigations/icon.png"
+}
