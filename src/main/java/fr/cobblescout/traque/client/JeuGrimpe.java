@@ -10,7 +10,6 @@ final class JeuGrimpe extends Jeu {
     // Le tronc est une bande de 56 px de haut, bien droite, qui se répète sans couture et défile ; la forêt du fond reste fixe.
     static final ResourceLocation TRONC = Dessin.texture("tronc"), FORET = Dessin.texture("foret");
     static final int BANDE = 56, TRONC_X = 56, TRONC_L = 48;
-    // Branches vivantes et mortes, tournées vers la gauche ou vers la droite.
     static final ResourceLocation[][] BRANCHES = {{Dessin.texture("branche_g"), Dessin.texture("branche_d")},
             {Dessin.texture("branche_morte_g"), Dessin.texture("branche_morte_d")}};
     static final int N = 20, LIGNE = 84, MARGE = 7;
@@ -102,7 +101,6 @@ final class JeuGrimpe extends Jeu {
         int tronc = (int) monte % BANDE;
         g.fill(bx + TRONC_X - 2, by, bx + TRONC_X + TRONC_L + 2, by + H, 0x60000000);
         for (int k = -1; k <= 1; k++) Dessin.image(g, TRONC, bx + TRONC_X, by + tronc + k * BANDE, TRONC_L, BANDE);
-        // La zone d'atteinte : c'est là qu'il faut saisir la branche.
         g.fill(bx, by + LIGNE - MARGE, bx + L, by + LIGNE + MARGE, 0x30FFFFFF);
         g.fill(bx, by + LIGNE - MARGE, bx + L, by + LIGNE - MARGE + 1, 0xA0FFFFFF);
         g.fill(bx, by + LIGNE + MARGE - 1, bx + L, by + LIGNE + MARGE, 0xA0FFFFFF);

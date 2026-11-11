@@ -34,7 +34,6 @@ final class JeuDegagement extends Jeu {
         }
     }
 
-    // Fragment enfoui sous cette case, ou -1.
     int fragment(int c, int r) {
         for (int i = 0; i < FRAGMENTS; i++) {
             if (c >= fc[i] && c < fc[i] + TAILLE && r >= fr[i] && r < fr[i] + TAILLE) return i;

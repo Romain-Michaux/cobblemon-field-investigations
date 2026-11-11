@@ -29,7 +29,6 @@ final class Equipe {
         return chef;
     }
 
-    // Le chef d'enquête invite un joueur sans dossier à travailler sur le sien.
     static void inviter(ServerPlayer joueur, String nomInvite) {
         Dossier d = Moteur.etat.dossiers.get(joueur.getUUID());
         ServerPlayer invite = joueur.server.getPlayerList().getPlayerByName(nomInvite);
@@ -50,7 +49,6 @@ final class Equipe {
         Messages.synchroniser(joueur);
     }
 
-    // L'invité accepte ou refuse.
     static void repondre(ServerPlayer joueur, boolean accepte) {
         UUID chef = invitation(joueur);
         INVITATIONS.remove(joueur.getUUID());

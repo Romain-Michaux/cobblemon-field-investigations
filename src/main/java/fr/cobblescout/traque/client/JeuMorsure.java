@@ -39,7 +39,6 @@ final class JeuMorsure extends Jeu {
         return REPOS + (MAX - morsure[i] - reglette[pos + i]) * U;
     }
 
-    // De combien la réglette peut monter avant de buter.
     int course(int pos) {
         int min = Integer.MAX_VALUE;
         for (int i = 0; i < N; i++) min = Math.min(min, jeu(i, pos));
@@ -152,7 +151,6 @@ final class JeuMorsure extends Jeu {
         int leve = montee < 0 ? 0 : Math.min(course, montee * 5);
         boolean bute = montee >= 8 && !emboite;
         int x0 = ax + 2 + 3 * COL, haut = ay + 6, base = haut + MAX * U + REPOS + 6 - leve;
-        // La morsure : une gencive en haut, des dents qui pendent.
         g.fill(x0 - 4, haut - 5, x0 + N * COL + 3, haut + 1, 0xFFC97A70);
         g.fill(x0 - 4, haut - 5, x0 + N * COL + 3, haut - 3, 0xFFE0A096);
         for (int i = 0; i < N; i++) {
@@ -172,7 +170,6 @@ final class JeuMorsure extends Jeu {
             dent(g, x, base - 1, sommet - 1, contact ? Dessin.ALERTE : !dessous ? 0xFF6E7A88 : emboite ? 0xFF8FD8A0 : 0xFFF2B56A,
                     contact ? 0xFF8E2B26 : !dessous ? 0xFF55606C : emboite ? 0xFF5FA870 : 0xFFC98A3A);
         }
-        // Repères : la partie de la réglette qui sera pressée contre la morsure.
         g.fill(x0 - 2, ay + H - 6, x0 + N * COL + 1, ay + H - 4, Dessin.JAUNE);
         int tx = ox + 172;
         texte(g, T.f("bite") + Math.min(2, manche + 1) + " / 2", tx, oy + 5, Dessin.TEXTE);

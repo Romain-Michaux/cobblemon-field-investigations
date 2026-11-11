@@ -18,7 +18,6 @@ public class EcranKit extends Screen {
     private static final Dessin.Fond F = Dessin.KIT;
     private static final int L = F.il(), CARTE = 148;
     static final ResourceLocation INSIGNE = Dessin.texture("insigne");
-    // Couleur de l'insigne et du nom de chaque rang, du stagiaire à la légende.
     static final int[] COULEURS_RANGS = {0xFFB08D6A, 0xFFE0A060, 0xFFE8EEF2, 0xFFF2C93A, 0xFF6CCB5F, 0xFF4FD1C5, 0xFFC79CFF};
     static final String[] TYPES = {"", "nocturne", "craintive", "exceptionnel", "migratrice", "aquatique", "fouille", "cimes", "altitude", "givre", "brume", "souterraine"};
     // 0 = enquête en cours, 1 = carnet de l'enquêteur, 2 = archives, 3 = équipe.
@@ -52,7 +51,6 @@ public class EcranKit extends Screen {
         return new String[] {T.f("case"), T.f("logbook"), T.f("archives"), T.f("team")};
     }
 
-    // Abscisse et largeur de l'onglet i, dans le bandeau du haut.
     private int[] placeOnglet(int x, int i) {
         String[] noms = onglets();
         int px = x + 15;
@@ -159,7 +157,6 @@ public class EcranKit extends Screen {
         int rang = Math.max(0, Math.min(6, c.getInt("rang"))), xp = c.getInt("xp"), seuil = c.getInt("seuil"), suivant = c.getInt("suivant");
         int couleur = COULEURS_RANGS[rang];
         Dessin.encart(g, x + 4, y + 18, 124, 148);
-        // L'insigne, teinté à la couleur du rang.
         Dessin.teinte(g, couleur);
         Dessin.morceauAgrandi(g, INSIGNE, x + 34, y + 23, 64, 64, 0, 0, 32, 32, 32, 32);
         g.setColor(1f, 1f, 1f, 1f);
@@ -188,7 +185,6 @@ public class EcranKit extends Screen {
             Dessin.ecrire(g, effets[i], x + 158, ly + 10, acquis ? Dessin.VERT : Dessin.SOMBRE, false);
             if (Dessin.dans(mx, my, x + 136, ly - 1, 176, 20)) survole = i;
         }
-        // Au survol : le rang qui débloque l'amélioration.
         if (survole >= 0) {
             java.util.List<Component> lignes = new java.util.ArrayList<>();
             lignes.add(Component.literal(titres[survole]));
@@ -222,7 +218,6 @@ public class EcranKit extends Screen {
         if (fiches.size() > 6) {
             Dessin.ecrire(g, (defilement + 1) + "-" + Math.min(fiches.size(), defilement + 6) + " / " + fiches.size() + "  ▲▼", x + 118, y + 23, Dessin.GRIS, false);
         }
-        // À droite : la collection des types d'enquête.
         Dessin.encart(g, x + 204, y + 18, 112, 148);
         CompoundTag types = c.getCompound("types");
         int resolus = 0;
@@ -245,7 +240,6 @@ public class EcranKit extends Screen {
         Dessin.encart(g, x + 4, y + 18, 152, 148);
         g.drawString(Dessin.police(), T.f("team_2"), x + 10, y + 23, Dessin.JAUNE, false);
         if (!invitation.isEmpty()) {
-            // Une invitation attend une réponse.
             int ly = Dessin.paragraphe(g, invitation + T.f("invites_you_to_join_their"), x + 12, y + 40, 136, Dessin.TEXTE);
             Dessin.paragraphe(g, T.f("you_will_work_on_their"), x + 12, ly + 4, 136, Dessin.GRIS);
             Dessin.bouton(g, x + 12, y + 118, 136, 20, T.f("join"), Dessin.dans(mx, my, x + 12, y + 118, 136, 20), true, Dessin.VERT);
@@ -273,7 +267,6 @@ public class EcranKit extends Screen {
             Dessin.paragraphe(g, T.f("the_team_is_full"), x + 168, y + 40, 140, Dessin.GRIS);
             return;
         }
-        // Champ de recherche : on tape directement le nom du joueur.
         g.fill(x + 166, y + 34, x + 310, y + 48, Dessin.BORD);
         g.fill(x + 167, y + 35, x + 309, y + 47, 0xFF101A24);
         boolean curseur = (System.currentTimeMillis() / 400) % 2 == 0;
@@ -419,7 +412,6 @@ public class EcranKit extends Screen {
         g.fill(ox + 1, oy + 1, ox + CARTE + 1, oy + CARTE + 1, 0xFF101A24);
         g.enableScissor(ox + 1, oy + 1, ox + CARTE + 1, oy + CARTE + 1);
         int ccx = ox + 1 + CARTE / 2, ccy = oy + 1 + CARTE / 2;
-        // Quadrillage tous les 50 blocs.
         for (double q = Math.ceil((mx0 - demi) / 50) * 50; q < mx0 + demi; q += 50) {
             int px = (int) (ccx + (q - mx0) * echelle);
             g.fill(px, oy + 1, px + 1, oy + CARTE + 1, 0xFF1C2C3B);
@@ -454,7 +446,6 @@ public class EcranKit extends Screen {
         Dessin.ecrire(g, "N", ccx - 2, oy + 4, Dessin.GRIS, false);
         Dessin.ecrire(g, T.f("1_square_50_blocks"), ox + 4, oy + CARTE - 8, Dessin.SOMBRE, false);
 
-        // Colonne de droite : lecture.
         int tx = ox + CARTE + 10, lw = L - CARTE - 22;
         Dessin.encart(g, tx - 4, oy, lw + 8, CARTE + 2);
         String phase = e.getString("phase");

@@ -8,7 +8,7 @@ public class Dossier {
     public long id;
     public String phase = "PRELEVEMENTS"; // PRELEVEMENTS -> TRAQUE -> APPROCHE -> DEBUSQUE
     public String monde, espece, categorie, pronostic;
-    // Type d'enquête spéciale (voir SPECIAUX), ou null pour une enquête ordinaire.
+    // Type d'enquête spéciale (voir Signalement), ou null pour une enquête ordinaire.
     public String special;
     // Améliorations du kit acquises à l'ouverture de l'enquête : ratés pardonnés en plus, et fiole de secours déjà utilisée.
     public int pardon;

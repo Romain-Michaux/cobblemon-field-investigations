@@ -97,7 +97,6 @@ public class EcranAnalyse extends Screen {
         }
         if (jeu.fini && finDepuis < 0) {
             finDepuis = ticks;
-            // Fin de partie : carillon et petite fanfare si c'est réussi, note grave sinon.
             Dessin.note(jeu.succes ? 1.6f : 0.6f);
             if (jeu.succes) Dessin.bip(Sons.REUSSITE, jeu.parfait ? 1.4f : 1f, 0.6f);
             else Dessin.bip(Sons.ECHEC, 0.5f, 0.9f);
@@ -129,7 +128,6 @@ public class EcranAnalyse extends Screen {
             Dessin.bandeau(g, x, y, l, T.c(Genetique.nomJeu(idJeu)).toUpperCase(), filtrage ? T.f("cry_bearing") : T.c(Genetique.nomTrace(genre, enfoui, variante)));
             zy = y + 18;
         } else {
-            // Le titre s'affiche sur le bandeau turquoise de la machine, sous l'écran.
             String nomJeu = T.c(Genetique.nomJeu(idJeu)).toUpperCase();
             String titre = T.f("dna_sequencer_2") + nomJeu;
             if (Dessin.police().width(titre) > 220) titre = nomJeu;
@@ -201,7 +199,6 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public boolean keyPressed(int touche, int scan, int mods) {
-        // Entrée ou Espace lancent aussi la partie depuis l'écran d'explication.
         if (intro && (touche == 257 || touche == 32)) {
             intro = false;
             Dessin.son(1.2f);

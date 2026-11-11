@@ -47,7 +47,6 @@ public class EcranTableau extends Screen {
         CompoundTag e = TraqueClient.etat;
         int x = F.x(width), y = F.y(height);
         Dessin.fond(g, F, width, height);
-        // Le titre est gravé sur la plaque de laiton du cadre.
         Dessin.centre(g, T.f("case_board"), x + L / 2 + 1, y - 14, Dessin.ENCRE);
 
         if (!e.getBoolean("actif") && !e.getList("pistes", Tag.TAG_COMPOUND).isEmpty()) {
@@ -77,7 +76,6 @@ public class EcranTableau extends Screen {
         ListTag suspects = e.getList("suspects", Tag.TAG_COMPOUND);
         int epingles = 0;
 
-        // La feuille du profil : une bande surlignée par marqueur.
         int px = x + PAPIER_X, py = y + PAPIER_Y, tx = px + 15, tl = 98;
         Dessin.image(g, Dessin.PAPIER, px, py, PAPIER_L, PAPIER_H);
         Dessin.zone(tx, tx + tl + 2);
@@ -119,7 +117,6 @@ public class EcranTableau extends Screen {
         }
 
         Dessin.zone(x + GRILLE_X - 2, x + L - 2);
-        // Les suspects : des photos épinglées, barrées quand un résultat les écarte.
         int restants = 0;
         String seul = "";
         CompoundTag survole = null;
@@ -161,7 +158,6 @@ public class EcranTableau extends Screen {
         g.pose().popPose();
         if (restants == 1 && prelevements) choix = seul;
 
-        // Barre du bas : le bouton de traque dit lui-même ce qu'il attend.
         int bx = x + GRILLE_X, by = y + BOUTONS_Y;
         if (prelevements) {
             int requis = e.getInt("requis");
@@ -392,7 +388,6 @@ private void reglage(GuiGraphics g, int x, int y, int mx, int my) {
             TraqueClient.envoyer(Paquet.de("abandonner"));
             return true;
         }
-        // Le bas de la feuille mène à la boussole (ou à la carte) du kit.
         if (Dessin.dans(mx, my, x + PAPIER_X, y + PAPIER_Y + 146, PAPIER_L, 30) && minecraft != null) {
             Dessin.son(1f);
             minecraft.setScreen(new EcranKit());

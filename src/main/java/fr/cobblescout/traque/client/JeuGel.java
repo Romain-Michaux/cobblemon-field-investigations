@@ -146,7 +146,6 @@ final class JeuGel extends Jeu {
             int y = oy + 27 + i * 5, ep = large ? 4 : 2, couleur = vive ? 0xFF8CFAEC : 0xFF3C9C98;
             if (vive) g.fill(x + 2, y - 1, x + LARGEUR - 2, y + ep + 1, 0x7030C8C0);
             g.fill(x + 3, y, x + LARGEUR - 3, y + ep, couleur);
-            // Traînée de migration sous la bande.
             g.fill(x + 5, y + ep, x + LARGEUR - 5, y + ep + 1, 0x4030C8C0);
         }
     }

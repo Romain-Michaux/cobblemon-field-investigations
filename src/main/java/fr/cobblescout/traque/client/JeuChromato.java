@@ -95,7 +95,6 @@ final class JeuChromato extends Jeu {
                 g.fill(x + 3, y - 3, x + 27, y + 3, TEINTES[i][k]);
             }
             g.fill(x, bas - 2, x + 30, bas - 1, 0xFF7D6248);
-            // Repère d'écart minimal, à côté de la bandelette.
             g.fill(x + 33, haut + 2, x + 35, haut + 2 + ECART, Dessin.GRIS);
             g.fill(x + 32, haut + 2, x + 36, haut + 3, Dessin.GRIS);
             g.fill(x + 32, haut + 1 + ECART, x + 36, haut + 2 + ECART, Dessin.GRIS);

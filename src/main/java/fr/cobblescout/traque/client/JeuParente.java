@@ -78,7 +78,6 @@ final class JeuParente extends Jeu {
                 niveau++;
                 Dessin.note(0.9f + niveau * 0.2f);
                 if (niveau >= 3) {
-                    // Arrivé en bas : la lignée est identifiée.
                     Dessin.bip(Sons.CARILLON, 1.5f, 0.6f);
                     if (++manche >= 3) {
                         parfait = fautes == 0;
@@ -94,7 +93,6 @@ final class JeuParente extends Jeu {
         }
     }
 
-    // Une vignette : le pictogramme dans un cadre.
     static void vignette(GuiGraphics g, int cx, int cy, ResourceLocation icone, int bord) {
         g.fill(cx - 11, cy - 11, cx + 11, cy + 11, bord);
         g.fill(cx - 10, cy - 10, cx + 10, cy + 10, 0xFF2B3A4C);
@@ -106,7 +104,6 @@ final class JeuParente extends Jeu {
         int ax = ox + 4, ay = oy + 3;
         cadre(g, ax, ay, flash > 0);
         g.fill(ax, ay, ax + L, ay + H, 0xFF16202B);
-        // Le squelette de l'arbre, discret.
         for (int l = 0; l < 3; l++) {
             for (int n = 0; n < (1 << l); n++) {
                 for (int cote = 0; cote < 2; cote++) {
@@ -115,7 +112,6 @@ final class JeuParente extends Jeu {
             }
         }
         for (int f = 0; f < 8; f++) g.fill((int) x(3, f) - 3, ay + YS[3] - 3, (int) x(3, f) + 3, ay + YS[3] + 3, 0xFF34475C);
-        // Le chemin déjà parcouru, en vert, avec les caractères retenus.
         for (int l = 0; l < niveau; l++) {
             int n0 = noeud >> (niveau - l), n1 = noeud >> (niveau - l - 1);
             Dessin.segment(g, x(l, n0), ay + YS[l], x(l + 1, n1), ay + YS[l + 1], 3, Dessin.VERT);
@@ -125,7 +121,6 @@ final class JeuParente extends Jeu {
             vignette(g, (int) x(l + 1, n1), ay + YS[l + 1], ICONES[ordre[l]][valeurs[ordre[l]]], Dessin.VERT);
         }
         g.fill((int) x(0, 0) - 4, ay + YS[0] - 4, (int) x(0, 0) + 4, ay + YS[0] + 4, niveau == 0 ? Dessin.JAUNE : Dessin.VERT);
-        // L'embranchement en cours : deux branches, deux caractères au choix.
         if (niveau < 3 && !fini) {
             for (int cote = 0; cote < 2; cote++) {
                 int cx = (int) x(niveau + 1, noeud * 2 + cote), cy = ay + YS[niveau + 1];

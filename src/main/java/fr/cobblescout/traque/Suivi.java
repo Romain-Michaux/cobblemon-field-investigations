@@ -156,7 +156,6 @@ final class Suivi {
                             e.setInvulnerable(false);
                             Moteur.sauver();
                             joueur.stopUsingItem();
-                            // Validation du scan : deux notes claires.
                             joueur.playNotifySound(SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.PLAYERS, 1f, 1.5f);
                             joueur.playNotifySound(SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.7f, 1.3f);
                             boolean juste = d.espece.equals(d.pronostic);

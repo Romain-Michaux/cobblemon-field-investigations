@@ -63,7 +63,6 @@ final class JeuTri extends Jeu {
                 if (sorti[i]) continue;
                 x[i] += vx[i] / 2;
                 y[i] += vy[i] / 2;
-                // Les bords du haut et du bas renvoient l'objet.
                 if (y[i] < RAYON) {
                     y[i] = RAYON;
                     vy[i] = Math.abs(vy[i]) * 0.5;
@@ -124,7 +123,6 @@ final class JeuTri extends Jeu {
             }
             boolean rebut = x[i] < REBUT - 2, boite = x[i] > BOITE + 2;
             if (!rebut && !boite) continue;
-            // Tombé dans un compartiment : il n'en ressort plus.
             sorti[i] = true;
             if (i == tenu) tenu = -1;
             if (sorte[i] == 0) {
@@ -168,7 +166,6 @@ final class JeuTri extends Jeu {
         cy = my;
         cadre(g, bx, by, flash > 0);
         Dessin.image(g, PLATEAU, bx, by, L, H);
-        // À gauche le rebut, à droite la boîte d'échantillons.
         g.fill(bx, by, bx + REBUT, by + H, 0xB0241A12);
         g.fill(bx + REBUT - 1, by, bx + REBUT, by + H, Dessin.ALERTE);
         g.fill(bx + BOITE, by, bx + L, by + H, 0xB0102A22);

@@ -67,7 +67,6 @@ final class JeuPince extends Jeu {
         for (int i = 0; i < N; i++) {
             if (pris[i]) continue;
             int x = bx + fx[i];
-            // Un brin de duvet planté dans le nid : une tige claire et son plumet.
             g.fill(x - 2, by + 76, x + 3, by + 98, 0xA0140C06);
             g.fill(x, by + 80, x + 1, by + 97, 0xFFFFFFFF);
             g.fill(x - 2, by + 76, x + 3, by + 81, 0xFFF4F0E0);

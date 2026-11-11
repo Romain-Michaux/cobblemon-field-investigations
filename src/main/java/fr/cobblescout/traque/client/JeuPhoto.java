@@ -94,7 +94,6 @@ final class JeuPhoto extends Jeu {
         }
         g.pose().pushPose();
         g.pose().translate(0, 0, 250);
-        // Le viseur : quatre équerres autour de la souris.
         if (!fini && Dessin.dans(mx, my, bx, by, L, H)) {
             int c = flou() < 1.3 ? Dessin.VERT : Dessin.TEXTE;
             for (int cx = -1; cx <= 1; cx += 2) {

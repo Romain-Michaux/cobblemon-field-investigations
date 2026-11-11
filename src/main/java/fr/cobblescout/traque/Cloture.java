@@ -48,7 +48,6 @@ final class Cloture {
     static void resoudre(ServerPlayer joueur, Dossier d, boolean capture) {
         List<ServerPlayer> presents = Moteur.enLigne(d, joueur.server);
         for (ServerPlayer m : presents) recompenser(m, d, capture);
-        // Chacun note une enquête de plus avec chacun de ses coéquipiers.
         for (ServerPlayer m : presents) {
             for (ServerPlayer autre : presents) {
                 if (autre != m) Moteur.profil(m.getUUID()).partenaires.merge(autre.getUUID(), 1, Integer::sum);

@@ -190,17 +190,14 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
         // La fenêtre de visée occupe environ 60 % de l'écran, quelle que soit sa taille.
         int cx = l / 2, cy = h / 2, vl = Math.min(l / 2 - 16, Math.max(150, l * 3 / 10)), vh = Math.min(h / 2 - 34, Math.max(86, h * 3 / 10));
         int couleur = autre ? Dessin.ALERTE : scan > 0 ? Dessin.VERT : vise ? Dessin.JAUNE : Dessin.ACCENT;
-        // Assombrissement autour de la fenêtre de visée.
         g.fill(0, 0, l, cy - vh, 0xC0060A0E);
         g.fill(0, cy + vh, l, h, 0xC0060A0E);
         g.fill(0, cy - vh, cx - vl, cy + vh, 0x90060A0E);
         g.fill(cx + vl, cy - vh, l, cy + vh, 0x90060A0E);
         g.fill(cx - vl, cy - vh, cx + vl, cy + vh, 0x1830D8C8);
-        // Ligne de balayage.
         int by = cy - vh + (int) ((maintenant % 1800) / 1800.0 * (2 * vh));
         g.fill(cx - vl, by, cx + vl, by + 1, 0x5060F0D0);
         g.fill(cx - vl, by + 1, cx + vl, by + 4, 0x1860F0D0);
-        // Équerres aux quatre coins de la fenêtre.
         for (int sx = -1; sx <= 1; sx += 2) {
             for (int sy = -1; sy <= 1; sy += 2) {
                 int x = cx + sx * vl, y = cy + sy * vh;
@@ -208,7 +205,6 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
                 g.fill(sx < 0 ? x : x - 2, Math.min(y, y - sy * 14), sx < 0 ? x + 2 : x, Math.max(y, y - sy * 14), couleur);
             }
         }
-        // Viseur (texture PixelLab teintée) et anneau de progression.
         Dessin.teinte(g, couleur);
         Dessin.image(g, Dessin.VISEUR, cx - 48, cy - 48, 96, 96);
         g.setColor(1f, 1f, 1f, 1f);
@@ -240,7 +236,6 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
         long maintenant = System.currentTimeMillis();
         int l = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
 
-        // Annonce : un bandeau qui descend du haut de l'écran.
         long age = maintenant - annonceRecue;
         if (age < 5500 && annonceTitre != null && annonceTexte != null) {
             String titre = annonceTitre.getString();

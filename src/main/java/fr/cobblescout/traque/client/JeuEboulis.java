@@ -90,7 +90,6 @@ final class JeuEboulis extends Jeu {
         Dessin.image(g, PAROI, bx, by, L, H);
         g.setColor(1f, 1f, 1f, 1f);
         g.fill(bx, by + 104, bx + L, by + H, 0xFF2A2420);
-        // La lueur de l'indice, derrière la pierre à dégager.
         int lx = px(0, cible), ly = py(0);
         boolean pulse = (System.currentTimeMillis() / 350) % 2 == 0;
         g.fill(lx + 2, ly + 2, lx + PL - 2, ly + PH - 1, pulse ? 0xFF7FE0D0 : 0xFF4FB8A8);

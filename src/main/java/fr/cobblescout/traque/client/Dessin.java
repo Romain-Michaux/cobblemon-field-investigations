@@ -77,19 +77,16 @@ final class Dessin {
         return ResourceLocation.fromNamespaceAndPath("cobblemon_field_investigations", "textures/gui/" + nom + ".png");
     }
 
-    // Texture entière, un texel par pixel d'interface.
     static void image(GuiGraphics g, ResourceLocation texture, int x, int y, int l, int h) {
         RenderSystem.enableBlend();
         g.blit(texture, x, y, 0, 0, l, h, l, h);
     }
 
-    // Un morceau (u, v, l, h) d'une texture de tl x th.
     static void morceau(GuiGraphics g, ResourceLocation texture, int x, int y, int u, int v, int l, int h, int tl, int th) {
         RenderSystem.enableBlend();
         g.blit(texture, x, y, u, v, l, h, tl, th);
     }
 
-    // Un morceau (u, v, ul, vh) d'une texture de tl x th, agrandi à l x h.
     static void morceauAgrandi(GuiGraphics g, ResourceLocation texture, int x, int y, int l, int h, int u, int v, int ul, int vh, int tl, int th) {
         RenderSystem.enableBlend();
         g.blit(texture, x, y, l, h, u, v, ul, vh, tl, th);
@@ -167,7 +164,6 @@ final class Dessin {
         g.drawString(police(), texte, x, y, couleur, false);
     }
 
-    // Bandeau de titre en haut de l'écran d'un appareil.
     static void bandeau(GuiGraphics g, int x, int y, int l, String titre, String droite) {
         g.fill(x + 5, y + 4, x + 11, y + 10, ROUGE);
         g.fill(x + 6, y + 5, x + 8, y + 7, 0xFFFFB0A8);
@@ -321,7 +317,6 @@ final class Dessin {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sons.CLIC, hauteur, 0.8f));
     }
 
-    // Un son d'interface quelconque, à la hauteur et au volume voulus.
     static void bip(net.minecraft.sounds.SoundEvent son, float hauteur, float volume) {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(son, hauteur, volume));
     }

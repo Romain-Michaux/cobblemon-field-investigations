@@ -20,7 +20,6 @@ import net.minecraft.world.item.component.CustomData;
 final class Echantillons {
     private Echantillons() {}
 
-    // Lance l'analyse de l'échantillon tenu en main, avec le séquenceur de poche du kit.
     public static void analyser(ServerPlayer joueur) {
         Dossier d = Moteur.dossier(joueur);
         ItemStack pile = joueur.getMainHandItem();
@@ -48,7 +47,6 @@ final class Echantillons {
         Messages.envoyer(joueur, p);
     }
 
-    // Résultat d'un mini-jeu d'analyse, envoyé par le client.
     static void resultatAnalyse(ServerPlayer joueur, boolean succes) {
         if (Moteur.ANALYSES.remove(joueur.getUUID()) == null) return;
         Dossier d = Moteur.dossier(joueur);
@@ -59,7 +57,6 @@ final class Echantillons {
         String genre = donnees.getString("genre");
         Species cible = PokemonSpecies.getByName(d.espece);
         if (succes && cible != null) {
-            // Le résultat part directement dans le dossier (consultable depuis le kit).
             pile.shrink(1);
             if (!d.epingles.contains(genre)) d.epingles.add(genre);
             Moteur.sauver();

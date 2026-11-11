@@ -40,7 +40,6 @@ final class Demo {
                 ClientTickEvents.END_CLIENT_TICK.register(c -> {
                     if (etape == 0 && depuis % 7 == 0) Dessin.son(0.9f + (depuis % 5) * 0.12f);
                     if (etape == 0 && depuis % 31 == 0) Dessin.note(0.5f + (depuis % 4) * 0.25f);
-                    // Toutes les deux secondes, l'écran est fermé puis rouvert sur un autre jeu.
                     if (etape == 0 && depuis % 40 == 20) c.setScreen(null);
                     if (etape == 0 && depuis % 40 == 0 && depuis > 0) {
                         String[] jeux = {"titrage", "gel", "microscope", "dosage", "parente", "chromatographie"};

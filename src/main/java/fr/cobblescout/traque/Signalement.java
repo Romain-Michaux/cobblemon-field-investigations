@@ -137,7 +137,6 @@ final class Signalement {
         return null;
     }
 
-    // Le joueur retient l'un des signalements proposés : c'est son enquête.
     static void choisir(ServerPlayer joueur, int index) {
         List<Dossier> pistes = Moteur.dossier(joueur) == null ? pistes(joueur) : null;
         if (pistes == null || index < 0 || index >= pistes.size()) {

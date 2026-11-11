@@ -74,7 +74,6 @@ final class JeuTamis extends Jeu {
         }
         int n = (int) (Math.max(0, sable) / 100 * GRAINS);
         for (int i = 0; i < n; i++) g.fill(sx + gx[i], sy + gy[i], sx + gx[i] + 3, sy + gy[i] + 3, i % 3 == 0 ? 0xFFB98F4E : 0xFFD9B36A);
-        // Le sable qui tombe sous le tamis.
         if (appui && !fini) {
             for (int i = 0; i < 6; i++) g.fill(sx + 20 + (tic * 7 + i * 13) % 56, by + 100 + (tic + i * 5) % 10, sx + 22 + (tic * 7 + i * 13) % 56, by + 102 + (tic + i * 5) % 10, 0xFFD9B36A);
         }

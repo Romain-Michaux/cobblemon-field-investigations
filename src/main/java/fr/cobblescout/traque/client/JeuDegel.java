@@ -39,7 +39,6 @@ final class JeuDegel extends Jeu {
             temperature = Math.max(0, temperature - 0.8);
         }
         if (temperature >= 90) {
-            // Trop chaud : l'échantillon cuit.
             temperature = 35;
             chauffe = 0;
             flash = 8;
@@ -63,7 +62,6 @@ final class JeuDegel extends Jeu {
         int bx = ox + 4, by = oy + 3;
         cadre(g, bx, by, flash > 0);
         g.fill(bx, by, bx + L, by + H, 0xFF1D2733);
-        // Le glaçon rétrécit à mesure qu'il fond, sur sa flaque.
         int taille = (int) (64 - degel * 0.34), gx = bx + 52 - taille / 2, gy = by + 82 - taille;
         g.fill(bx + 52 - 20 - (int) (degel * 0.14), by + 82, bx + 52 + 20 + (int) (degel * 0.14), by + 85, 0xFF5BB8F0);
         Dessin.morceauAgrandi(g, GLACON, gx, gy, taille, taille, 0, 0, 48, 48, 48, 48);

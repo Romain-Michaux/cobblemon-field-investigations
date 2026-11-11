@@ -46,7 +46,6 @@ abstract class Jeu {
         Dessin.bip(Sons.PAPIER, 1.4f, 0.8f);
     }
 
-    // Jauge de temps en bas de la zone.
     void jaugeTemps(GuiGraphics g, int x, int y, int l, double part) {
         g.fill(x, y, x + l, y + 6, Dessin.BORD);
         g.fill(x + 1, y + 1, x + 1 + (int) ((l - 2) * Math.max(0, Math.min(1, part))), y + 5, part > 0.25 ? Dessin.ACCENT : Dessin.ALERTE);
@@ -63,7 +62,6 @@ abstract class Jeu {
         Dessin.ecrire(g, s, x, y, couleur, false);
     }
 
-    // Jauge horizontale (part de 0 à 1).
     static void jauge(GuiGraphics g, int x, int y, int l, double part, int couleur) {
         g.fill(x, y, x + l, y + 6, Dessin.BORD);
         g.fill(x + 1, y + 1, x + 1 + (int) ((l - 2) * Math.max(0, Math.min(1, part))), y + 5, couleur);

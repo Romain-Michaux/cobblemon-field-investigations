@@ -25,12 +25,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
-// Le déroulé de l'enquête, côté serveur.
-//  1. Tableau d'enquête : ouvrir une enquête -> une zone de traces est signalée.
-//  2. Terrain : prélever les traces avec le kit (une fiole par trace) -> échantillons.
-//  3. Séquenceur : analyser chaque échantillon (un mini-jeu par type de marqueur).
-//  4. Tableau : épingler les échantillons analysés ; les suspects incompatibles s'éliminent. Assez d'épingles -> lancer la traque.
-//  5. Terrain : relevés de cris au kit, recoupement, approche discrète, capture.
+// État partagé des enquêtes (réglages, dossiers, profils) et règles communes : étoiles, rang, paramètres par type d'enquête.
 public final class Moteur {
     // Expérience requise pour chaque rang (0 = stagiaire ... 6 = légende). Chaque rang débloque une amélioration du kit :
     //  1 radar affiné (les traces scintillent de plus loin), 2 fiole de secours (le premier prélèvement de chaque enquête
@@ -103,7 +98,6 @@ public final class Moteur {
         return null;
     }
 
-    // Tous les enquêteurs du dossier, chef en tête.
     static List<UUID> membres(Dossier d) {
         List<UUID> tous = new ArrayList<>();
         tous.add(d.chef);
@@ -111,7 +105,6 @@ public final class Moteur {
         return tous;
     }
 
-    // Ceux qui sont connectés en ce moment.
     static List<ServerPlayer> enLigne(Dossier d, net.minecraft.server.MinecraftServer serveur) {
         List<ServerPlayer> presents = new ArrayList<>();
         for (UUID u : membres(d)) {
@@ -207,17 +200,14 @@ public final class Moteur {
         return special.equals(d.special);
     }
 
-    // Résultats d'analyse à réunir avant de pouvoir désigner un suspect.
     static int requis(Dossier d) {
         return Math.min(Genetique.MARQUEURS.size(), reglages.epinglesPourTraquer + (est(d, "exceptionnel") ? 1 : 0));
     }
 
-    // Distance en dessous de laquelle la cible repère le joueur.
     static int alerte(Dossier d) {
         return est(d, "craintive") ? (int) Math.round(reglages.rayonAlerte * 1.6) : reglages.rayonAlerte;
     }
 
-    // Rayon de la zone de traces.
     static int rayon(Dossier d) {
         return est(d, "altitude") ? (int) Math.round(reglages.rayonZone * 1.5) : reglages.rayonZone;
     }
@@ -252,7 +242,6 @@ public final class Moteur {
     static boolean essayer(ServerPlayer joueur, String jeu, int variante) {
         boolean terrain = Genetique.JEUX_TERRAIN.contains(jeu);
         if (!terrain && !Genetique.JEUX_LABO.contains(jeu)) return false;
-        // Une trace qui convient au jeu, pour l'habillage de l'écran.
         String genre = "type1";
         for (Map.Entry<String, List<String>> e : (terrain ? Genetique.JEUX_PRELEVEMENT : Genetique.JEUX_ANALYSE).entrySet()) {
             if (e.getValue().contains(jeu)) genre = e.getKey();

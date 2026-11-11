@@ -14,14 +14,13 @@ import net.minecraft.network.chat.MutableComponent;
 // Chaque marqueur a une valeur (une clé courte), un libellé et une couleur ; le client ne reçoit que les clés.
 public final class Genetique {
     public static final List<String> MARQUEURS = List.of("type1", "type2", "taille", "oeuf", "stat");
-    // Tous les noms sont des clés de traduction (assets/cobblescout/lang) : l'anglais par défaut, le français fourni avec le mod.
+    // Tous les noms sont des clés de traduction : l'anglais par défaut, le français fourni avec le mod.
     public static final Map<String, String> NOMS_MARQUEURS = Map.of(
             "type1", "cobblemon_field_investigations.marqueur.type1", "type2", "cobblemon_field_investigations.marqueur.type2", "taille", "cobblemon_field_investigations.marqueur.taille",
             "oeuf", "cobblemon_field_investigations.marqueur.oeuf", "stat", "cobblemon_field_investigations.marqueur.stat");
     public static final Map<String, String> NOMS_TRACES = Map.of(
             "type1", "cobblemon_field_investigations.trace.type1", "type2", "cobblemon_field_investigations.trace.type2", "taille", "cobblemon_field_investigations.trace.taille",
             "oeuf", "cobblemon_field_investigations.trace.oeuf", "stat", "cobblemon_field_investigations.trace.stat");
-    // Certains indices sont enfouis : il faut d'abord les dégager au pinceau.
     public static final Map<String, String> NOMS_ENFOUIS = Map.of(
             "taille", "cobblemon_field_investigations.enfoui.taille", "oeuf", "cobblemon_field_investigations.enfoui.oeuf", "stat", "cobblemon_field_investigations.enfoui.stat");
 // Ce qu'on déterre varie : nombre d'objets possibles pour chaque marqueur enfouissable (os ou dent ; coquilles,
@@ -32,7 +31,6 @@ public final class Genetique {
             "type1", List.of("sequencage", "gel", "chromatographie"), "type2", List.of("appariement", "pcr", "microscope"),
             "taille", List.of("centrifugation", "comptage", "morsure"), "oeuf", List.of("fragments", "gel", "parente"),
             "stat", List.of("spectre", "titrage", "dosage"));
-    // Gestes de prélèvement possibles pour chaque trace de surface.
     public static final Map<String, List<String>> JEUX_PRELEVEMENT = Map.of(
             "type1", List.of("memoire", "photo"), "type2", List.of("pipette", "ecouvillon"), "taille", List.of("mesure", "moulage"),
             "oeuf", List.of("tri", "pince"), "stat", List.of("trace", "photo"));
@@ -54,7 +52,6 @@ public final class Genetique {
         for (String[] n : noms) NOMS_COMMANDE.put(n[0], n[1]);
     }
 
-    // Nom anglais d'un mini-jeu (pour l'afficher dans la liste de la commande).
     public static String nomCommande(String jeu) {
         for (Map.Entry<String, String> e : NOMS_COMMANDE.entrySet()) {
             if (e.getValue().equals(jeu)) return e.getKey();
@@ -62,7 +59,6 @@ public final class Genetique {
         return jeu;
     }
 
-    // Clé de traduction du nom d'un mini-jeu.
     public static String nomJeu(String jeu) {
         return "cobblemon_field_investigations.jeu." + jeu;
     }

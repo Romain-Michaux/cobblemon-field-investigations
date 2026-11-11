@@ -150,7 +150,6 @@ final class JeuTitrage extends Jeu {
             Dessin.centre(g, aide ? ressemblance(melange(gouttes), cible) + " %" : "?", cx + 32, oy + 26, aide ? Dessin.TEXTE : Dessin.SOMBRE);
             Dessin.ecrire(g, T.f("your_mix"), cx, oy + 46, Dessin.GRIS, false);
             pastille(g, cx, oy + 57, 64, 22, melange(gouttes));
-            // La recette en cours, goutte par goutte.
             int k = 0;
             for (int i = 0; i < 4; i++) {
                 for (int n = 0; n < gouttes[i]; n++, k++) g.fill(cx + k * 6, oy + 86, cx + k * 6 + 5, oy + 93, REACTIFS[i]);

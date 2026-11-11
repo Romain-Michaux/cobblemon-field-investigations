@@ -55,7 +55,6 @@ final class JeuFiltrage extends Jeu {
             g.fill(bx + x, Math.min(avant, y), bx + x + 2, Math.max(avant, y) + 2, melange(0xFF5D6E80, 0xFF6CF0A0, clarte));
             avant = y;
         }
-        // Le curseur du filtre, en bas.
         g.fill(bx, by + 100, bx + L, by + 104, 0xFF12303A);
         int rx = Math.max(bx + 2, Math.min(bx + L - 2, mx));
         g.fill(rx - 2, by + 96, rx + 2, by + 108, clarte > 0.8 ? Dessin.VERT : Dessin.JAUNE);

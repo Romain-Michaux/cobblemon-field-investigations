@@ -77,7 +77,6 @@ final class JeuMoulage extends Jeu {
         cx = mx;
         cadre(g, bx, by, flash > 0);
         g.fill(bx, by, bx + L, by + H, 0xFF1D2733);
-        // Le bloc de gencive, vu en coupe.
         g.fill(bx, haut, bx + L, by + H, 0xFFB5746A);
         g.fill(bx, haut, bx + L, haut + 3, 0xFFD69A8C);
         g.fill(bx, by + H - 10, bx + L, by + H, 0xFF8F564E);
@@ -94,7 +93,6 @@ final class JeuMoulage extends Jeu {
             if (i == survol) g.fill(x, haut - 2, x + largeur[i], haut - 1, Dessin.JAUNE);
             if (plein(i)) texte(g, "✔", x + largeur[i] / 2 - 3, haut - 11, Dessin.VERT);
         }
-        // Le bec verseur suit la souris.
         if (!fini && Dessin.dans(mx, my, bx, by, L, H)) {
             g.fill(mx - 3, by + 1, mx + 3, by + 9, 0xFF9FB0C0);
             if (appui && survol >= 0) g.fill(mx - 1, by + 9, mx + 1, haut + cible[survol] - (int) niveau[survol], 0xFFF4F0E6);

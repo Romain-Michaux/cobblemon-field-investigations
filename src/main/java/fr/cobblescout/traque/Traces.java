@@ -321,7 +321,6 @@ final class Traces {
         return false;
     }
 
-    // Posée sur le feuillage, au sommet d'un arbre.
     private static boolean surCime(ServerLevel monde, Trace t, int bx, int bz) {
         for (int rayon = 0; rayon <= 9; rayon++) {
             for (int dx = -rayon; dx <= rayon; dx++) {

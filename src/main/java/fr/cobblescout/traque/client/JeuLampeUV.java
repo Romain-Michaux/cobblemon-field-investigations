@@ -66,7 +66,6 @@ final class JeuLampeUV extends Jeu {
         g.setColor(1f, 1f, 1f, 1f);
         boolean dedans = !fini && Dessin.dans(mx, my, bx, by, L, H);
         if (dedans) {
-            // Le faisceau : un halo violet, découpé au bord de l'aire.
             for (int dy = -PORTEE; dy <= PORTEE; dy++) {
                 int dx = (int) Math.sqrt(PORTEE * PORTEE - dy * dy), y = my + dy;
                 if (y < by || y >= by + H) continue;

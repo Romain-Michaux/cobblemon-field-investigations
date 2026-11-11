@@ -76,7 +76,6 @@ final class Messages {
         t.putInt("reussies", Moteur.etat.reussies.getOrDefault(joueur.getUUID(), 0));
         t.putLong("attente", Math.max(0, Moteur.etat.prochaineEnquete.getOrDefault(joueur.getUUID(), 0L) - System.currentTimeMillis()));
         t.putInt("difficulte", "easy".equalsIgnoreCase(Moteur.reglages.difficulteMiniJeux) ? -1 : "hard".equalsIgnoreCase(Moteur.reglages.difficulteMiniJeux) ? 1 : 0);
-        // La carrière de l'enquêteur, affichée dans le carnet et les archives du kit.
         Profil profil = Moteur.profil(joueur.getUUID());
         int rang = Moteur.rang(profil.xp);
         CompoundTag carriere = new CompoundTag();
@@ -111,7 +110,6 @@ final class Messages {
         carriere.put("types", types);
         carriere.put("archives", archives);
         t.put("carriere", carriere);
-        // L'équipe : ses membres, l'invitation reçue, et pour le chef les joueurs sans dossier à moins de 64 blocs.
         ListTag equipe = new ListTag(), proches = new ListTag();
         boolean chef = d != null && joueur.getUUID().equals(d.chef);
         if (d != null) {
@@ -194,7 +192,6 @@ final class Messages {
                 for (String m : Genetique.MARQUEURS) valeurs.add(StringTag.valueOf(Genetique.valeur(m, esp)));
                 c.put("valeurs", valeurs);
                 c.putBoolean("elimine", d.ecartes != null && d.ecartes.contains(s));
-                // Une petite Poké Ball signale au joueur les espèces qu'il possède déjà.
                 c.putBoolean("possede", Signalement.possede(pokedex, s));
                 suspects.add(c);
             }
