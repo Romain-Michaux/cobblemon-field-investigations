@@ -11,7 +11,8 @@ import re
 ICI = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.join(ICI, "..", "src", "main", "resources", "assets", "cobblemon_field_investigations", "lang")
 CLIENT = os.path.join(ICI, "..", "src", "main", "java", "fr", "cobblescout", "traque", "client")
-FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "JeuxLabo.java", "JeuxTerrain.java", "JeuxNouveaux.java", "TraqueClient.java"]
+FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "TraqueClient.java"]
+FICHIERS += sorted(f for f in os.listdir(CLIENT) if f.startswith("Jeu") and f != "Jeu.java")
 
 UI = [
     # --- commun ---

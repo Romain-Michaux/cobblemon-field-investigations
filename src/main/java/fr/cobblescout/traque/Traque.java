@@ -38,17 +38,17 @@ public class Traque implements ModInitializer {
             ctx.server().execute(() -> {
                 try {
                     switch (paquet.genre()) {
-                        case "ouvrir_enquete" -> Moteur.ouvrirEnquete(joueur);
-                        case "choisir" -> Moteur.choisir(joueur, d.getInt("index"));
-                        case "lancer" -> Moteur.lancer(joueur, d.getString("espece"));
-                        case "abandonner" -> Moteur.abandonner(joueur);
+                        case "ouvrir_enquete" -> Signalement.ouvrirEnquete(joueur);
+                        case "choisir" -> Signalement.choisir(joueur, d.getInt("index"));
+                        case "lancer" -> Pistage.lancer(joueur, d.getString("espece"));
+                        case "abandonner" -> Pistage.abandonner(joueur);
                         case "ecarter" -> Moteur.ecarter(joueur, d.getString("espece"));
-                        case "analyse" -> Moteur.resultatAnalyse(joueur, d.getBoolean("succes"));
-                        case "inviter" -> Moteur.inviter(joueur, d.getString("nom"));
-                        case "repondre" -> Moteur.repondre(joueur, d.getBoolean("accepte"));
-                        case "equipe" -> Moteur.synchroniser(joueur);
-                        case "filtrage" -> Moteur.resultatFiltrage(joueur, d.getBoolean("succes"));
-                        case "prelevement" -> Moteur.resultatPrelevement(joueur, d.getBoolean("succes"), d.getBoolean("parfait"));
+                        case "analyse" -> Echantillons.resultatAnalyse(joueur, d.getBoolean("succes"));
+                        case "inviter" -> Equipe.inviter(joueur, d.getString("nom"));
+                        case "repondre" -> Equipe.repondre(joueur, d.getBoolean("accepte"));
+                        case "equipe" -> Messages.synchroniser(joueur);
+                        case "filtrage" -> Pistage.resultatFiltrage(joueur, d.getBoolean("succes"));
+                        case "prelevement" -> Echantillons.resultatPrelevement(joueur, d.getBoolean("succes"), d.getBoolean("parfait"));
                         default -> {}
                     }
                 } catch (Exception e) {
@@ -57,7 +57,7 @@ public class Traque implements ModInitializer {
                 }
             });
         });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, serveur) -> serveur.execute(() -> Moteur.synchroniser(handler.player)));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, serveur) -> serveur.execute(() -> Messages.synchroniser(handler.player)));
 
         ServerLifecycleEvents.SERVER_STOPPED.register(s -> Moteur.arret());
         ServerTickEvents.END_SERVER_TICK.register(s -> {
@@ -65,18 +65,18 @@ public class Traque implements ModInitializer {
             compteur = 0;
             for (ServerPlayer joueur : new ArrayList<>(s.getPlayerList().getPlayers())) {
                 try {
-                    Moteur.suivre(joueur);
+                    Suivi.suivre(joueur);
                 } catch (Exception e) {
                     System.err.println("[Field Investigations] Erreur de suivi : " + e);
                     e.printStackTrace();
                 }
             }
         });
-        CobblemonEvents.POKEMON_CAPTURED.subscribe(Priority.NORMAL, (Consumer<PokemonCapturedEvent>) Moteur::capture);
+        CobblemonEvents.POKEMON_CAPTURED.subscribe(Priority.NORMAL, (Consumer<PokemonCapturedEvent>) Cloture::capture);
 
         CommandRegistrationCallback.EVENT.register((dispatcher, acces, environnement) -> dispatcher.register(Commands.literal("hunt")
                 .then(Commands.literal("abandon").executes(ctx -> {
-                    Moteur.abandonner(ctx.getSource().getPlayerOrException());
+                    Pistage.abandonner(ctx.getSource().getPlayerOrException());
                     return 1;
                 }))
                 .then(Commands.literal("gear").requires(src -> src.hasPermission(2)).executes(ctx -> {

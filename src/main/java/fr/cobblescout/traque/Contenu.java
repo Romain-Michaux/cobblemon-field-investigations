@@ -122,7 +122,7 @@ public final class Contenu {
         @Override
         protected InteractionResult useWithoutItem(BlockState etat, Level monde, BlockPos pos, Player joueur, BlockHitResult coup) {
             if (!monde.isClientSide && joueur instanceof ServerPlayer j) {
-                Moteur.annonce(j, "kit_requis", 0xF2C93A);
+                Messages.annonce(j, "kit_requis", 0xF2C93A);
             }
             return InteractionResult.sidedSuccess(monde.isClientSide);
         }
@@ -146,7 +146,7 @@ public final class Contenu {
         @Override
         protected InteractionResult useWithoutItem(BlockState etat, Level monde, BlockPos pos, Player joueur, BlockHitResult coup) {
             if (!monde.isClientSide && joueur instanceof ServerPlayer j) {
-                Moteur.annonce(j, "sol_remue", 0xF2C93A);
+                Messages.annonce(j, "sol_remue", 0xF2C93A);
             }
             return InteractionResult.sidedSuccess(monde.isClientSide);
         }
@@ -160,7 +160,7 @@ public final class Contenu {
 
         @Override
         protected void onRemove(BlockState etat, Level monde, BlockPos pos, BlockState nouvel, boolean deplace) {
-            if (!monde.isClientSide && !nouvel.is(this)) Moteur.solDetruit(monde, pos);
+            if (!monde.isClientSide && !nouvel.is(this)) Traces.solDetruit(monde, pos);
             super.onRemove(etat, monde, pos, nouvel, deplace);
         }
     }
@@ -175,12 +175,12 @@ public final class Contenu {
         public InteractionResult useOn(UseOnContext ctx) {
             if (ctx.getLevel().getBlockState(ctx.getClickedPos()).is(SOL)) {
                 if (!ctx.getLevel().isClientSide && ctx.getPlayer() instanceof ServerPlayer j) {
-                    Moteur.annonce(j, "sol_remue", 0xF2C93A);
+                    Messages.annonce(j, "sol_remue", 0xF2C93A);
                 }
                 return InteractionResult.sidedSuccess(ctx.getLevel().isClientSide);
             }
             if (!ctx.getLevel().getBlockState(ctx.getClickedPos()).is(TRACE)) return InteractionResult.PASS;
-            if (!ctx.getLevel().isClientSide && ctx.getPlayer() instanceof ServerPlayer j) Moteur.prelever(j, ctx.getClickedPos());
+            if (!ctx.getLevel().isClientSide && ctx.getPlayer() instanceof ServerPlayer j) Echantillons.prelever(j, ctx.getClickedPos());
             return InteractionResult.sidedSuccess(ctx.getLevel().isClientSide);
         }
 
@@ -188,12 +188,12 @@ public final class Contenu {
         @Override
         public InteractionResultHolder<ItemStack> use(Level monde, Player joueur, InteractionHand main) {
             ItemStack pile = joueur.getItemInHand(main);
-            boolean scan = !joueur.isShiftKeyDown() && (monde.isClientSide ? scanCoteClient : joueur instanceof ServerPlayer j && Moteur.enReperage(j));
+            boolean scan = !joueur.isShiftKeyDown() && (monde.isClientSide ? scanCoteClient : joueur instanceof ServerPlayer j && Pistage.enReperage(j));
             if (scan) {
                 joueur.startUsingItem(main);
                 return InteractionResultHolder.consume(pile);
             }
-            if (!monde.isClientSide && joueur instanceof ServerPlayer j) Moteur.utiliserKit(j, j.isShiftKeyDown());
+            if (!monde.isClientSide && joueur instanceof ServerPlayer j) Pistage.utiliserKit(j, j.isShiftKeyDown());
             return InteractionResultHolder.sidedSuccess(pile, monde.isClientSide);
         }
 
@@ -222,7 +222,7 @@ public final class Contenu {
 
         @Override
         public InteractionResultHolder<ItemStack> use(Level monde, Player joueur, InteractionHand main) {
-            if (main == InteractionHand.MAIN_HAND && !monde.isClientSide && joueur instanceof ServerPlayer j) Moteur.analyser(j);
+            if (main == InteractionHand.MAIN_HAND && !monde.isClientSide && joueur instanceof ServerPlayer j) Echantillons.analyser(j);
             return InteractionResultHolder.sidedSuccess(joueur.getItemInHand(main), monde.isClientSide);
         }
 

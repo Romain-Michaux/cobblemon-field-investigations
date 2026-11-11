@@ -172,7 +172,7 @@ sauver(ouvrir("viseur_a"), "gui", "viseur")  # viseur du scanner, teinté en jeu
 empreinte = ouvrir("empreinte")
 empreinte = empreinte.crop(empreinte.getbbox())
 sauver(empreinte, "gui", "empreinte")
-assert empreinte.size == (74, 70), "JeuxTerrain.Mesure.EL / EH sont à mettre à jour"
+assert empreinte.size == (74, 70), "JeuMesure.EL / EH sont à mettre à jour"
 # Erlenmeyer de la colorimétrie : le verre garde ses couleurs ; le liquide (zone claire et chaude du bas) est séparé
 # dans une seconde texture en gris clair, la seule à être teintée en jeu.
 verre = ouvrir("erlenmeyer")

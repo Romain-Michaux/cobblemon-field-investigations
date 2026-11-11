@@ -7,7 +7,8 @@ import sys
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 CLIENT = os.path.join(ICI, "..", "src", "main", "java", "fr", "cobblescout", "traque", "client")
-FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "JeuxLabo.java", "JeuxTerrain.java", "TraqueClient.java"]
+FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "TraqueClient.java"]
+FICHIERS += sorted(f for f in os.listdir(CLIENT) if f.startswith("Jeu") and f != "Jeu.java")
 LITTERAL = re.compile(r'"((?:[^"\\]|\\.)*)"')
 PHASES = {"PRELEVEMENTS", "TRAQUE", "APPROCHE", "DEBUSQUE", "REPERAGE"}
 
