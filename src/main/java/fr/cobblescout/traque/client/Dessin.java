@@ -290,8 +290,11 @@ final class Dessin {
         for (Component c : lignes) w = Math.max(w, police().width(c));
         int x = Math.min(mx + 10, largeurEcran - w - 10), y = my - 6;
         int h = lignes.size() * 10 + 5;
+        // L'infobulle passe devant tout, y compris les objets dessinés en relief (portraits, Poké Ball), qui se trouvent
+        // entre 400 et 600 de profondeur sur le tableau.
+        g.flush();
         g.pose().pushPose();
-        g.pose().translate(0, 0, 400);
+        g.pose().translate(0, 0, 900);
         plaque(g, x - 7, y - 8, w + 14, h + 12);
         for (int i = 0; i < lignes.size(); i++) g.drawString(police(), lignes.get(i), x, y + i * 10, TEXTE, false);
         g.pose().popPose();

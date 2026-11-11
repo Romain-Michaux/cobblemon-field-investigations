@@ -80,6 +80,14 @@ final class Demo {
             TraqueClient.etat = etat("PRELEVEMENTS", 3);
             mc.setScreen(new EcranTableau());
         });
+        etape("tableau_infobulle", () -> {
+            TraqueClient.etat = etat("PRELEVEMENTS", 3);
+            mc.setScreen(new EcranTableau());
+            // La souris est placée sur un suspect entouré de Poké Ball : l'infobulle doit passer devant elles.
+            double echelle = mc.getWindow().getGuiScale();
+            int cx = (mc.getWindow().getGuiScaledWidth() - 336) / 2 + 134 + 50 + 20, cy = (mc.getWindow().getGuiScaledHeight() - 189) / 2 + 20;
+            org.lwjgl.glfw.GLFW.glfwSetCursorPos(mc.getWindow().getWindow(), cx * echelle, cy * echelle);
+        });
         etape("tableau_traque", () -> {
             TraqueClient.etat = etat("TRAQUE", 5);
             mc.setScreen(new EcranTableau());
