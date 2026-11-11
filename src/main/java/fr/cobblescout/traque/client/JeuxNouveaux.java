@@ -81,7 +81,7 @@ final class JeuxNouveaux {
             if (appui) {
                 sable -= 0.55;
                 secousse += 2.2;
-                if (tic % 4 == 0) Dessin.bip(SoundEvents.SAND_BREAK, (float) (0.8 + secousse / 160), 0.5f);
+                if (tic % 4 == 0) Dessin.bip(Sons.TAMIS, (float) (0.8 + secousse / 160), 0.5f);
             } else {
                 secousse = Math.max(0, secousse - 3);
             }
@@ -89,7 +89,7 @@ final class JeuxNouveaux {
                 // Secoué trop longtemps d'affilée : un fragment passe à travers les mailles.
                 secousse = 35;
                 flash = 8;
-                Dessin.bip(SoundEvents.GLASS_BREAK, 1.5f, 0.5f);
+                Dessin.bip(Sons.CRAQUEMENT, 1.2f, 0.7f);
                 if (++fautes >= 3) terminer(false);
             }
             int v = sable <= 0 ? 3 : sable < 34 ? 2 : sable < 67 ? 1 : 0;
@@ -183,12 +183,12 @@ final class JeuxNouveaux {
             int i = appui ? colonne(cx) : -1;
             if (i >= 0) {
                 niveau[i] += 1.1;
-                if (tic % 5 == 0) Dessin.bip(SoundEvents.BOTTLE_EMPTY, (float) (0.6 + niveau[i] / cible[i]), 0.5f);
+                if (tic % 5 == 0) Dessin.bip(Sons.PLATRE, (float) (0.6 + niveau[i] / cible[i]), 0.5f);
                 if (niveau[i] > cible[i] + 1.5) {
                     // Débordement : il faut gratter et recommencer cette alvéole presque à zéro.
                     niveau[i] = cible[i] * 0.3;
                     flash = 8;
-                    Dessin.bip(SoundEvents.BUBBLE_COLUMN_BUBBLE_POP, 0.6f, 0.9f);
+                    Dessin.bip(Sons.DEBORDEMENT, 1f, 0.9f);
                     if (++fautes >= 3) terminer(false);
                 }
             }
@@ -197,7 +197,7 @@ final class JeuxNouveaux {
             for (int k = 0; k < N; k++) tous &= plein(k);
             if (tous && !fini) {
                 parfait = fautes == 0;
-                Dessin.bip(SoundEvents.STONE_PLACE, 1.2f, 0.8f);
+                Dessin.bip(Sons.PIERRE, 1.2f, 0.8f);
                 terminer(true);
             }
         }
@@ -274,7 +274,7 @@ final class JeuxNouveaux {
             tic++;
             double avant = ouverture();
             phase += 0.15 + 0.035 * (N - restants);
-            if (avant >= 0.3 && ouverture() < 0.3) Dessin.bip(SoundEvents.TRIPWIRE_CLICK_ON, 1.6f, 0.4f);
+            if (avant >= 0.3 && ouverture() < 0.3) Dessin.bip(Sons.PINCE, 1.6f, 0.4f);
         }
 
         @Override
@@ -285,7 +285,7 @@ final class JeuxNouveaux {
                 if (pris[i] || Math.abs(mx - (bx + fx[i])) > 5) continue;
                 if (ouverture() < 0.3) {
                     pris[i] = true;
-                    Dessin.bip(SoundEvents.ITEM_PICKUP, 1.2f + (N - restants) * 0.12f, 0.7f);
+                    Dessin.bip(Sons.PLUCK, 1.2f + (N - restants) * 0.12f, 0.7f);
                     if (--restants == 0) {
                         parfait = fautes == 0;
                         terminer(true);
@@ -390,7 +390,7 @@ final class JeuxNouveaux {
         void clic(double mx, double my) {
             int bx = ox + 4, by = oy + 3;
             if (!Dessin.dans(mx, my, bx, by, L, H)) return;
-            Dessin.bip(SoundEvents.LEVER_CLICK, 1.6f, 0.7f);
+            Dessin.bip(Sons.OBTURATEUR, 1.6f, 0.7f);
             boolean cadre = Math.abs(mx - bx - sx()) < 13 && Math.abs(my - by - sy()) < 13, net = flou() < 1.3;
             if (cadre && net) {
                 eclair = 4;
@@ -494,7 +494,7 @@ final class JeuxNouveaux {
             }
             if (propre[i] == 0) {
                 propre[i] = tic;
-                if (++faits % 2 == 0) Dessin.bip(SoundEvents.BRUSH_GENERIC, 1.3f + faits * 0.6f / total, 0.6f);
+                if (++faits % 2 == 0) Dessin.bip(Sons.FROTTEMENT, 1.3f + faits * 0.6f / total, 0.6f);
                 if (faits >= total) {
                     parfait = fautes == 0;
                     Dessin.note(1.5f);
@@ -644,7 +644,7 @@ final class JeuxNouveaux {
                         }
                         if (approche < -1.2 && tic - dernierChoc > 2) {
                             dernierChoc = tic;
-                            Dessin.bip(SoundEvents.STONE_HIT, (float) Math.min(2, 1 - approche / 10), (float) Math.min(0.8, 0.2 - approche / 12));
+                            Dessin.bip(Sons.CHOC, (float) Math.min(2, 1 - approche / 10), (float) Math.min(0.8, 0.2 - approche / 12));
                         }
                     }
                 }
@@ -675,7 +675,7 @@ final class JeuxNouveaux {
                 } else if (boite) {
                     faute(); // un débris dans la boîte d'échantillons
                 } else {
-                    Dessin.bip(SoundEvents.ITEM_PICKUP, 0.7f, 0.4f);
+                    Dessin.bip(Sons.PLUCK, 0.7f, 0.4f);
                 }
             }
             if (restantes <= 0 && !fini) {
@@ -695,7 +695,7 @@ final class JeuxNouveaux {
                     tenu = i;
                 }
             }
-            if (tenu >= 0) Dessin.bip(SoundEvents.ITEM_PICKUP, 1.3f, 0.4f);
+            if (tenu >= 0) Dessin.bip(Sons.PLUCK, 1.3f, 0.4f);
         }
 
         @Override
@@ -811,7 +811,7 @@ final class JeuxNouveaux {
             for (int i = 0; i < 4; i++) {
                 if (!Dessin.dans(mx, my, bx(i), by(i), 48, 18)) continue;
                 mise = Math.max(0, Math.min(100, mise + pas[i]));
-                Dessin.bip(SoundEvents.COMPARATOR_CLICK, 0.8f + (float) Math.max(0, 30 - flou()) / 30f, 0.6f);
+                Dessin.bip(Sons.MOLETTE, 0.8f + (float) Math.max(0, 30 - flou()) / 30f, 0.6f);
                 if (flou() <= 2 && !net) {
                     net = true;
                     Dessin.note(1.6f);
@@ -916,7 +916,7 @@ final class JeuxNouveaux {
         void tick() {
             if (flash > 0) flash--;
             if (attente > 0) {
-                if (--attente == 0) Dessin.bip(SoundEvents.BOTTLE_EMPTY, 1.4f, 0.7f);
+                if (--attente == 0) Dessin.bip(Sons.GOUTTE, 1.0f, 0.7f);
                 return;
             }
             tic++;
@@ -929,7 +929,7 @@ final class JeuxNouveaux {
                 if (front[i] >= HAUT) rate(i); // le solvant a atteint le haut : la bandelette est perdue
                 else encore = true;
             }
-            if (encore && tic % 8 == 0) Dessin.bip(SoundEvents.NOTE_BLOCK_HAT.value(), (float) (0.7 + max / HAUT), 0.35f);
+            if (encore && tic % 8 == 0) Dessin.bip(Sons.TIC, (float) (0.7 + max / HAUT), 0.35f);
             if (!encore && !fini) {
                 parfait = fautes == 0;
                 terminer(fautes <= 1);
@@ -1065,7 +1065,7 @@ final class JeuxNouveaux {
                     Dessin.note(0.9f + niveau * 0.2f);
                     if (niveau >= 3) {
                         // Arrivé en bas : la lignée est identifiée.
-                        Dessin.bip(SoundEvents.NOTE_BLOCK_CHIME.value(), 1.5f, 0.6f);
+                        Dessin.bip(Sons.CARILLON, 1.5f, 0.6f);
                         if (++manche >= 3) {
                             parfait = fautes == 0;
                             terminer(true);
@@ -1196,7 +1196,7 @@ final class JeuxNouveaux {
             gouttes += n;
             attente = 6;
             // Plus on approche du virage, plus la goutte sonne aigu.
-            Dessin.bip(SoundEvents.NOTE_BLOCK_PLING.value(), (float) (0.6 + 1.2 * Math.max(0, 1 - (virage - gouttes) / 30.0)), 0.5f);
+            Dessin.bip(Sons.GOUTTE, (float) (0.6 + 1.2 * Math.max(0, 1 - (virage - gouttes) / 30.0)), 0.5f);
             if (gouttes < virage) return;
             vire = true;
             if (gouttes - virage <= 1) {
@@ -1316,7 +1316,7 @@ final class JeuxNouveaux {
                 if (montee == 8) {
                     if (epouse(position)) {
                         emboite = true;
-                        Dessin.bip(SoundEvents.STONE_PLACE, 0.6f, 1f);
+                        Dessin.bip(Sons.PIERRE, 0.6f, 1f);
                         Dessin.note(1f + manche * 0.3f);
                         if (++manche >= 2) {
                             parfait = fautes == 0;
@@ -1326,7 +1326,7 @@ final class JeuxNouveaux {
                         }
                     } else {
                         flash = 10;
-                        Dessin.bip(SoundEvents.STONE_HIT, 0.6f, 1f);
+                        Dessin.bip(Sons.PIERRE, 0.6f, 1f);
                         Dessin.note(0.5f);
                         if (++fautes >= 2) terminer(false);
                     }
@@ -1355,7 +1355,7 @@ final class JeuxNouveaux {
             int nouvelle = Math.max(0, Math.min(M - N, position + sens));
             if (nouvelle == position) return;
             position = nouvelle;
-            Dessin.bip(SoundEvents.STONE_HIT, 0.9f + position * 0.05f, 0.6f);
+            Dessin.bip(Sons.PIERRE, 0.9f + position * 0.05f, 0.6f);
         }
 
         boolean libre() {
@@ -1475,13 +1475,13 @@ final class JeuxNouveaux {
             dessus = appui && Math.hypot(cx - ox - 4 - tx(), cy - oy - 3 - ty()) < 12;
             if (dessus) {
                 fiole += 1;
-                if (tic % 12 == 0) Dessin.bip(SoundEvents.BOTTLE_FILL, (float) (0.8 + fiole / 120), 0.6f);
+                if (tic % 12 == 0) Dessin.bip(Sons.FIOLE, (float) (0.8 + fiole / 120), 0.6f);
             } else {
                 fiole = Math.max(0, fiole - 0.15);
             }
-            if (tic % 14 == 0) Dessin.bip(SoundEvents.BUBBLE_COLUMN_BUBBLE_POP, 0.8f + (tic % 5) * 0.1f, 0.35f);
+            if (tic % 14 == 0) Dessin.bip(Sons.BULLE, 0.8f + (tic % 5) * 0.1f, 0.35f);
             // Le cœur s'emballe quand l'air vient à manquer.
-            if (air < 35 && tic % (air < 15 ? 8 : 14) == 0) Dessin.bip(SoundEvents.WARDEN_HEARTBEAT, 1.2f, 0.9f);
+            if (air < 35 && tic % (air < 15 ? 8 : 14) == 0) Dessin.bip(Sons.COEUR, 1.2f, 0.9f);
             if (fiole >= 100) {
                 parfait = air >= 40;
                 terminer(true);
@@ -1548,7 +1548,7 @@ final class JeuxNouveaux {
             if (appui) {
                 chauffe = Math.min(30, chauffe + 1);
                 temperature += 0.5 + chauffe * 0.05;
-                if (tic % 9 == 0) Dessin.bip(SoundEvents.FIRE_AMBIENT, 1.4f, 0.5f);
+                if (tic % 9 == 0) Dessin.bip(Sons.FLAMME, 1.4f, 0.5f);
             } else {
                 chauffe = 0;
                 temperature = Math.max(0, temperature - 0.8);
@@ -1558,14 +1558,14 @@ final class JeuxNouveaux {
                 temperature = 35;
                 chauffe = 0;
                 flash = 8;
-                Dessin.bip(SoundEvents.FIRE_EXTINGUISH, 1.2f, 0.6f);
+                Dessin.bip(Sons.SIFFLEMENT, 1.2f, 0.6f);
                 if (++fautes >= 3) terminer(false);
             }
             if (temperature >= bas() && temperature <= bas() + 18) degel += 0.55;
             int palier = (int) (degel / 34);
             if (palier > paliers) {
                 paliers = palier;
-                Dessin.bip(SoundEvents.GLASS_BREAK, 1.7f, 0.4f);
+                Dessin.bip(Sons.GLACE, 1.2f, 0.4f);
             }
             if (degel >= 100 && !fini) {
                 parfait = fautes == 0;
@@ -1641,7 +1641,7 @@ final class JeuxNouveaux {
             clarte = Math.max(0, 1 - Math.abs(reglage - cible()) * 6);
             acquis = clarte > 0.8 ? acquis + 1 : Math.max(0, acquis - 0.3);
             // Le signal sonne d'autant plus aigu et fort que le cri est net.
-            if (tic % 5 == 0) Dessin.bip(SoundEvents.NOTE_BLOCK_BIT.value(), (float) (0.5 + clarte * 1.4), (float) (0.2 + clarte * 0.4));
+            if (tic % 5 == 0) Dessin.bip(Sons.SCAN, (float) (0.5 + clarte * 1.4), (float) (0.2 + clarte * 0.4));
             if (acquis >= REQUIS) {
                 parfait = true;
                 terminer(true);
@@ -1723,7 +1723,7 @@ final class JeuxNouveaux {
         void rate() {
             etat[prochaine++] = 2;
             flash = 8;
-            Dessin.bip(SoundEvents.WOOD_BREAK, 0.9f, 0.8f);
+            Dessin.bip(Sons.CRAQUEMENT, 0.9f, 0.8f);
             if (++fautes >= 3) terminer(false);
         }
 
@@ -1753,7 +1753,7 @@ final class JeuxNouveaux {
             boolean aPortee = Math.abs(y(prochaine) - LIGNE) <= MARGE;
             if (aPortee && !morte[prochaine] && c == cote[prochaine]) {
                 etat[prochaine++] = 1;
-                Dessin.bip(SoundEvents.WOOD_HIT, 0.8f + prises * 0.05f, 0.9f);
+                Dessin.bip(Sons.BRANCHE, 0.8f + prises * 0.05f, 0.9f);
                 prises++;
             } else {
                 rate(); // trop tôt, trop tard, du mauvais côté, ou une branche morte qui casse
@@ -1834,13 +1834,13 @@ final class JeuxNouveaux {
             boolean file = appui && !attendRelache;
             vitesse = file ? Math.min(2.4, vitesse + 0.05) : Math.max(0, vitesse - 0.1);
             pos += vitesse;
-            if (vitesse > 0 && tic % 4 == 0) Dessin.bip(SoundEvents.CHAIN_STEP, (float) (0.7 + vitesse * 0.4), 0.6f);
+            if (vitesse > 0 && tic % 4 == 0) Dessin.bip(Sons.CORDE, (float) (0.7 + vitesse * 0.4), 0.6f);
             int cible = cibles[etape];
             if (pos > cible + 4) {
                 faute(); // descendu trop bas : il faut remonter et recommencer ce tronçon
             } else if (vitesse == 0 && !file && Math.abs(pos - cible) <= 4) {
                 depart = pos;
-                Dessin.bip(SoundEvents.CHAIN_PLACE, 1.2f, 0.8f);
+                Dessin.bip(Sons.MOUSQUETON, 1.2f, 0.8f);
                 Dessin.note(1f + etape * 0.25f);
                 attendRelache = true;
                 if (++etape >= 3) {
@@ -1911,7 +1911,7 @@ final class JeuxNouveaux {
             if (flash > 0) flash--;
             tic++;
             batterie -= 0.17;
-            if (tic % 24 == 0) Dessin.bip(SoundEvents.BEACON_AMBIENT, 1.8f, 0.25f);
+            if (tic % 24 == 0) Dessin.bip(Sons.LAMPE, 1.8f, 0.25f);
             if (batterie <= 0) terminer(false);
         }
 
@@ -1932,7 +1932,7 @@ final class JeuxNouveaux {
             // Un clic dans le vide vide la batterie.
             batterie -= 8;
             flash = 6;
-            Dessin.bip(SoundEvents.DISPENSER_FAIL, 1.2f, 0.6f);
+            Dessin.bip(Sons.ECHEC, 1.2f, 0.6f);
         }
 
         @Override
@@ -2037,14 +2037,14 @@ final class JeuxNouveaux {
                         // Tirer une pierre chargée fait tout trembler.
                         flash = 8;
                         secousse = 10;
-                        Dessin.bip(SoundEvents.GRAVEL_BREAK, 0.6f, 1f);
+                        Dessin.bip(Sons.EBOULEMENT, 0.6f, 1f);
                         if (++fautes >= 3) terminer(false);
                     } else if (--coups[r][k] > 0) {
-                        Dessin.bip(SoundEvents.STONE_HIT, 0.8f + (3 - coups[r][k]) * 0.2f, 0.9f);
+                        Dessin.bip(Sons.PIOCHE, 0.8f + (3 - coups[r][k]) * 0.2f, 0.9f);
                     } else {
                         presente[r][k] = false;
                         retirees++;
-                        Dessin.bip(SoundEvents.STONE_BREAK, 0.9f + r * 0.08f, 0.8f);
+                        Dessin.bip(Sons.PIERRE, 0.9f + r * 0.08f, 0.8f);
                         if (r == 0 && k == cible) {
                             parfait = fautes == 0;
                             Dessin.note(1.5f);

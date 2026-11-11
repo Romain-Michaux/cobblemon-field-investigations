@@ -76,6 +76,12 @@ public class EcranAnalyse extends Screen {
     }
 
     @Override
+    protected void init() {
+        // Au laboratoire, une nappe sonore accompagne l'analyse.
+        if (!prelevement) Sons.ambianceLabo(true);
+    }
+
+    @Override
     public boolean isPauseScreen() {
         return false;
     }
@@ -99,14 +105,15 @@ public class EcranAnalyse extends Screen {
             finDepuis = ticks;
             // Fin de partie : carillon et petite fanfare si c'est réussi, note grave sinon.
             Dessin.note(jeu.succes ? 1.6f : 0.6f);
-            if (jeu.succes) Dessin.bip(SoundEvents.EXPERIENCE_ORB_PICKUP, jeu.parfait ? 1.4f : 1f, 0.6f);
-            else Dessin.bip(SoundEvents.NOTE_BLOCK_BASS.value(), 0.5f, 0.9f);
+            if (jeu.succes) Dessin.bip(Sons.REUSSITE, jeu.parfait ? 1.4f : 1f, 0.6f);
+            else Dessin.bip(Sons.ECHEC, 0.5f, 0.9f);
         }
         if (finDepuis >= 0 && ticks - finDepuis > 32) onClose();
     }
 
     @Override
     public void removed() {
+        Sons.ambianceLabo(false);
         // Fermer l'écran pendant l'explication ne coûte rien : la partie n'a pas commencé.
         if (!envoye && !essai && !intro) {
             envoye = true;
@@ -312,7 +319,7 @@ public class EcranAnalyse extends Screen {
         void tick() {
             if (flash > 0) flash--;
             if (++temps > duree()) faute();
-            else if (temps == duree() * 2 / 3) Dessin.bip(SoundEvents.NOTE_BLOCK_HAT.value(), 1.6f, 0.5f);
+            else if (temps == duree() * 2 / 3) Dessin.bip(Sons.TIC, 1.6f, 0.5f);
         }
 
         void faute() {
@@ -404,7 +411,7 @@ public class EcranAnalyse extends Screen {
         void tick() {
             double avant = angle;
             angle = (angle + vitesse) % 360;
-            if (angle < avant) Dessin.bip(SoundEvents.NOTE_BLOCK_HAT.value(), (float) (0.7 + vitesse * 0.07), 0.5f);
+            if (angle < avant) Dessin.bip(Sons.TIC, (float) (0.7 + vitesse * 0.07), 0.5f);
             if (flash > 0) flash--;
         }
 
@@ -597,7 +604,7 @@ public class EcranAnalyse extends Screen {
             if (--temps <= 0) terminer(false);
             presser(temps, 900);
             if (ecart() == 0) {
-                if (accord == 0) Dessin.bip(SoundEvents.NOTE_BLOCK_CHIME.value(), 1.5f, 0.6f);
+                if (accord == 0) Dessin.bip(Sons.CARILLON, 1.5f, 0.6f);
                 if (++accord > 6) terminer(true);
             }
         }

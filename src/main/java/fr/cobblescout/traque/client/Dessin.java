@@ -315,7 +315,7 @@ final class Dessin {
     }
 
     static void son(float hauteur) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, hauteur));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sons.CLIC, hauteur, 0.8f));
     }
 
     // Un son d'interface quelconque, à la hauteur et au volume voulus.
@@ -324,6 +324,6 @@ final class Dessin {
     }
 
     static void note(float hauteur) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, hauteur, 0.6f));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sons.CARILLON, hauteur, 0.6f));
     }
 }

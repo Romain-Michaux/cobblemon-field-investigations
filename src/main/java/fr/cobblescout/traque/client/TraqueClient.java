@@ -72,6 +72,9 @@ public class TraqueClient implements ClientModInitializer {
                 long maintenant = System.currentTimeMillis();
                 switch (paquet.genre()) {
                     case "etat" -> {
+                        // La cible vient d'être identifiée, ou un rang vient d'être gagné : le client le souligne d'un son.
+                        if (etat.getString("phase").equals("REPERAGE") && d.getString("phase").equals("APPROCHE")) Dessin.bip(Sons.IDENTIFIE, 1f, 0.9f);
+                        if (etat.contains("carriere") && d.getCompound("carriere").getInt("rang") > etat.getCompound("carriere").getInt("rang")) Dessin.bip(Sons.GRADE, 1f, 0.9f);
                         etat = d;
                         etatRecu = maintenant;
                         Contenu.scanCoteClient = d.getBoolean("actif") && d.getString("phase").equals("REPERAGE");
@@ -178,10 +181,10 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
         scanLisse += (Math.min(1, scan / dureeScan) - scanLisse) * 0.12;
         // Bips du scanner : de plus en plus rapprochés et aigus à mesure que l'analyse avance ; un bourdonnement grave si ce n'est pas la cible.
         if (!Demo.scan && scan > 0 && maintenant >= prochainBip) {
-            mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BIT.value(), (float) (0.75 + scanLisse * 1.25), 0.5f));
+            mc.getSoundManager().play(SimpleSoundInstance.forUI(Sons.SCAN, (float) (0.75 + scanLisse * 1.25), 0.5f));
             prochainBip = maintenant + (long) (400 - scanLisse * 280);
         } else if (!Demo.scan && autre && maintenant - dernierRefus > 1200) {
-            mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BASS.value(), 0.6f, 0.5f));
+            mc.getSoundManager().play(SimpleSoundInstance.forUI(Sons.ECHEC, 0.6f, 0.5f));
             dernierRefus = maintenant;
         }
         // La fenêtre de visée occupe environ 60 % de l'écran, quelle que soit sa taille.

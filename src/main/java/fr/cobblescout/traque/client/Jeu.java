@@ -33,17 +33,17 @@ abstract class Jeu {
     // Dernier quart du temps : un tic toutes les demi-secondes, de plus en plus aigu, pour presser le joueur.
     void presser(int temps, int duree) {
         if (temps > 0 && temps * 4 < duree && temps % 10 == 0) {
-            Dessin.bip(SoundEvents.NOTE_BLOCK_HAT.value(), 1.2f + 0.8f * (1 - temps * 4f / duree), 0.6f);
+            Dessin.bip(Sons.TIC, 1.2f + 0.8f * (1 - temps * 4f / duree), 0.6f);
         }
     }
 
     // Quelque chose à mémoriser apparaît / disparaît.
     void sonMontre() {
-        Dessin.bip(SoundEvents.NOTE_BLOCK_CHIME.value(), 1.2f, 0.5f);
+        Dessin.bip(Sons.CARILLON, 1.2f, 0.5f);
     }
 
     void sonCache() {
-        Dessin.bip(SoundEvents.BOOK_PAGE_TURN, 1.4f, 0.8f);
+        Dessin.bip(Sons.PAPIER, 1.4f, 0.8f);
     }
 
     // Jauge de temps en bas de la zone.

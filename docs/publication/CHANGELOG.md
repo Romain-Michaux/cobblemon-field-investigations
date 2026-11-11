@@ -21,6 +21,9 @@
   - Each trace and each marker now picks among several games.
 - **Buried clues**: a single one per regular case (dig sites keep three), dug up with the brush or the sieve, and what
   you find varies: bone or tooth, eggshells, feather or moult, fang, claw or scale.
+- **Own sounds**: 34 sound effects made for the mod (sieve, plaster, shutter, bubbles, heartbeat, rope, branches,
+  stones, drops, scanner, success and failure jingles, rank-up fanfare) replace the borrowed Minecraft sounds, plus a
+  soft ambience loop in the sequencer (follows the game's Music volume).
 - **Team investigations**: the lead investigator invites nearby players from the kit; one shared case, shared stars,
   loot and experience for every member.
 - **Underground investigations**: cave species, traces and lair in caves, depth shown on the radar, and a dedicated

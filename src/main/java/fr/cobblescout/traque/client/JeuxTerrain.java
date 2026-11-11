@@ -161,10 +161,10 @@ final class JeuxTerrain {
             if (!aspire) return;
             niveau += vitesse;
             // L'aspiration s'entend : une note qui monte avec le niveau, et un tintement à l'entrée dans la zone verte.
-            if (++tic % 2 == 0) Dessin.bip(SoundEvents.NOTE_BLOCK_HARP.value(), (float) (0.6 + Math.min(1, niveau) * 1.3), 0.35f);
+            if (++tic % 2 == 0) Dessin.bip(Sons.SCAN, (float) (0.6 + Math.min(1, niveau) * 1.3), 0.35f);
             if (!dansLeVert && niveau >= cibleBas && niveau <= cibleHaut) {
                 dansLeVert = true;
-                Dessin.bip(SoundEvents.NOTE_BLOCK_CHIME.value(), 1.5f, 0.45f);
+                Dessin.bip(Sons.CARILLON, 1.5f, 0.45f);
             }
             if (niveau >= 1) {
                 niveau = 1;
@@ -194,7 +194,7 @@ final class JeuxTerrain {
                 aspire = true;
                 dansLeVert = false;
                 tic = 0;
-                Dessin.bip(SoundEvents.BOTTLE_FILL, 1.3f, 0.5f);
+                Dessin.bip(Sons.FIOLE, 1.3f, 0.5f);
             }
         }
 
@@ -267,11 +267,11 @@ final class JeuxTerrain {
             if (pos >= longueur()) {
                 pos = longueur();
                 sens = -1;
-                Dessin.bip(SoundEvents.NOTE_BLOCK_HAT.value(), 1.1f, 0.45f);
+                Dessin.bip(Sons.TIC, 1.1f, 0.45f);
             } else if (pos <= 0) {
                 pos = 0;
                 sens = 1;
-                Dessin.bip(SoundEvents.NOTE_BLOCK_HAT.value(), 0.9f, 0.45f);
+                Dessin.bip(Sons.TIC, 0.9f, 0.45f);
             }
         }
 
@@ -416,7 +416,7 @@ final class JeuxTerrain {
                 return;
             }
             while (avancee < N - 1 && Math.hypot(mx - px[ligne][avancee + 1], my - py[ligne][avancee + 1]) < 8) {
-                if (++avancee % 5 == 0) Dessin.bip(SoundEvents.AXE_SCRAPE, 1.1f + avancee * 0.012f, 0.5f);
+                if (++avancee % 5 == 0) Dessin.bip(Sons.FROTTEMENT, 1.1f + avancee * 0.012f, 0.5f);
             }
             if (avancee >= N - 1) {
                 Dessin.note(1f + ligne * 0.25f);
@@ -512,7 +512,7 @@ final class JeuxTerrain {
                         double d = Math.hypot(cx - (bx + (i % COLS) * CASE + 2), cy - (by + (i / COLS) * CASE + 2));
                         if (d < RAYON) terre[i] -= (float) (0.3 * (1 - d / RAYON) + 0.03);
                     }
-                    if (++tic % 5 == 0) Dessin.bip(SoundEvents.BRUSH_GENERIC, (float) (0.9 + Math.min(0.5, vitesse / 30)), 0.7f);
+                    if (++tic % 5 == 0) Dessin.bip(Sons.PINCEAU, (float) (0.9 + Math.min(0.5, vitesse / 30)), 0.7f);
                     for (int i = 0; i < FRAGMENTS; i++) {
                         if (trouve[i] || part(i) < 80) continue;
                         trouve[i] = true;

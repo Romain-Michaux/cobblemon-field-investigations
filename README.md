@@ -144,6 +144,12 @@ Some special investigations bring their own games:
 Only one clue is buried in a regular case, and what you dig up varies: bone or tooth, eggshells, feather or moult,
 fang, claw or scale.
 
+## Sounds
+
+Every mini-game has its own sound effects, and the sequencer plays a soft ambience loop (it follows the game's Music
+volume). They are synthesised by `outils/gen_sons.py`; to replace one, drop another `.ogg` with the same name in
+`assets/cobblemon_field_investigations/sounds`.
+
 ## Requirements
 
 - Minecraft 1.21.1, Fabric Loader 0.16+

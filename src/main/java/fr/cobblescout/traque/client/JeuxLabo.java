@@ -365,7 +365,7 @@ final class JeuxLabo {
         static final float[] NOTES = {1.5f, 1.19f, 0.94f, 0.75f};
 
         static void sonner(int palier) {
-            Dessin.bip(SoundEvents.NOTE_BLOCK_PLING.value(), NOTES[palier], 0.8f);
+            Dessin.bip(Sons.CARILLON, NOTES[palier], 0.8f);
         }
         final Random h;
         int[] suite;
@@ -408,14 +408,14 @@ final class JeuxLabo {
                 allume = b;
                 duree = 5;
                 if (b != suite[saisie]) {
-                    Dessin.bip(SoundEvents.NOTE_BLOCK_BASS.value(), 0.5f, 0.9f);
+                    Dessin.bip(Sons.ECHEC, 0.5f, 0.9f);
                     if (++erreurs >= 2) terminer(false);
                     else nouvelle();
                     return;
                 }
                 sonner(b);
                 if (++saisie >= suite.length) {
-                    Dessin.bip(SoundEvents.NOTE_BLOCK_CHIME.value(), 1.6f, 0.6f); // cycle réussi
+                    Dessin.bip(Sons.CARILLON, 1.6f, 0.6f); // cycle réussi
                     if (++manche >= 3) {
                         parfait = erreurs == 0;
                         terminer(true);
