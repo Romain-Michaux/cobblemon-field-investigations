@@ -102,6 +102,20 @@ final class Demo {
             TraqueClient.etat = etat("PRELEVEMENTS", 2);
             mc.setScreen(new EcranKit(2));
         });
+        etape("kit_equipe", () -> {
+            CompoundTag t = etat("PRELEVEMENTS", 2);
+            ListTag membres = new ListTag(), proches = new ListTag();
+            membres.add(StringTag.valueOf("Romain"));
+            membres.add(StringTag.valueOf("Camille"));
+            proches.add(StringTag.valueOf("Alex"));
+            proches.add(StringTag.valueOf("Sacha"));
+            t.put("equipe", membres);
+            t.put("proches", proches);
+            t.putBoolean("chef", true);
+            t.putInt("equipeMax", 4);
+            TraqueClient.etat = t;
+            mc.setScreen(new EcranKit(3));
+        });
         etape("premiere_fois", () -> {
             EcranAnalyse ecran = new EcranAnalyse("oeuf", "tri", 7L, 0, false, false, true, 0);
             ecran.intro = true;

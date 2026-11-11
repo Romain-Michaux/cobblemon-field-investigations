@@ -489,6 +489,20 @@ NOUVEAUX += [
     ("Un raté abîme le prélèvement : une seule dose, et une demi-étoile en moins.", "A failure damages the sample: a single dose, and half a star lost."),
     ("Un raté fait perdre une dose de l'échantillon, et une demi-étoile.", "A failure loses one dose of the sample, and half a star."),
 ]
+NOUVEAUX += [
+    # équipe
+    ("Équipe", "Team"), ("ÉQUIPE", "TEAM"), ("INVITER", "INVITE"), ("Rejoindre", "Join"), ("Refuser", "Decline"), ("Quitter l'équipe", "Leave the team"),
+    ("Actualiser", "Refresh"),
+    (" t'invite à rejoindre son enquête.", " invites you to join their investigation."),
+    ("Tu travailleras sur son dossier, et tu recevras ton butin et ton expérience.", "You will work on their case, and get your own loot and experience."),
+    ("Ouvre une enquête pour inviter des coéquipiers, ou attends qu'un chef d'enquête t'invite.", "Open a case to invite teammates, or wait for a lead investigator to invite you."),
+    ("Seul le chef d'enquête (★) peut inviter.", "Only the lead investigator (★) can invite."),
+    ("Chacun prélève et analyse pour le même dossier. Les étoiles sont communes ; le butin et l'expérience vont à chacun.",
+     "Everyone samples and analyses for the same case. Stars are shared; loot and experience go to each player."),
+    ("L'équipe est au complet.", "The team is full."),
+    ("Aucun joueur sans enquête à moins de 64 blocs.", "No player without a case within 64 blocks."),
+    (" t'invite : voir l'onglet Équipe", " invites you: see the Team tab"),
+]
 _deja = {f for f, _ in UI}
 UI += [t for t in NOUVEAUX if t[0] not in _deja]
 
@@ -590,6 +604,20 @@ CLES = [
     ("annonce.resolue.texte", "%s %s · case no. %s%s%s%s", "%s %s · dossier n° %s%s%s%s"),
     ("annonce.resolue.xp", " · +%s XP", " · +%s XP"),
     ("annonce.resolue.rang", " · +%s XP · Promoted: %s!", " · +%s XP · Promotion : %s !"),
+    ("annonce.invitation.titre", "Team invitation", "Invitation"),
+    ("annonce.invitation.texte", "%s invites you to join their investigation: open your kit, Team tab", "%s t'invite à rejoindre son enquête : ouvre ton kit, onglet Équipe"),
+    ("annonce.invitation_envoyee.titre", "Invitation sent", "Invitation envoyée"),
+    ("annonce.invitation_envoyee.texte", "%s has two minutes to answer", "%s a deux minutes pour répondre"),
+    ("annonce.invitation_impossible.titre", "Invitation impossible", "Invitation impossible"),
+    ("annonce.invitation_impossible.texte", "That player is offline, already on a case, or the target is already flushed out", "Ce joueur est déconnecté, déjà sur une enquête, ou la cible est déjà débusquée"),
+    ("annonce.equipe_pleine.titre", "Team is full", "Équipe au complet"),
+    ("annonce.equipe_pleine.texte", "No more than %s investigators on one case", "Pas plus de %s enquêteurs sur un même dossier"),
+    ("annonce.equipe_rejoint.titre", "New teammate", "Nouveau coéquipier"),
+    ("annonce.equipe_rejoint.texte", "%s joins the investigation", "%s rejoint l'enquête"),
+    ("annonce.equipe_quittee.titre", "Team left", "Équipe quittée"),
+    ("annonce.equipe_quittee.texte", "You are off the case", "Tu ne travailles plus sur ce dossier"),
+    ("annonce.equipe_depart.titre", "Teammate gone", "Départ"),
+    ("annonce.equipe_depart.texte", "%s left the team", "%s a quitté l'équipe"),
     ("rang.0", "Trainee", "Stagiaire"), ("rang.1", "Junior Investigator", "Enquêteur adjoint"), ("rang.2", "Investigator", "Enquêteur"),
     ("rang.3", "Inspector", "Inspecteur"), ("rang.4", "Chief Inspector", "Inspecteur principal"), ("rang.5", "Commissioner", "Commissaire"),
     ("rang.6", "Legend", "Légende"),

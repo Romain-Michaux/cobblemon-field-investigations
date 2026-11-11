@@ -119,6 +119,8 @@ public final class Moteur {
         public double chanceEnqueteSpeciale = 0.5;
         // Rythme des mini-jeux : "easy" (un tiers plus lent), "normal" ou "hard" (un quart plus rapide).
         public String difficulteMiniJeux = "normal";
+        // Nombre maximal d'enquêteurs sur un même dossier (1 = pas d'enquête en équipe).
+        public int tailleEquipe = 4;
     }
 
     // Enquêtes spéciales : chacune a sa règle et sa récompense (toutes donnent le butin « speciale », et « type_<nom> » s'il existe).
@@ -195,7 +197,10 @@ public final class Moteur {
         public int niveau, fuites;
         // Ratés des mini-jeux (prélèvement abîmé, dose perdue, indice détruit) : chacun coûte une demi-étoile.
         public int fautes;
-        public transient int scan, scanAutre;
+        // Le chef d'enquête (celui qui a ouvert le dossier) et les coéquipiers qu'il a invités : tous travaillent sur le
+        // même dossier, partagent ses étoiles et reçoivent chacun le butin et l'expérience.
+        public UUID chef;
+        public List<UUID> equipe = new ArrayList<>();
         // Dernier instant où la cible a été vue en combat près du joueur (pour savoir qui l'a mise K.O.).
         public transient long dernierCombat;
         public double zoneX, zoneZ, taniereX, taniereZ;
@@ -254,6 +259,14 @@ public final class Moteur {
     private static final Map<UUID, Boolean> ANALYSES = new HashMap<>();
     private static final Map<UUID, BlockPos> PRELEVEMENTS = new HashMap<>();
     private static final Map<UUID, Boolean> FILTRAGES = new HashMap<>();
+    // Avancée du scan de chaque joueur : [demi-secondes passées sur la cible, « ce n'est pas la cible » encore affiché].
+    private static final Map<UUID, int[]> SCANS = new HashMap<>();
+    // Invitations en attente : invité -> chef d'enquête, et leur date d'expiration.
+    private static final Map<UUID, UUID> INVITATIONS = new HashMap<>();
+    private static final Map<UUID, Long> FIN_INVITATIONS = new HashMap<>();
+    // Annonces qui concernent tout le dossier : les coéquipiers les reçoivent aussi.
+    private static final Set<String> PARTAGEES = Set.of("analyse_reussie", "echantillon_detruit", "kit_calibre", "cible_deplacee", "contact_perdu",
+            "cible_disparue", "senti", "entendu", "tout_pres", "debusque", "indice_degage", "indice_detruit", "equipe_rejoint", "equipe_depart");
     // Vrai pendant que le mod remplace lui-même un sol remué (dégagement, nettoyage) : ce n'est pas une destruction.
     private static boolean remplacement;
 
@@ -273,6 +286,10 @@ public final class Moteur {
             if (etat.offres == null) etat.offres = new HashMap<>();
             if (etat.finOffres == null) etat.finOffres = new HashMap<>();
             if (etat.profils == null) etat.profils = new HashMap<>();
+            for (Map.Entry<UUID, Dossier> en : etat.dossiers.entrySet()) {
+                if (en.getValue().chef == null) en.getValue().chef = en.getKey();
+                if (en.getValue().equipe == null) en.getValue().equipe = new ArrayList<>();
+            }
         }
     }
 
@@ -281,10 +298,122 @@ public final class Moteur {
         ANALYSES.clear();
         PRELEVEMENTS.clear();
         FILTRAGES.clear();
+        SCANS.clear();
+        INVITATIONS.clear();
+        FIN_INVITATIONS.clear();
     }
 
+    // Le dossier sur lequel travaille ce joueur : le sien, ou celui de l'équipe qu'il a rejointe.
     static Dossier dossier(ServerPlayer joueur) {
-        return etat.dossiers.get(joueur.getUUID());
+        UUID id = joueur.getUUID();
+        Dossier d = etat.dossiers.get(id);
+        if (d != null) return d;
+        for (Dossier autre : etat.dossiers.values()) {
+            if (autre.equipe != null && autre.equipe.contains(id)) return autre;
+        }
+        return null;
+    }
+
+    // Tous les enquêteurs du dossier, chef en tête.
+    static List<UUID> membres(Dossier d) {
+        List<UUID> tous = new ArrayList<>();
+        tous.add(d.chef);
+        if (d.equipe != null) tous.addAll(d.equipe);
+        return tous;
+    }
+
+    // Ceux qui sont connectés en ce moment.
+    static List<ServerPlayer> enLigne(Dossier d, net.minecraft.server.MinecraftServer serveur) {
+        List<ServerPlayer> presents = new ArrayList<>();
+        for (UUID u : membres(d)) {
+            ServerPlayer p = serveur.getPlayerList().getPlayer(u);
+            if (p != null) presents.add(p);
+        }
+        return presents;
+    }
+
+    private static List<ServerPlayer> coequipiers(ServerPlayer joueur) {
+        Dossier d = dossier(joueur);
+        if (d == null || d.equipe == null || d.equipe.isEmpty()) return List.of();
+        List<ServerPlayer> autres = enLigne(d, joueur.server);
+        autres.remove(joueur);
+        return autres;
+    }
+
+    private static String nom(net.minecraft.server.MinecraftServer serveur, UUID id) {
+        ServerPlayer p = serveur.getPlayerList().getPlayer(id);
+        if (p != null) return p.getGameProfile().getName();
+        var cache = serveur.getProfileCache();
+        return cache == null ? "?" : cache.get(id).map(com.mojang.authlib.GameProfile::getName).orElse("?");
+    }
+
+    private static void razScan(Dossier d) {
+        for (UUID u : membres(d)) SCANS.remove(u);
+    }
+
+    // ---------- Enquête en équipe ----------
+
+    private static UUID invitation(ServerPlayer joueur) {
+        UUID id = joueur.getUUID(), chef = INVITATIONS.get(id);
+        if (chef == null) return null;
+        Dossier d = etat.dossiers.get(chef);
+        if (FIN_INVITATIONS.getOrDefault(id, 0L) < System.currentTimeMillis() || d == null || membres(d).size() >= reglages.tailleEquipe) {
+            INVITATIONS.remove(id);
+            FIN_INVITATIONS.remove(id);
+            return null;
+        }
+        return chef;
+    }
+
+    // Le chef d'enquête invite un joueur sans dossier à travailler sur le sien.
+    static void inviter(ServerPlayer joueur, String nomInvite) {
+        Dossier d = etat.dossiers.get(joueur.getUUID());
+        ServerPlayer invite = joueur.server.getPlayerList().getPlayerByName(nomInvite);
+        if (d == null || invite == null || invite == joueur || dossier(invite) != null || "DEBUSQUE".equals(d.phase)) {
+            annonce(joueur, "invitation_impossible", 0xE8543A);
+            return;
+        }
+        if (membres(d).size() >= reglages.tailleEquipe) {
+            annonce(joueur, "equipe_pleine", 0xE8543A, reglages.tailleEquipe);
+            return;
+        }
+        INVITATIONS.put(invite.getUUID(), joueur.getUUID());
+        FIN_INVITATIONS.put(invite.getUUID(), System.currentTimeMillis() + 120_000L);
+        invite.playNotifySound(SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.PLAYERS, 1f, 1.2f);
+        annonce(invite, "invitation", 0x4FD1C5, joueur.getGameProfile().getName());
+        annonce(joueur, "invitation_envoyee", 0x4FD1C5, invite.getGameProfile().getName());
+        synchroniser(invite);
+        synchroniser(joueur);
+    }
+
+    // L'invité accepte ou refuse.
+    static void repondre(ServerPlayer joueur, boolean accepte) {
+        UUID chef = invitation(joueur);
+        INVITATIONS.remove(joueur.getUUID());
+        FIN_INVITATIONS.remove(joueur.getUUID());
+        Dossier d = chef == null ? null : etat.dossiers.get(chef);
+        if (accepte && d != null && dossier(joueur) == null) {
+            d.equipe.add(joueur.getUUID());
+            etat.offres.remove(joueur.getUUID());
+            etat.finOffres.remove(joueur.getUUID());
+            sauver();
+            joueur.playNotifySound(SoundEvents.SPYGLASS_USE, SoundSource.PLAYERS, 1f, 0.8f);
+            annonce(joueur, "equipe_rejoint", 0x6CCB5F, joueur.getGameProfile().getName());
+        }
+        synchroniser(joueur);
+    }
+
+    // Un coéquipier quitte le dossier (le chef, lui, ne peut que le classer pour tout le monde).
+    private static void quitter(ServerPlayer joueur, Dossier d) {
+        d.equipe.remove(joueur.getUUID());
+        SCANS.remove(joueur.getUUID());
+        sauver();
+        annonce(joueur, "equipe_quittee", 0x9AA0A6);
+        for (ServerPlayer m : enLigne(d, joueur.server)) {
+            annonce(m, "equipe_depart", 0x9AA0A6, joueur.getGameProfile().getName());
+            envoyerEtat(m);
+        }
+        envoyerEtat(joueur);
     }
 
     // ---------- Messages vers le client ----------
@@ -307,7 +436,11 @@ public final class Moteur {
     }
 
     public static void annonce(ServerPlayer joueur, String cle, int couleur, Object... args) {
-        annonce(joueur, tr("annonce." + cle + ".titre", args), tr("annonce." + cle + ".texte", args), couleur);
+        Component titre = tr("annonce." + cle + ".titre", args), texte = tr("annonce." + cle + ".texte", args);
+        annonce(joueur, titre, texte, couleur);
+        if (PARTAGEES.contains(cle)) {
+            for (ServerPlayer autre : coequipiers(joueur)) annonce(autre, titre, texte, couleur);
+        }
     }
 
     static String etoilesTexte(int n) {
@@ -323,6 +456,11 @@ public final class Moteur {
 
     // Tout ce que le client a le droit de savoir sur l'enquête du joueur (jamais l'espèce avant qu'elle soit débusquée).
     static void synchroniser(ServerPlayer joueur) {
+        envoyerEtat(joueur);
+        for (ServerPlayer autre : coequipiers(joueur)) envoyerEtat(autre);
+    }
+
+    private static void envoyerEtat(ServerPlayer joueur) {
         Paquet p = Paquet.de("etat");
         CompoundTag t = p.donnees();
         Dossier d = dossier(joueur);
@@ -365,6 +503,23 @@ public final class Moteur {
         carriere.put("types", types);
         carriere.put("archives", archives);
         t.put("carriere", carriere);
+        // L'équipe : ses membres, l'invitation reçue, et pour le chef les joueurs sans dossier à moins de 64 blocs.
+        ListTag equipe = new ListTag(), proches = new ListTag();
+        boolean chef = d != null && joueur.getUUID().equals(d.chef);
+        if (d != null) {
+            for (UUID u : membres(d)) equipe.add(StringTag.valueOf(nom(joueur.server, u)));
+        }
+        if (chef) {
+            for (ServerPlayer autre : joueur.serverLevel().players()) {
+                if (autre != joueur && autre.distanceToSqr(joueur) < 64 * 64 && dossier(autre) == null) proches.add(StringTag.valueOf(autre.getGameProfile().getName()));
+            }
+        }
+        UUID invitant = d == null ? invitation(joueur) : null;
+        t.put("equipe", equipe);
+        t.put("proches", proches);
+        t.putBoolean("chef", chef);
+        t.putInt("equipeMax", reglages.tailleEquipe);
+        t.putString("invitation", invitant == null ? "" : nom(joueur.server, invitant));
         List<Dossier> pistes = d == null ? pistes(joueur) : null;
         if (pistes != null) {
             // Ce que le joueur sait d'un signalement avant de le choisir : sa rareté, son type, où se trouve la zone.
@@ -701,6 +856,7 @@ public final class Moteur {
         UUID id = joueur.getUUID();
         etat.offres.remove(id);
         etat.finOffres.remove(id);
+        d.chef = id;
         d.pardon = rang(joueur) >= 4 ? 1 : 0; // sang-froid
         etat.dossiers.put(id, d);
         sauver();
@@ -1151,7 +1307,8 @@ public final class Moteur {
                 t.posee = false;
                 d.fautes++;
                 sauver();
-                ServerPlayer proprietaire = serveur.getServer().getPlayerList().getPlayer(en.getKey());
+                List<ServerPlayer> presents = enLigne(d, serveur.getServer());
+                ServerPlayer proprietaire = presents.isEmpty() ? null : presents.get(0);
                 if (proprietaire != null) {
                     proprietaire.playNotifySound(SoundEvents.TURTLE_EGG_BREAK, SoundSource.PLAYERS, 1f, 0.8f);
                     annonce(proprietaire, "indice_detruit", 0xE8543A, Component.translatable(Genetique.nomTrace(t.genre, true, t.variante)));
@@ -1280,7 +1437,11 @@ public final class Moteur {
     static void abandonner(ServerPlayer joueur) {
         Dossier d = dossier(joueur);
         if (d == null) return;
-        PokemonEntity e = ENTITES.remove(joueur.getUUID());
+        if (!joueur.getUUID().equals(d.chef)) {
+            quitter(joueur, d);
+            return;
+        }
+        PokemonEntity e = ENTITES.remove(d.chef);
         if (e != null && !e.isBattling() && ("APPROCHE".equals(d.phase) || "REPERAGE".equals(d.phase))) e.discard();
         finir(joueur, d, tr("annonce.classee.titre"), tr("annonce.classee.texte"), 0x9AA0A6);
     }
@@ -1491,13 +1652,13 @@ public final class Moteur {
             case "REPERAGE":
             case "APPROCHE":
             case "DEBUSQUE": {
-                PokemonEntity e = ENTITES.get(joueur.getUUID());
+                PokemonEntity e = ENTITES.get(d.chef);
                 if (e == null && d.entite != null && monde.getEntity(d.entite) instanceof PokemonEntity retrouve) {
                     e = retrouve; // serveur relancé : le spécimen est toujours là
-                    ENTITES.put(joueur.getUUID(), e);
+                    ENTITES.put(d.chef, e);
                 }
                 if (e == null || e.isRemoved() || !e.isAlive()) {
-                    ENTITES.remove(joueur.getUUID());
+                    ENTITES.remove(d.chef);
                     boolean morte = e != null && e.getHealth() <= 0f;
                     if (morte && vaincueParLeJoueur(joueur, d, e, maintenant)) {
                         resoudre(joueur, d, false);
@@ -1506,7 +1667,7 @@ public final class Moteur {
                         // créature...) : l'enquête continue, sans pénalité ni butin. Si elle est morte, elle est repérée ailleurs.
                         d.phase = "TRAQUE";
                         d.annonceApproche = false;
-                        d.scan = 0;
+                        razScan(d);
                         if (morte) deplacer(d, monde, 60, 110);
                         sauver();
                         annonce(joueur, morte ? "cible_disparue" : "contact_perdu", 0xF2C93A);
@@ -1523,10 +1684,10 @@ public final class Moteur {
                     boolean entendu = !reperage && dist < alerte(d) && joueur.isSprinting();
                     if ((senti || entendu) && !e.isBattling()) {
                         e.discard();
-                        ENTITES.remove(joueur.getUUID());
+                        ENTITES.remove(d.chef);
                         d.phase = "TRAQUE";
                         d.fuites++;
-                        d.scan = 0;
+                        razScan(d);
                         deplacer(d, monde, 80, 130);
                         sauver();
                         joueur.playNotifySound(SoundEvents.VILLAGER_NO, SoundSource.PLAYERS, 1f, 1.4f);
@@ -1536,12 +1697,13 @@ public final class Moteur {
                     }
                     if (reperage) {
                         int dureeScan = dureeScan(joueur);
-                        if (e.isBattling()) d.scan = dureeScan; // combat engagé de loin : la cible est de fait identifiée
-                        else if (joueur.isUsingItem() && joueur.getUseItem().is(Contenu.KIT)) scanner(joueur, d, monde, e);
-                        else d.scan = Math.max(0, d.scan - 1);
-                        if (d.scan >= dureeScan) {
+                        int[] scan = SCANS.computeIfAbsent(joueur.getUUID(), k -> new int[2]);
+                        if (e.isBattling()) scan[0] = dureeScan; // combat engagé de loin : la cible est de fait identifiée
+                        else if (joueur.isUsingItem() && joueur.getUseItem().is(Contenu.KIT)) scanner(joueur, scan, monde, e);
+                        else scan[0] = Math.max(0, scan[0] - 1);
+                        if (scan[0] >= dureeScan) {
                             d.phase = "APPROCHE";
-                            d.scan = 0;
+                            razScan(d);
                             e.setInvulnerable(false);
                             sauver();
                             joueur.stopUsingItem();
@@ -1550,15 +1712,16 @@ public final class Moteur {
                             joueur.playNotifySound(SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.7f, 1.3f);
                             boolean juste = d.espece.equals(d.pronostic);
                             if (juste) progres(joueur, "bon_flair");
-                            annonce(joueur, tr("annonce.identifie.titre", etoilesTexte(etoiles(d))),
-                                    tr("annonce.identifie.texte", nomEspece(d.espece), tr(juste ? "annonce.identifie.juste" : "annonce.identifie.faux"), ivParfaits(etoiles(d))), 0xF2C93A);
+                            Component titreId = tr("annonce.identifie.titre", etoilesTexte(etoiles(d)));
+                            Component texteId = tr("annonce.identifie.texte", nomEspece(d.espece), tr(juste ? "annonce.identifie.juste" : "annonce.identifie.faux"), ivParfaits(etoiles(d)));
+                            for (ServerPlayer m : enLigne(d, joueur.server)) annonce(m, titreId, texteId, 0xF2C93A);
                             synchroniser(joueur);
                             return;
                         }
                         signal.donnees().putInt("distance", (int) Math.round(dist));
-                        signal.donnees().putInt("scan", d.scan);
+                        signal.donnees().putInt("scan", scan[0]);
                         signal.donnees().putInt("scanMax", dureeScan);
-                        signal.donnees().putBoolean("autre", d.scanAutre > 0);
+                        signal.donnees().putBoolean("autre", scan[1] > 0);
                         signal.donnees().putInt("alerte", alerte(d));
                         envoyer(joueur, signal);
                         return;
@@ -1592,8 +1755,11 @@ public final class Moteur {
         if ("REPERAGE".equals(d.phase)) return false;
         if (maintenant - d.dernierCombat < 5000) return true;
         var auteur = e.getKillCredit();
-        if (auteur == joueur) return true;
-        return auteur instanceof PokemonEntity autre && joueur.getUUID().equals(autre.getOwnerUUID());
+        for (UUID u : membres(d)) {
+            if (auteur instanceof ServerPlayer p && p.getUUID().equals(u)) return true;
+            if (auteur instanceof PokemonEntity autre && u.equals(autre.getOwnerUUID())) return true;
+        }
+        return false;
     }
 
     private static boolean vise(ServerPlayer joueur, PokemonEntity e) {
@@ -1607,13 +1773,13 @@ public final class Moteur {
 
     // Scan au kit (clic droit maintenu, viseur sur le Pokémon) : trois secondes sur la cible pour l'identifier.
     // Un autre Pokémon dans le viseur est simplement signalé comme n'étant pas la cible.
-    private static void scanner(ServerPlayer joueur, Dossier d, ServerLevel monde, PokemonEntity cible) {
+    private static void scanner(ServerPlayer joueur, int[] scan, ServerLevel monde, PokemonEntity cible) {
         if (vise(joueur, cible)) {
-            d.scanAutre = 0;
-            d.scan++; // les bips sont joués par le client, qui les accélère et les rend plus aigus au fil de l'analyse
+            scan[1] = 0;
+            scan[0]++; // les bips sont joués par le client, qui les accélère et les rend plus aigus au fil de l'analyse
             return;
         }
-        d.scan = Math.max(0, d.scan - 1);
+        scan[0] = Math.max(0, scan[0] - 1);
         boolean autre = false;
         for (PokemonEntity p : monde.getEntitiesOfClass(PokemonEntity.class, joueur.getBoundingBox().inflate(48), x -> x != cible)) {
             if (vise(joueur, p)) {
@@ -1621,7 +1787,7 @@ public final class Moteur {
                 break;
             }
         }
-        d.scanAutre = autre ? 3 : Math.max(0, d.scanAutre - 1);
+        scan[1] = autre ? 3 : Math.max(0, scan[1] - 1);
     }
 
     private static void apparaitre(ServerPlayer joueur, Dossier d, ServerLevel monde) {
@@ -1663,11 +1829,11 @@ public final class Moteur {
         // Tant qu'elle n'est pas identifiée, rien ne peut la blesser (chute, noyade, autre créature).
         e.setInvulnerable(true);
         monde.addFreshEntity(e);
-        ENTITES.put(joueur.getUUID(), e);
+        ENTITES.put(d.chef, e);
         d.pokemon = p.getUuid();
         d.entite = e.getUUID();
         d.phase = "REPERAGE";
-        d.scan = 0;
+        razScan(d);
         sauver();
         if (!d.annonceApproche) {
             d.annonceApproche = true;
@@ -1720,23 +1886,30 @@ public final class Moteur {
         for (Map.Entry<UUID, Dossier> en : new ArrayList<>(etat.dossiers.entrySet())) {
             Dossier d = en.getValue();
             if (!capture.equals(d.pokemon)) continue;
-            ServerPlayer chasseur = evt.getPlayer().server.getPlayerList().getPlayer(en.getKey());
+            ServerPlayer auteur = evt.getPlayer();
+            List<ServerPlayer> presents = enLigne(d, auteur.server);
             ENTITES.remove(en.getKey());
-            if (chasseur == null) {
+            if (membres(d).contains(auteur.getUUID())) {
+                resoudre(auteur, d, true); // capturée par le chef ou par un coéquipier : l'enquête est résolue pour toute l'équipe
+            } else if (presents.isEmpty()) {
                 etat.dossiers.remove(en.getKey());
                 sauver();
-            } else if (chasseur == evt.getPlayer()) {
-                resoudre(chasseur, d, true);
             } else {
-                finir(chasseur, d, tr("annonce.trop_tard.titre"), tr("annonce.trop_tard.texte"), 0xE8543A);
+                finir(presents.get(0), d, tr("annonce.trop_tard.titre"), tr("annonce.trop_tard.texte"), 0xE8543A);
             }
             return;
         }
     }
 
+    // L'enquête est résolue : chaque enquêteur présent reçoit son butin et son expérience, puis le dossier est classé.
+    private static void resoudre(ServerPlayer joueur, Dossier d, boolean capture) {
+        for (ServerPlayer m : enLigne(d, joueur.server)) recompenser(m, d, capture);
+        cloturer(joueur, d);
+    }
+
     // Enquête menée à son terme (cible capturée ou mise K.O.) : le butin est tiré dans les tables de butin du mod.
     // Plus l'enquête a d'étoiles, plus la table est fournie ; la rareté de l'espèce et les paliers ajoutent leur part.
-    private static void resoudre(ServerPlayer joueur, Dossier d, boolean capture) {
+    private static void recompenser(ServerPlayer joueur, Dossier d, boolean capture) {
         int total = etat.reussies.merge(joueur.getUUID(), 1, Integer::sum);
         int etoiles = etoiles(d);
         // Expérience : dix points par étoile, plus la rareté de l'espèce, le type d'enquête et la nouveauté.
@@ -1779,7 +1952,7 @@ public final class Moteur {
             joueur.getInventory().placeItemBackInInventory(pile);
         }
         joueur.playNotifySound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.8f, 1f);
-        finir(joueur, d, tr("annonce.resolue.titre", etoilesTexte(etoiles)),
+        annonce(joueur, tr("annonce.resolue.titre", etoilesTexte(etoiles)),
                 tr("annonce.resolue.texte", nomEspece(d.espece), tr(capture ? "annonce.resolue.capture" : "annonce.resolue.vaincu"), total,
                         palier ? tr("annonce.resolue.palier") : Component.empty(), premier ? Component.empty() : tr("annonce.resolue.butin", liste),
                         rangApres > rangAvant ? tr("annonce.resolue.rang", gain, tr("rang." + rangApres)) : tr("annonce.resolue.xp", gain)), 0x6CCB5F);
@@ -1799,13 +1972,22 @@ public final class Moteur {
         }
     }
 
-    private static void finir(ServerPlayer joueur, Dossier d, Component titre, Component texte, int couleur) {
+    // Classe le dossier pour toute l'équipe : traces retirées, délai avant la prochaine enquête pour chacun.
+    private static void cloturer(ServerPlayer joueur, Dossier d) {
         if (d.monde.equals(dimension(joueur))) retirerTraces(joueur.serverLevel(), d);
-        etat.dossiers.remove(joueur.getUUID());
-        etat.prochaineEnquete.put(joueur.getUUID(), System.currentTimeMillis() + reglages.minutesEntreEnquetes * 60_000L / (rang(joueur) >= 6 ? 2 : 1));
+        etat.dossiers.remove(d.chef);
+        ENTITES.remove(d.chef);
+        for (UUID u : membres(d)) {
+            SCANS.remove(u);
+            etat.prochaineEnquete.put(u, System.currentTimeMillis() + reglages.minutesEntreEnquetes * 60_000L / (rang(profil(u).xp) >= 6 ? 2 : 1));
+        }
         sauver();
-        annonce(joueur, titre, texte, couleur);
-        synchroniser(joueur);
+        for (ServerPlayer m : enLigne(d, joueur.server)) envoyerEtat(m);
+    }
+
+    private static void finir(ServerPlayer joueur, Dossier d, Component titre, Component texte, int couleur) {
+        cloturer(joueur, d);
+        for (ServerPlayer m : enLigne(d, joueur.server)) annonce(m, titre, texte, couleur);
     }
 
     // ---------- Outils de test (op) ----------
@@ -1836,12 +2018,11 @@ public final class Moteur {
 
     static void reinitialiser(ServerPlayer joueur) {
         Dossier d = dossier(joueur);
-        if (d != null && d.monde.equals(dimension(joueur))) retirerTraces(joueur.serverLevel(), d);
-        etat.dossiers.remove(joueur.getUUID());
+        if (d != null && joueur.getUUID().equals(d.chef)) cloturer(joueur, d);
+        else if (d != null) d.equipe.remove(joueur.getUUID());
         etat.prochaineEnquete.remove(joueur.getUUID());
         etat.offres.remove(joueur.getUUID());
         etat.finOffres.remove(joueur.getUUID());
-        ENTITES.remove(joueur.getUUID());
         sauver();
         synchroniser(joueur);
     }

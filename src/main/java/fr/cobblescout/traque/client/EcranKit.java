@@ -1,6 +1,7 @@
 package fr.cobblescout.traque.client;
 
 import fr.cobblescout.traque.Genetique;
+import fr.cobblescout.traque.Paquet;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
@@ -20,7 +21,7 @@ public class EcranKit extends Screen {
     // Couleur de l'insigne et du nom de chaque rang, du stagiaire à la légende.
     static final int[] COULEURS_RANGS = {0xFFB08D6A, 0xFFE0A060, 0xFFE8EEF2, 0xFFF2C93A, 0xFF6CCB5F, 0xFF4FD1C5, 0xFFC79CFF};
     static final String[] TYPES = {"", "nocturne", "craintive", "exceptionnel", "migratrice", "aquatique", "fouille", "cimes", "altitude", "givre", "brume"};
-    // 0 = enquête en cours, 1 = carnet de l'enquêteur, 2 = archives.
+    // 0 = enquête en cours, 1 = carnet de l'enquêteur, 2 = archives, 3 = équipe.
     private int onglet;
     private int defilement;
 
@@ -34,7 +35,7 @@ public class EcranKit extends Screen {
     }
 
     private static String[] onglets() {
-        return new String[] {T.f("case"), T.f("logbook"), T.f("archives")};
+        return new String[] {T.f("case"), T.f("logbook"), T.f("archives"), T.f("team")};
     }
 
     // Abscisse et largeur de l'onglet i, dans le bandeau du haut.
@@ -65,7 +66,7 @@ public class EcranKit extends Screen {
         String phase = e.getString("phase");
         String etape = !actif ? T.f("standby") : phase.equals("PRELEVEMENTS") ? T.f("sampling") : phase.equals("TRAQUE") ? T.f("tracking")
                 : phase.equals("REPERAGE") ? T.f("spotting") : phase.equals("APPROCHE") ? T.f("approach") : T.f("flushed_out");
-        Dessin.bandeau(g, x, y, L, "", actif ? etape + " · " + T.etoiles(e.getInt("etoiles")) : etape);
+        Dessin.bandeau(g, x, y, L, "", actif ? T.etoiles(e.getInt("etoiles")) : "");
         String[] noms = onglets();
         for (int i = 0; i < noms.length; i++) {
             int[] place = placeOnglet(x, i);
@@ -79,6 +80,10 @@ public class EcranKit extends Screen {
         }
         if (onglet == 2) {
             archives(g, e.getCompound("carriere"), x, y);
+            return;
+        }
+        if (onglet == 3) {
+            equipe(g, e, x, y, mx, my);
             return;
         }
         if (!actif) {
@@ -217,6 +222,87 @@ public class EcranKit extends Screen {
         }
     }
 
+    // ---------- Équipe : coéquipiers, invitations ----------
+
+    private void equipe(GuiGraphics g, CompoundTag e, int x, int y, int mx, int my) {
+        ListTag membres = e.getList("equipe", Tag.TAG_STRING), proches = e.getList("proches", Tag.TAG_STRING);
+        String invitation = e.getString("invitation");
+        boolean actif = e.getBoolean("actif"), chef = e.getBoolean("chef");
+        Dessin.encart(g, x + 4, y + 18, 152, 148);
+        g.drawString(Dessin.police(), T.f("team_2"), x + 10, y + 23, Dessin.JAUNE, false);
+        if (!invitation.isEmpty()) {
+            // Une invitation attend une réponse.
+            int ly = Dessin.paragraphe(g, invitation + T.f("invites_you_to_join_their"), x + 12, y + 40, 136, Dessin.TEXTE);
+            Dessin.paragraphe(g, T.f("you_will_work_on_their"), x + 12, ly + 4, 136, Dessin.GRIS);
+            Dessin.bouton(g, x + 12, y + 118, 136, 20, T.f("join"), Dessin.dans(mx, my, x + 12, y + 118, 136, 20), true, Dessin.VERT);
+            Dessin.bouton(g, x + 12, y + 141, 136, 18, T.f("decline"), Dessin.dans(mx, my, x + 12, y + 141, 136, 18), true, Dessin.ROUGE_SOMBRE);
+        } else if (!actif) {
+            Dessin.paragraphe(g, T.f("open_a_case_to_invite"), x + 12, y + 40, 136, Dessin.GRIS);
+        } else {
+            for (int i = 0; i < membres.size() && i < 6; i++) {
+                int ly = y + 38 + i * 13;
+                g.drawString(Dessin.police(), i == 0 ? "★" : "•", x + 12, ly, i == 0 ? Dessin.JAUNE : Dessin.ACCENT, false);
+                g.drawString(Dessin.police(), membres.getString(i), x + 24, ly, Dessin.TEXTE, false);
+            }
+            g.drawString(Dessin.police(), membres.size() + " / " + e.getInt("equipeMax"), x + 150 - Dessin.police().width(membres.size() + " / " + e.getInt("equipeMax")), y + 23, Dessin.GRIS, false);
+            if (!chef) Dessin.bouton(g, x + 12, y + 141, 136, 18, T.f("leave_the_team"), Dessin.dans(mx, my, x + 12, y + 141, 136, 18), true, Dessin.ROUGE_SOMBRE);
+        }
+        Dessin.encart(g, x + 160, y + 18, 156, 148);
+        g.drawString(Dessin.police(), T.f("invite"), x + 166, y + 23, Dessin.JAUNE, false);
+        if (!actif || !chef) {
+            Dessin.paragraphe(g, actif ? T.f("only_the_lead_investigator_can") : T.f("everyone_samples_and_analyses_for"),
+                    x + 168, y + 40, 140, Dessin.GRIS);
+            return;
+        }
+        boolean plein = membres.size() >= e.getInt("equipeMax");
+        if (plein) Dessin.paragraphe(g, T.f("the_team_is_full"), x + 168, y + 40, 140, Dessin.GRIS);
+        else if (proches.isEmpty()) Dessin.paragraphe(g, T.f("no_player_without_a_case"), x + 168, y + 40, 140, Dessin.GRIS);
+        for (int i = 0; !plein && i < proches.size() && i < 5; i++) {
+            int ly = y + 36 + i * 20;
+            Dessin.bouton(g, x + 166, ly, 144, 18, proches.getString(i), Dessin.dans(mx, my, x + 166, ly, 144, 18), true, Dessin.ACCENT);
+        }
+        Dessin.bouton(g, x + 166, y + 141, 144, 18, T.f("refresh"), Dessin.dans(mx, my, x + 166, y + 141, 144, 18), true, 0xFF7C8FA3);
+    }
+
+    private boolean clicEquipe(double mx, double my, int x, int y) {
+        CompoundTag e = TraqueClient.etat;
+        if (!e.getString("invitation").isEmpty()) {
+            boolean oui = Dessin.dans(mx, my, x + 12, y + 118, 136, 20), non = Dessin.dans(mx, my, x + 12, y + 141, 136, 18);
+            if (oui || non) {
+                Paquet p = Paquet.de("repondre");
+                p.donnees().putBoolean("accepte", oui);
+                TraqueClient.envoyer(p);
+                Dessin.son(oui ? 1.3f : 0.7f);
+                if (oui) onglet = 0;
+            }
+            return true;
+        }
+        if (!e.getBoolean("actif")) return true;
+        if (!e.getBoolean("chef")) {
+            if (Dessin.dans(mx, my, x + 12, y + 141, 136, 18)) {
+                TraqueClient.envoyer(Paquet.de("abandonner"));
+                Dessin.son(0.7f);
+            }
+            return true;
+        }
+        ListTag proches = e.getList("proches", Tag.TAG_STRING);
+        if (e.getList("equipe", Tag.TAG_STRING).size() < e.getInt("equipeMax")) {
+            for (int i = 0; i < proches.size() && i < 5; i++) {
+                if (!Dessin.dans(mx, my, x + 166, y + 36 + i * 20, 144, 18)) continue;
+                Paquet p = Paquet.de("inviter");
+                p.donnees().putString("nom", proches.getString(i));
+                TraqueClient.envoyer(p);
+                Dessin.son(1.2f);
+                return true;
+            }
+        }
+        if (Dessin.dans(mx, my, x + 166, y + 141, 144, 18)) {
+            TraqueClient.envoyer(Paquet.de("equipe"));
+            Dessin.son(1f);
+        }
+        return true;
+    }
+
     @Override
     public boolean mouseScrolled(double mx, double my, double dx, double dy) {
         if (onglet == 2) defilement -= (int) Math.signum(dy);
@@ -226,14 +312,17 @@ public class EcranKit extends Screen {
     @Override
     public boolean mouseClicked(double mx, double my, int bouton) {
         int x = F.x(width), y = F.y(height);
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             int[] place = placeOnglet(x, i);
             if (Dessin.dans(mx, my, place[0] - 3, y, place[1] + 6, 14)) {
                 onglet = i;
                 Dessin.son(1.2f);
+                // L'onglet Équipe demande au serveur la liste à jour des joueurs proches.
+                if (i == 3) TraqueClient.envoyer(Paquet.de("equipe"));
                 return true;
             }
         }
+        if (onglet == 3) return clicEquipe(mx, my, x, y);
         if (onglet != 0) return true;
         if (!TraqueClient.etat.getBoolean("actif")) {
             if (Dessin.dans(mx, my, x + L / 2 - 80, y + 90, 160, 22) && minecraft != null) {

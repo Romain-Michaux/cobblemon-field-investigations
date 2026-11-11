@@ -329,6 +329,12 @@ private void reglage(GuiGraphics g, int x, int y, int mx, int my) {
         String texte = T.f("colour_aid") + (TraqueClient.aideCouleurs ? T.f("on") : T.f("off"));
         boolean survol = Dessin.dans(mx, my, x + 4, y + 171, Dessin.police().width(texte) + 4, 12);
         Dessin.ecrire(g, texte, x + 6, y + 173, survol ? Dessin.ENCRE_ROUGE : Dessin.ENCRE, false);
+        // Une invitation à rejoindre une équipe : elle se traite dans le kit, onglet Équipe.
+        String invitation = TraqueClient.etat.getString("invitation");
+        if (!invitation.isEmpty()) {
+            Dessin.zone(x + 2, x + L - 2);
+            Dessin.bouton(g, x + L / 2 - 110, y + 2, 220, 18, invitation + T.f("invites_you_see_the_team"), Dessin.dans(mx, my, x + L / 2 - 110, y + 2, 220, 18), true, Dessin.VERT);
+        }
         // En bas à droite : le carnet de l'enquêteur (rang, améliorations, archives), qui se trouve dans le kit.
         Dessin.bouton(g, x + L - 78, y + 168, 74, 17, T.f("logbook"), Dessin.dans(mx, my, x + L - 78, y + 168, 74, 17), true, Dessin.ACCENT);
     }
@@ -337,6 +343,11 @@ private void reglage(GuiGraphics g, int x, int y, int mx, int my) {
     public boolean mouseClicked(double mx, double my, int bouton) {
         CompoundTag e = TraqueClient.etat;
         int x = F.x(width), y = F.y(height);
+        if (!e.getBoolean("actif") && !e.getString("invitation").isEmpty() && Dessin.dans(mx, my, x + L / 2 - 110, y + 2, 220, 18) && minecraft != null) {
+            Dessin.son(1f);
+            minecraft.setScreen(new EcranKit(3));
+            return true;
+        }
         if (!e.getBoolean("actif") && Dessin.dans(mx, my, x + L - 78, y + 168, 74, 17) && minecraft != null) {
             Dessin.son(1f);
             minecraft.setScreen(new EcranKit(1));
