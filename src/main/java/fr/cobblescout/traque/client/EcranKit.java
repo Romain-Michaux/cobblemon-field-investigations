@@ -282,7 +282,7 @@ public class EcranKit extends Screen {
         java.util.List<CompoundTag> liste = invitables();
         defilementInvites = Math.max(0, Math.min(Math.max(0, liste.size() - 5), defilementInvites));
         if (liste.isEmpty()) {
-            Dessin.paragraphe(g, recherche.isEmpty() ? T.f("no_online_player_is_free") : T.f("no_free_player_matches"), x + 168, y + 56, 140, Dessin.GRIS);
+            Dessin.paragraphe(g, recherche.isEmpty() ? T.f("no_player_without_a_case") : T.f("no_free_player_matches"), x + 168, y + 56, 140, Dessin.GRIS);
         }
         for (int i = 0; i < 5 && i + defilementInvites < liste.size(); i++) {
             CompoundTag c = liste.get(i + defilementInvites);

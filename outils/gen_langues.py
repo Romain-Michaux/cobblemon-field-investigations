@@ -501,7 +501,7 @@ NOUVEAUX += [
      "Everyone samples and analyses for the same case. Stars are shared; loot and experience go to each player."),
     ("L'équipe est au complet.", "The team is full."),
     ("Chercher un joueur…", "Search for a player…"),
-    ("Aucun joueur connecté n'est libre pour l'instant.", "No online player is free right now."),
+    ("Aucun joueur sans enquête à moins de 64 blocs.", "No player without a case within 64 blocks."),
     ("Aucun joueur libre ne correspond.", "No free player matches."),
     (" t'invite : voir l'onglet Équipe", " invites you: see the Team tab"),
 ]

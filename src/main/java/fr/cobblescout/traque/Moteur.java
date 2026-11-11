@@ -515,11 +515,11 @@ public final class Moteur {
             for (UUID u : membres(d)) equipe.add(StringTag.valueOf(nom(joueur.server, u)));
         }
         if (chef) {
-            // Tous les joueurs connectés qui n'ont pas d'enquête, où qu'ils soient : d'abord ceux avec qui ce joueur a
-            // déjà résolu le plus d'enquêtes, puis par ordre alphabétique.
+            // Les joueurs sans enquête à moins de 64 blocs : d'abord ceux avec qui ce joueur a déjà résolu le plus
+            // d'enquêtes, puis par ordre alphabétique.
             List<ServerPlayer> libres = new ArrayList<>();
-            for (ServerPlayer autre : joueur.server.getPlayerList().getPlayers()) {
-                if (autre != joueur && dossier(autre) == null) libres.add(autre);
+            for (ServerPlayer autre : joueur.serverLevel().players()) {
+                if (autre != joueur && autre.distanceToSqr(joueur) < 64 * 64 && dossier(autre) == null) libres.add(autre);
             }
             libres.sort((a, b) -> {
                 int na = profil.partenaires.getOrDefault(a.getUUID(), 0), nb = profil.partenaires.getOrDefault(b.getUUID(), 0);
