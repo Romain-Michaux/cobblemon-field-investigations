@@ -129,8 +129,13 @@ final class Demo {
             ListTag membres = new ListTag(), proches = new ListTag();
             membres.add(StringTag.valueOf("Romain"));
             membres.add(StringTag.valueOf("Camille"));
-            proches.add(StringTag.valueOf("Alex"));
-            proches.add(StringTag.valueOf("Sacha"));
+            String[][] libres = {{"Sacha", "7"}, {"Alex", "3"}, {"Billie", "0"}, {"Charlie", "0"}, {"Dominique", "0"}, {"Eden", "0"}, {"Noa", "0"}};
+            for (String[] l : libres) {
+                CompoundTag c = new CompoundTag();
+                c.putString("nom", l[0]);
+                c.putInt("ensemble", Integer.parseInt(l[1]));
+                proches.add(c);
+            }
             t.put("equipe", membres);
             t.put("proches", proches);
             t.putBoolean("chef", true);

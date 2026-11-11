@@ -90,8 +90,9 @@ Everything lives in the Field Kit, in four tabs: **Case** (the current investiga
 
 ## Team investigations
 
-The player who opened a case is its lead investigator. From the kit's **Team** tab they can invite players standing
-within 64 blocks who have no case of their own (four investigators at most by default, `tailleEquipe`). Everyone then
+The player who opened a case is its lead investigator. From the kit's **Team** tab they can invite any online player
+who has no case of their own (four investigators at most by default, `tailleEquipe`): type a name to search, and the
+players you have solved the most cases with come first. Everyone then
 samples, analyses, tracks and scans for the same case. Stars are shared; when the case is solved, every member who is
 online gets their own loot and experience. A teammate can leave at any time; only the lead can close the case.
 

@@ -231,6 +231,8 @@ public final class Moteur {
         public int xp;
         public List<Fiche> historique = new ArrayList<>();
         public Set<String> jeuxVus = new HashSet<>();
+        // Nombre d'enquêtes résolues avec chaque autre joueur : les partenaires habituels passent en tête des invitations.
+        public Map<UUID, Integer> partenaires = new HashMap<>();
     }
 
     // Expérience requise pour chaque rang (0 = stagiaire ... 6 = légende). Chaque rang débloque une amélioration du kit :
@@ -513,8 +515,22 @@ public final class Moteur {
             for (UUID u : membres(d)) equipe.add(StringTag.valueOf(nom(joueur.server, u)));
         }
         if (chef) {
-            for (ServerPlayer autre : joueur.serverLevel().players()) {
-                if (autre != joueur && autre.distanceToSqr(joueur) < 64 * 64 && dossier(autre) == null) proches.add(StringTag.valueOf(autre.getGameProfile().getName()));
+            // Tous les joueurs connectés qui n'ont pas d'enquête, où qu'ils soient : d'abord ceux avec qui ce joueur a
+            // déjà résolu le plus d'enquêtes, puis par ordre alphabétique.
+            List<ServerPlayer> libres = new ArrayList<>();
+            for (ServerPlayer autre : joueur.server.getPlayerList().getPlayers()) {
+                if (autre != joueur && dossier(autre) == null) libres.add(autre);
+            }
+            libres.sort((a, b) -> {
+                int na = profil.partenaires.getOrDefault(a.getUUID(), 0), nb = profil.partenaires.getOrDefault(b.getUUID(), 0);
+                return na != nb ? Integer.compare(nb, na) : a.getGameProfile().getName().compareToIgnoreCase(b.getGameProfile().getName());
+            });
+            for (ServerPlayer autre : libres) {
+                if (proches.size() >= 80) break;
+                CompoundTag c = new CompoundTag();
+                c.putString("nom", autre.getGameProfile().getName());
+                c.putInt("ensemble", profil.partenaires.getOrDefault(autre.getUUID(), 0));
+                proches.add(c);
             }
         }
         UUID invitant = d == null ? invitation(joueur) : null;
@@ -646,6 +662,7 @@ public final class Moteur {
         }
         if (p.historique == null) p.historique = new ArrayList<>();
         if (p.jeuxVus == null) p.jeuxVus = new HashSet<>();
+        if (p.partenaires == null) p.partenaires = new HashMap<>();
         return p;
     }
 
@@ -1968,7 +1985,14 @@ public final class Moteur {
 
     // L'enquête est résolue : chaque enquêteur présent reçoit son butin et son expérience, puis le dossier est classé.
     private static void resoudre(ServerPlayer joueur, Dossier d, boolean capture) {
-        for (ServerPlayer m : enLigne(d, joueur.server)) recompenser(m, d, capture);
+        List<ServerPlayer> presents = enLigne(d, joueur.server);
+        for (ServerPlayer m : presents) recompenser(m, d, capture);
+        // Chacun note une enquête de plus avec chacun de ses coéquipiers.
+        for (ServerPlayer m : presents) {
+            for (ServerPlayer autre : presents) {
+                if (autre != m) profil(m.getUUID()).partenaires.merge(autre.getUUID(), 1, Integer::sum);
+            }
+        }
         cloturer(joueur, d);
     }
 

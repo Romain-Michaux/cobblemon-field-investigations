@@ -24,6 +24,20 @@ public class EcranKit extends Screen {
     // 0 = enquête en cours, 1 = carnet de l'enquêteur, 2 = archives, 3 = équipe.
     private int onglet;
     private int defilement;
+    // Onglet Équipe : texte tapé pour chercher un joueur, et position dans la liste des joueurs à inviter.
+    private String recherche = "";
+    private int defilementInvites;
+
+    // Les joueurs qu'on peut inviter, filtrés par la recherche (l'ordre vient du serveur : partenaires habituels d'abord).
+    private java.util.List<CompoundTag> invitables() {
+        ListTag proches = TraqueClient.etat.getList("proches", Tag.TAG_COMPOUND);
+        java.util.List<CompoundTag> liste = new java.util.ArrayList<>();
+        for (int i = 0; i < proches.size(); i++) {
+            CompoundTag c = proches.getCompound(i);
+            if (recherche.isEmpty() || c.getString("nom").toLowerCase().contains(recherche.toLowerCase())) liste.add(c);
+        }
+        return liste;
+    }
 
     public EcranKit() {
         this(0);
@@ -225,7 +239,7 @@ public class EcranKit extends Screen {
     // ---------- Équipe : coéquipiers, invitations ----------
 
     private void equipe(GuiGraphics g, CompoundTag e, int x, int y, int mx, int my) {
-        ListTag membres = e.getList("equipe", Tag.TAG_STRING), proches = e.getList("proches", Tag.TAG_STRING);
+        ListTag membres = e.getList("equipe", Tag.TAG_STRING);
         String invitation = e.getString("invitation");
         boolean actif = e.getBoolean("actif"), chef = e.getBoolean("chef");
         Dessin.encart(g, x + 4, y + 18, 152, 148);
@@ -255,13 +269,51 @@ public class EcranKit extends Screen {
             return;
         }
         boolean plein = membres.size() >= e.getInt("equipeMax");
-        if (plein) Dessin.paragraphe(g, T.f("the_team_is_full"), x + 168, y + 40, 140, Dessin.GRIS);
-        else if (proches.isEmpty()) Dessin.paragraphe(g, T.f("no_player_without_a_case"), x + 168, y + 40, 140, Dessin.GRIS);
-        for (int i = 0; !plein && i < proches.size() && i < 5; i++) {
-            int ly = y + 36 + i * 20;
-            Dessin.bouton(g, x + 166, ly, 144, 18, proches.getString(i), Dessin.dans(mx, my, x + 166, ly, 144, 18), true, Dessin.ACCENT);
+        if (plein) {
+            Dessin.paragraphe(g, T.f("the_team_is_full"), x + 168, y + 40, 140, Dessin.GRIS);
+            return;
         }
-        Dessin.bouton(g, x + 166, y + 141, 144, 18, T.f("refresh"), Dessin.dans(mx, my, x + 166, y + 141, 144, 18), true, 0xFF7C8FA3);
+        // Champ de recherche : on tape directement le nom du joueur.
+        g.fill(x + 166, y + 34, x + 310, y + 48, Dessin.BORD);
+        g.fill(x + 167, y + 35, x + 309, y + 47, 0xFF101A24);
+        boolean curseur = (System.currentTimeMillis() / 400) % 2 == 0;
+        if (recherche.isEmpty()) g.drawString(Dessin.police(), T.f("search_for_a_player") , x + 171, y + 37, Dessin.SOMBRE, false);
+        Dessin.defile(g, recherche + (curseur ? "_" : ""), x + 171, y + 37, 134, Dessin.TEXTE);
+        java.util.List<CompoundTag> liste = invitables();
+        defilementInvites = Math.max(0, Math.min(Math.max(0, liste.size() - 5), defilementInvites));
+        if (liste.isEmpty()) {
+            Dessin.paragraphe(g, recherche.isEmpty() ? T.f("no_online_player_is_free") : T.f("no_free_player_matches"), x + 168, y + 56, 140, Dessin.GRIS);
+        }
+        for (int i = 0; i < 5 && i + defilementInvites < liste.size(); i++) {
+            CompoundTag c = liste.get(i + defilementInvites);
+            int ly = y + 51 + i * 17, ensemble = c.getInt("ensemble");
+            Dessin.bouton(g, x + 166, ly, 144, 16, c.getString("nom") + (ensemble > 0 ? "  ×" + ensemble : ""), Dessin.dans(mx, my, x + 166, ly, 144, 16), true,
+                    ensemble > 0 ? Dessin.ACCENT : 0xFF7C8FA3);
+        }
+        String compte = liste.size() > 5 ? (defilementInvites + 1) + "-" + Math.min(liste.size(), defilementInvites + 5) + " / " + liste.size() + " ▲▼" : liste.size() + "";
+        g.drawString(Dessin.police(), compte, x + 310 - Dessin.police().width(compte), y + 23, Dessin.GRIS, false);
+        Dessin.bouton(g, x + 166, y + 146, 144, 16, T.f("refresh"), Dessin.dans(mx, my, x + 166, y + 146, 144, 16), true, 0xFF7C8FA3);
+    }
+
+    // La recherche se tape au clavier dès que l'onglet Équipe est ouvert.
+    @Override
+    public boolean charTyped(char c, int mods) {
+        if (onglet == 3 && TraqueClient.etat.getBoolean("chef") && recherche.length() < 16 && (Character.isLetterOrDigit(c) || c == '_')) {
+            recherche += c;
+            defilementInvites = 0;
+            return true;
+        }
+        return super.charTyped(c, mods);
+    }
+
+    @Override
+    public boolean keyPressed(int touche, int scan, int mods) {
+        if (onglet == 3 && touche == 259 && !recherche.isEmpty()) { // Retour arrière
+            recherche = recherche.substring(0, recherche.length() - 1);
+            defilementInvites = 0;
+            return true;
+        }
+        return super.keyPressed(touche, scan, mods);
     }
 
     private boolean clicEquipe(double mx, double my, int x, int y) {
@@ -285,20 +337,20 @@ public class EcranKit extends Screen {
             }
             return true;
         }
-        ListTag proches = e.getList("proches", Tag.TAG_STRING);
         if (e.getList("equipe", Tag.TAG_STRING).size() < e.getInt("equipeMax")) {
-            for (int i = 0; i < proches.size() && i < 5; i++) {
-                if (!Dessin.dans(mx, my, x + 166, y + 36 + i * 20, 144, 18)) continue;
+            java.util.List<CompoundTag> liste = invitables();
+            for (int i = 0; i < 5 && i + defilementInvites < liste.size(); i++) {
+                if (!Dessin.dans(mx, my, x + 166, y + 51 + i * 17, 144, 16)) continue;
                 Paquet p = Paquet.de("inviter");
-                p.donnees().putString("nom", proches.getString(i));
+                p.donnees().putString("nom", liste.get(i + defilementInvites).getString("nom"));
                 TraqueClient.envoyer(p);
                 Dessin.son(1.2f);
                 return true;
             }
-        }
-        if (Dessin.dans(mx, my, x + 166, y + 141, 144, 18)) {
-            TraqueClient.envoyer(Paquet.de("equipe"));
-            Dessin.son(1f);
+            if (Dessin.dans(mx, my, x + 166, y + 146, 144, 16)) {
+                TraqueClient.envoyer(Paquet.de("equipe"));
+                Dessin.son(1f);
+            }
         }
         return true;
     }
@@ -306,6 +358,7 @@ public class EcranKit extends Screen {
     @Override
     public boolean mouseScrolled(double mx, double my, double dx, double dy) {
         if (onglet == 2) defilement -= (int) Math.signum(dy);
+        if (onglet == 3) defilementInvites -= (int) Math.signum(dy);
         return true;
     }
 
