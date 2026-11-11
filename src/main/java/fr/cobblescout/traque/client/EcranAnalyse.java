@@ -76,12 +76,6 @@ public class EcranAnalyse extends Screen {
     }
 
     @Override
-    protected void init() {
-        // Au laboratoire, une nappe sonore accompagne l'analyse.
-        if (!prelevement) Sons.ambianceLabo(true);
-    }
-
-    @Override
     public boolean isPauseScreen() {
         return false;
     }
@@ -113,7 +107,6 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public void removed() {
-        Sons.ambianceLabo(false);
         // Fermer l'écran pendant l'explication ne coûte rien : la partie n'a pas commencé.
         if (!envoye && !essai && !intro) {
             envoye = true;

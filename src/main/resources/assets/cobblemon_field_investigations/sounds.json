@@ -1,12 +1,4 @@
 {
-  "ambiance_labo": {
-    "sounds": [
-      {
-        "name": "cobblemon_field_investigations:ambiance_labo",
-        "stream": true
-      }
-    ]
-  },
   "branche": {
     "sounds": [
       "cobblemon_field_investigations:branche"

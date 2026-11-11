@@ -12,7 +12,7 @@ Sur https://www.bfxr.net/ : choisis une famille en haut à gauche, clique jusqu'
 | `tic` | le temps presse (dernier quart du chrono) | Blip/Select |
 | `carillon` | une étape franchie, quelque chose à mémoriser | Pickup/Coin, Plucked |
 | `reussite` | mini-jeu réussi | Jingles, Powerup |
-| `echec` | mini-jeu raté | Hit/Hurt |
+| `echec` | mini-jeu raté | Jingles (Failure), Hit/Hurt |
 | `identifie` | cible identifiée au scanner | Jingles, Powerup |
 | `grade` | montée de rang | Jingles |
 | `scan` | bip du scanner, filtrage du cri, pipette | Blip/Select, Sonar |
@@ -42,4 +42,3 @@ Sur https://www.bfxr.net/ : choisis une famille en haut à gauche, clique jusqu'
 | `flamme` | dégel, on chauffe | Breath, Whoosh |
 | `sifflement` | dégel, surchauffe | Breath |
 | `lampe` | lampe UV | Motors |
-| `ambiance_labo` | boucle du séquenceur (doit boucler proprement) | - |

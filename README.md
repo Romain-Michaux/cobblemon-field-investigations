@@ -146,9 +146,9 @@ fang, claw or scale.
 
 ## Sounds
 
-Every mini-game has its own sound effects, and the sequencer plays a soft ambience loop (it follows the game's Music
-volume). They are synthesised by `outils/gen_sons.py`; to replace one, drop another `.ogg` with the same name in
-`assets/cobblemon_field_investigations/sounds`.
+Every mini-game has its own sound effects (no music, no ambience). They were made with [Bfxr](https://www.bfxr.net/)
+and are converted by `outils/gen_sons.py`; to replace one, drop a `.wav` with the same name in `outils/sons_perso`
+and run the script.
 
 ## Requirements
 

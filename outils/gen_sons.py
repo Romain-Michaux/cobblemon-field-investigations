@@ -1,4 +1,4 @@
-# Bruitages et ambiance du mod, fabriqués par synthèse (numpy) et écrits en OGG Vorbis, le seul format que lit Minecraft.
+# Bruitages du mod, fabriqués par synthèse (numpy) et écrits en OGG Vorbis, le seul format que lit Minecraft.
 # Chaque son est un fichier assets/<mod>/sounds/<nom>.ogg déclaré dans sounds.json : pour remplacer un son par un
 # enregistrement ou une génération, il suffit de déposer un autre .ogg du même nom (et de retirer le son de ce script).
 # Sons faits à la main : tout fichier outils/sons_perso/<nom>.wav (ou .ogg, .mp3, .flac) remplace le son synthétisé du
@@ -350,31 +350,10 @@ def _():
     return p
 
 
-# ---------- Ambiance du laboratoire : une nappe douce qui boucle sans couture ----------
-
-def ambiance_labo():
-    duree = 16.0
-    t = temps(duree)
-    y = np.zeros_like(t)
-    # Accord tenu : chaque note respire à son rythme, sur un nombre entier de cycles pour que la boucle se referme.
-    for freq, poids, cycles in ((110.0, 0.9, 2), (164.81, 0.6, 3), (220.0, 0.5, 4), (261.63, 0.4, 5), (329.63, 0.3, 3)):
-        f = round(freq * duree) / duree  # fréquence ajustée : un nombre entier de périodes dans la boucle
-        souffle = 0.55 + 0.45 * np.sin(PI2 * cycles * t / duree + freq)
-        y += poids * (np.sin(PI2 * f * t) + 0.3 * np.sin(PI2 * 2 * f * t + 1)) * souffle
-    y *= 0.22
-    # Quelques notes de clochette, posées sur une boucle circulaire : la queue d'une note de fin retombe au début.
-    for debut, freq in ((0.5, 880.0), (3.0, 659.25), (5.5, 987.77), (8.0, 783.99), (10.5, 1318.5), (13.0, 880.0), (14.5, 659.25)):
-        note = cloche(freq, 3.0, 2.2) * 0.16
-        i = int(SR * debut)
-        for k in range(len(note)):
-            y[(i + k) % len(y)] += note[k]
-    return (y / np.max(np.abs(y)) * 0.5).astype(np.float32)
-
-
 PERSO = os.path.join(ICI, "sons_perso")
 # Durée maximale de chaque son fait à la main, en secondes. Beaucoup sont rejoués plusieurs fois par seconde (le tamis, la
 # corde, le bip du scanner) : trop longs, ils se superposeraient en bouillie. Au-delà, le son est coupé en fondu.
-DUREES = {"clic": 0.12, "molette": 0.08, "tic": 0.1, "carillon": 0.9, "mousqueton": 0.6, "reussite": 1.6, "echec": 0.6, "identifie": 1.6,
+DUREES = {"clic": 0.12, "molette": 0.08, "tic": 0.1, "carillon": 0.9, "mousqueton": 0.6, "reussite": 1.6, "echec": 1.0, "identifie": 1.6,
           "grade": 2.1, "scan": 0.18, "papier": 0.5, "tamis": 0.35, "frottement": 0.3, "pinceau": 0.35, "corde": 0.3, "platre": 0.4,
           "debordement": 0.47, "pluck": 0.25, "fiole": 0.6, "bulle": 0.25, "goutte": 0.24, "pince": 0.15, "coeur": 0.5, "branche": 0.35,
           "choc": 0.2, "pioche": 0.45, "pierre": 0.45, "craquement": 0.28, "eboulement": 1.4, "glace": 0.42, "obturateur": 0.22,
@@ -416,14 +395,7 @@ if __name__ == "__main__":
         else:
             sf.write(os.path.join(SORTIE, nom + ".ogg"), finir(fabrique()), SR, format="OGG", subtype="VORBIS")
         declarations[nom] = {"sounds": [NS + ":" + nom]}
-    main = perso("ambiance_labo")
-    if main is not None:
-        sf.write(os.path.join(SORTIE, "ambiance_labo.ogg"), (main[0] / (np.max(np.abs(main[0])) + 1e-9) * 0.5).astype(np.float32), main[1], format="OGG", subtype="VORBIS")
-        remplaces.append("ambiance_labo")
-    else:
-        sf.write(os.path.join(SORTIE, "ambiance_labo.ogg"), ambiance_labo(), SR, format="OGG", subtype="VORBIS")
     print("sons faits à la main :", ", ".join(remplaces) if remplaces else "aucun")
-    declarations["ambiance_labo"] = {"sounds": [{"name": NS + ":ambiance_labo", "stream": True}]}
     with open(os.path.join(SORTIE, "..", "sounds.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(declarations, f, ensure_ascii=False, indent=2, sort_keys=True)
         f.write("\n")

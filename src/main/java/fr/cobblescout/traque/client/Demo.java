@@ -20,7 +20,7 @@ final class Demo {
     static boolean active, scan;
     private static final List<String> NOMS = new ArrayList<>();
     private static final List<Runnable> ETAPES = new ArrayList<>();
-    private static int attente = 120, etape = -1, depuis;
+    private static int attente = 120, etape = -1, depuis, dureeEtape = 20;
 
     private Demo() {}
 
@@ -28,6 +28,28 @@ final class Demo {
         if (!Files.exists(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo"))) return;
         active = true;
         Minecraft mc = Minecraft.getInstance();
+        // Essai d'endurance du son : si le fichier contient « ambiance », un seul écran, le séquenceur, reste ouvert deux
+        // minutes, rouvert toutes les deux secondes sur un autre jeu pendant que des sons d'interface sont joués, puis le jeu se ferme.
+        try {
+            if (Files.readString(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo")).contains("ambiance")) {
+                dureeEtape = 2400;
+                etape("endurance_son", () -> mc.setScreen(new EcranAnalyse("stat", "titrage", 42L, 2, false, false, false, 0)));
+                ClientTickEvents.END_CLIENT_TICK.register(Demo::tick);
+                ClientTickEvents.END_CLIENT_TICK.register(c -> {
+                    if (etape == 0 && depuis % 7 == 0) Dessin.son(0.9f + (depuis % 5) * 0.12f);
+                    if (etape == 0 && depuis % 31 == 0) Dessin.note(0.5f + (depuis % 4) * 0.25f);
+                    // Toutes les deux secondes, l'écran est fermé puis rouvert sur un autre jeu.
+                    if (etape == 0 && depuis % 40 == 20) c.setScreen(null);
+                    if (etape == 0 && depuis % 40 == 0 && depuis > 0) {
+                        String[] jeux = {"titrage", "gel", "microscope", "dosage", "parente", "chromatographie"};
+                        c.setScreen(new EcranAnalyse("stat", jeux[(depuis / 40) % jeux.length], depuis, 2, false, false, false, 0));
+                    }
+                });
+                return;
+            }
+        } catch (Exception e) {
+            // fichier illisible : démo ordinaire
+        }
         etape("tableau_vide", () -> {
             CompoundTag t = new CompoundTag();
             t.putInt("reussies", 3);
@@ -166,7 +188,7 @@ final class Demo {
             return;
         }
         depuis++;
-        if (etape < 0 || depuis == 20) {
+        if (etape < 0 || depuis == dureeEtape) {
             etape++;
             depuis = 0;
             if (etape >= ETAPES.size()) {
