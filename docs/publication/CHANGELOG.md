@@ -21,6 +21,11 @@
   - Each trace and each marker now picks among several games.
 - **Buried clues**: a single one per regular case (dig sites keep three), dug up with the brush or the sieve, and what
   you find varies: bone or tooth, eggshells, feather or moult, fang, claw or scale.
+- **Investigator rank**: experience for every solved case, seven ranks, and one kit upgrade per rank (sharper radar,
+  spare vial, quick scan, one more forgiven failure, keener ear, shorter wait between cases).
+- **Logbook and archives** in the Field Kit: rank and upgrades, closed cases, kinds of investigation already solved.
+  Players who solved cases before this update start with 30 points per case.
+- **First-time help**: the first time a player meets a mini-game, its rules are shown and nothing starts before Start.
 - **Advancements**: nine of them, from the first sample to ten solved cases.
 - **Accessibility**: per-player colour aid (colorimetry shows the match percentage while you mix); server setting
   `difficulteMiniJeux` (`easy`, `normal`, `hard`) for the pace of every mini-game.

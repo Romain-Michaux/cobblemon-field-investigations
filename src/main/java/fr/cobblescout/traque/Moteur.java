@@ -187,6 +187,9 @@ public final class Moteur {
         public String monde, espece, categorie, pronostic;
         // Type d'enquête spéciale (voir SPECIAUX), ou null pour une enquête ordinaire.
         public String special;
+        // Améliorations du kit acquises à l'ouverture de l'enquête : ratés pardonnés en plus, et fiole de secours déjà utilisée.
+        public int pardon;
+        public boolean fioleOfferte;
         public boolean nouvelle;
         public long graine;
         public int niveau, fuites;
@@ -207,6 +210,27 @@ public final class Moteur {
         public boolean annonceApproche;
     }
 
+    // Une enquête résolue, telle qu'elle reste dans les archives du joueur.
+    public static class Fiche {
+        public String espece, special, categorie;
+        public int etoiles, xp;
+        public boolean capture;
+        public long date;
+    }
+
+    // Carrière d'un enquêteur : son expérience (dont découle son rang), ses archives, et les mini-jeux qu'il a déjà vus.
+    public static class Profil {
+        public int xp;
+        public List<Fiche> historique = new ArrayList<>();
+        public Set<String> jeuxVus = new HashSet<>();
+    }
+
+    // Expérience requise pour chaque rang (0 = stagiaire ... 6 = légende). Chaque rang débloque une amélioration du kit :
+    //  1 radar affiné (les traces scintillent de plus loin), 2 fiole de secours (le premier prélèvement de chaque enquête
+    //  ne consomme pas de fiole), 3 scan rapide (2 s au lieu de 3), 4 sang-froid (un raté de plus pardonné par enquête),
+    //  5 oreille fine (relevés de cri plus précis), 6 réseau d'informateurs (attente entre deux enquêtes divisée par deux).
+    static final int[] SEUILS = {0, 60, 160, 320, 560, 900, 1400};
+
     public static class Etat {
         public Map<UUID, Dossier> dossiers = new HashMap<>();
         public Map<UUID, Long> prochaineEnquete = new HashMap<>();
@@ -214,6 +238,7 @@ public final class Moteur {
         // Signalements proposés au joueur tant qu'il n'en a pas choisi un, et leur date d'expiration.
         public Map<UUID, List<Dossier>> offres = new HashMap<>();
         public Map<UUID, Long> finOffres = new HashMap<>();
+        public Map<UUID, Profil> profils = new HashMap<>();
     }
 
     private record Candidat(String espece, int rang, int niveauMin, int niveauMax) {}
@@ -247,6 +272,7 @@ public final class Moteur {
             if (etat.reussies == null) etat.reussies = new HashMap<>();
             if (etat.offres == null) etat.offres = new HashMap<>();
             if (etat.finOffres == null) etat.finOffres = new HashMap<>();
+            if (etat.profils == null) etat.profils = new HashMap<>();
         }
     }
 
@@ -304,6 +330,41 @@ public final class Moteur {
         t.putInt("reussies", etat.reussies.getOrDefault(joueur.getUUID(), 0));
         t.putLong("attente", Math.max(0, etat.prochaineEnquete.getOrDefault(joueur.getUUID(), 0L) - System.currentTimeMillis()));
         t.putInt("difficulte", "easy".equalsIgnoreCase(reglages.difficulteMiniJeux) ? -1 : "hard".equalsIgnoreCase(reglages.difficulteMiniJeux) ? 1 : 0);
+        // La carrière de l'enquêteur, affichée dans le carnet et les archives du kit.
+        Profil profil = profil(joueur.getUUID());
+        int rang = rang(profil.xp);
+        CompoundTag carriere = new CompoundTag();
+        carriere.putInt("xp", profil.xp);
+        carriere.putInt("rang", rang);
+        carriere.putInt("seuil", SEUILS[rang]);
+        carriere.putInt("suivant", rang + 1 < SEUILS.length ? SEUILS[rang + 1] : -1);
+        int parfaites = 0, speciales = 0;
+        Set<String> especes = new HashSet<>();
+        CompoundTag types = new CompoundTag();
+        ListTag archives = new ListTag();
+        for (int i = profil.historique.size() - 1; i >= 0; i--) {
+            Fiche f = profil.historique.get(i);
+            String type = f.special == null ? "" : f.special;
+            if (f.etoiles >= 5) parfaites++;
+            if (!type.isEmpty()) speciales++;
+            especes.add(f.espece);
+            types.putInt(type.isEmpty() ? "ordinaire" : type, types.getInt(type.isEmpty() ? "ordinaire" : type) + 1);
+            if (archives.size() >= 40) continue;
+            CompoundTag c = new CompoundTag();
+            c.putString("espece", f.espece);
+            c.putString("special", type);
+            c.putInt("etoiles", f.etoiles);
+            c.putInt("xp", f.xp);
+            c.putBoolean("capture", f.capture);
+            c.putLong("date", f.date);
+            archives.add(c);
+        }
+        carriere.putInt("parfaites", parfaites);
+        carriere.putInt("speciales", speciales);
+        carriere.putInt("especes", especes.size());
+        carriere.put("types", types);
+        carriere.put("archives", archives);
+        t.put("carriere", carriere);
         List<Dossier> pistes = d == null ? pistes(joueur) : null;
         if (pistes != null) {
             // Ce que le joueur sait d'un signalement avant de le choisir : sa rareté, son type, où se trouve la zone.
@@ -403,7 +464,7 @@ public final class Moteur {
     // Qualité de l'enquête, de 1 à 5 étoiles. On part de 5 ; un raté de mini-jeu coûte une demi-étoile (le premier est
     // donc gratuit), une fuite de la cible une étoile, un mauvais pronostic deux étoiles.
     private static int etoiles(Dossier d, boolean avecPronostic) {
-        int demis = 10 - d.fautes - 2 * d.fuites;
+        int demis = 10 - Math.max(0, d.fautes - d.pardon) - 2 * d.fuites;
         if (avecPronostic && d.pronostic != null && !d.espece.equals(d.pronostic)) demis -= 4;
         return Math.max(1, Math.min(5, (demis + 1) / 2));
     }
@@ -415,6 +476,41 @@ public final class Moteur {
     // IV parfaits accordés au Pokémon : aucun à 1 étoile, 4 au mieux à 5 étoiles.
     static int ivParfaits(int etoiles) {
         return Math.max(0, Math.min(4, etoiles - 1));
+    }
+
+    // Le profil d'un joueur. Ceux qui avaient déjà résolu des enquêtes avant l'arrivée des rangs partent avec 30 points par dossier.
+    static Profil profil(UUID id) {
+        Profil p = etat.profils.get(id);
+        if (p == null) {
+            p = new Profil();
+            p.xp = etat.reussies.getOrDefault(id, 0) * 30;
+            etat.profils.put(id, p);
+        }
+        if (p.historique == null) p.historique = new ArrayList<>();
+        if (p.jeuxVus == null) p.jeuxVus = new HashSet<>();
+        return p;
+    }
+
+    static int rang(int xp) {
+        int r = 0;
+        while (r + 1 < SEUILS.length && xp >= SEUILS[r + 1]) r++;
+        return r;
+    }
+
+    static int rang(ServerPlayer joueur) {
+        return rang(profil(joueur.getUUID()).xp);
+    }
+
+    // Vrai la première fois que ce joueur ouvre ce mini-jeu : l'écran lui en explique alors les règles avant de démarrer.
+    private static boolean premiereFois(ServerPlayer joueur, String jeu) {
+        boolean nouveau = profil(joueur.getUUID()).jeuxVus.add(jeu);
+        if (nouveau) sauver();
+        return nouveau;
+    }
+
+    // Durée du scan, en demi-secondes : 6 d'ordinaire, 4 avec le scan rapide (rang 3).
+    private static int dureeScan(ServerPlayer joueur) {
+        return rang(joueur) >= 3 ? 4 : 6;
     }
 
     private static boolean est(Dossier d, String special) {
@@ -482,7 +578,9 @@ public final class Moteur {
         Paquet p = Paquet.de("ouvrir");
         p.donnees().putString("ecran", "analyse");
         p.donnees().putString("genre", donnees.getString("genre"));
-        p.donnees().putString("jeu", Genetique.jeuAnalyse(donnees.getString("genre"), donnees.getString("jeu")));
+        String jeuAnalyse = Genetique.jeuAnalyse(donnees.getString("genre"), donnees.getString("jeu"));
+        p.donnees().putString("jeu", jeuAnalyse);
+        p.donnees().putBoolean("premiere", premiereFois(joueur, jeuAnalyse));
         p.donnees().putBoolean("enfoui", donnees.getBoolean("enfoui"));
         p.donnees().putInt("variante", donnees.getInt("variante"));
         p.donnees().putLong("graine", HASARD.nextLong());
@@ -603,6 +701,7 @@ public final class Moteur {
         UUID id = joueur.getUUID();
         etat.offres.remove(id);
         etat.finOffres.remove(id);
+        d.pardon = rang(joueur) >= 4 ? 1 : 0; // sang-froid
         etat.dossiers.put(id, d);
         sauver();
         joueur.playNotifySound(SoundEvents.SPYGLASS_USE, SoundSource.PLAYERS, 1f, 0.8f);
@@ -815,7 +914,8 @@ public final class Moteur {
             annonce(joueur, "nocturne_trace", 0xF2C93A);
             return;
         }
-        if (joueur.getInventory().findSlotMatchingItem(new ItemStack(Contenu.FIOLE)) < 0 && !joueur.isCreative()) {
+        boolean secours = rang(joueur) >= 2 && !d.fioleOfferte;
+        if (joueur.getInventory().findSlotMatchingItem(new ItemStack(Contenu.FIOLE)) < 0 && !joueur.isCreative() && !secours) {
             annonce(joueur, "fiole_requise", 0xE8543A);
             return;
         }
@@ -823,7 +923,9 @@ public final class Moteur {
         Paquet p = Paquet.de("ouvrir");
         p.donnees().putString("ecran", "prelevement");
         p.donnees().putString("genre", trace.genre);
-        p.donnees().putString("jeu", Genetique.jeuPrelevement(trace.genre, trace.enfoui, d.special, new Random(d.graine ^ trace.genre.hashCode())));
+        String jeuTerrain = Genetique.jeuPrelevement(trace.genre, trace.enfoui, d.special, new Random(d.graine ^ trace.genre.hashCode()));
+        p.donnees().putString("jeu", jeuTerrain);
+        p.donnees().putBoolean("premiere", premiereFois(joueur, jeuTerrain));
         p.donnees().putBoolean("enfoui", trace.enfoui);
         p.donnees().putInt("variante", trace.variante);
         p.donnees().putLong("graine", HASARD.nextLong());
@@ -842,8 +944,11 @@ public final class Moteur {
         }
         if (trace == null || joueur.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) > 100) return;
         int fiole = joueur.getInventory().findSlotMatchingItem(new ItemStack(Contenu.FIOLE));
-        if (fiole < 0 && !joueur.isCreative()) return;
-        if (fiole >= 0 && !joueur.isCreative()) joueur.getInventory().getItem(fiole).shrink(1);
+        // Fiole de secours (rang 2) : le premier prélèvement de l'enquête n'en consomme pas.
+        boolean secours = rang(joueur) >= 2 && !d.fioleOfferte;
+        if (fiole < 0 && !joueur.isCreative() && !secours) return;
+        if (secours) d.fioleOfferte = true;
+        else if (fiole >= 0 && !joueur.isCreative()) joueur.getInventory().getItem(fiole).shrink(1);
         int doses = succes ? reglages.dosesParEchantillon + (parfait ? 1 : 0) : 1;
         if (est(d, "givre")) doses = Math.max(1, doses - 1); // échantillon gelé, fragile
         ItemStack echantillon = new ItemStack(Contenu.ECHANTILLON);
@@ -1210,6 +1315,7 @@ public final class Moteur {
             FILTRAGES.put(joueur.getUUID(), Boolean.TRUE);
             Paquet p = Paquet.de("ouvrir");
             p.donnees().putString("ecran", "filtrage");
+            p.donnees().putBoolean("premiere", premiereFois(joueur, "filtrage"));
             p.donnees().putLong("graine", HASARD.nextLong());
             envoyer(joueur, p);
             return;
@@ -1237,7 +1343,7 @@ public final class Moteur {
         double dx = d.taniereX - joueur.getX(), dz = d.taniereZ - joueur.getZ();
         double dist = Math.sqrt(dx * dx + dz * dz);
         double vrai = Math.toDegrees(Math.atan2(dx, -dz));
-        double erreur = Math.max(reglages.erreurMinDegres, Math.min(reglages.erreurMaxDegres, dist / 22)) * flou;
+        double erreur = Math.max(reglages.erreurMinDegres, Math.min(reglages.erreurMaxDegres, dist / 22)) * flou * (rang(joueur) >= 5 ? 0.75 : 1);
         // Le bruit dépend de l'endroit (et pas du moment) : refaire le relevé au même endroit ne l'améliore pas.
         Random bruit = new Random(d.graine ^ (((long) joueur.getBlockX() >> 3) * 73428767L) ^ (((long) joueur.getBlockZ() >> 3) * 912931L) ^ d.fuites);
         Releve r = new Releve();
@@ -1332,6 +1438,7 @@ public final class Moteur {
         switch (d.phase) {
             case "PRELEVEMENTS": {
                 boolean jour = dort(d, monde);
+                int portee = rang(joueur) >= 1 ? 14 : 9; // radar affiné
                 double min = Double.MAX_VALUE;
                 Trace proche = null;
                 for (Trace t : d.traces) {
@@ -1344,7 +1451,7 @@ public final class Moteur {
                     }
                     // Les traces sont discrètes : kit en main, celles qui sont à portée scintillent (pour ce joueur seulement).
                     boolean cache = t.enfoui && !t.degage;
-                    if (kit && !jour && t.posee && dist < 9 && (!cache || monde.getBlockState(new BlockPos(t.px, t.py + 1, t.pz)).isAir())) {
+                    if (kit && !jour && t.posee && dist < portee && (!cache || monde.getBlockState(new BlockPos(t.px, t.py + 1, t.pz)).isAir())) {
                         monde.sendParticles(joueur, ParticleTypes.WAX_OFF, false, t.px + 0.5, t.py + (cache ? 1.15 : 0.4), t.pz + 0.5,
                                 2, 0.25, 0.1, 0.25, 0.0);
                     }
@@ -1428,10 +1535,11 @@ public final class Moteur {
                         return;
                     }
                     if (reperage) {
-                        if (e.isBattling()) d.scan = 6; // combat engagé de loin : la cible est de fait identifiée
+                        int dureeScan = dureeScan(joueur);
+                        if (e.isBattling()) d.scan = dureeScan; // combat engagé de loin : la cible est de fait identifiée
                         else if (joueur.isUsingItem() && joueur.getUseItem().is(Contenu.KIT)) scanner(joueur, d, monde, e);
                         else d.scan = Math.max(0, d.scan - 1);
-                        if (d.scan >= 6) {
+                        if (d.scan >= dureeScan) {
                             d.phase = "APPROCHE";
                             d.scan = 0;
                             e.setInvulnerable(false);
@@ -1449,6 +1557,7 @@ public final class Moteur {
                         }
                         signal.donnees().putInt("distance", (int) Math.round(dist));
                         signal.donnees().putInt("scan", d.scan);
+                        signal.donnees().putInt("scanMax", dureeScan);
                         signal.donnees().putBoolean("autre", d.scanAutre > 0);
                         signal.donnees().putInt("alerte", alerte(d));
                         envoyer(joueur, signal);
@@ -1630,6 +1739,23 @@ public final class Moteur {
     private static void resoudre(ServerPlayer joueur, Dossier d, boolean capture) {
         int total = etat.reussies.merge(joueur.getUUID(), 1, Integer::sum);
         int etoiles = etoiles(d);
+        // Expérience : dix points par étoile, plus la rareté de l'espèce, le type d'enquête et la nouveauté.
+        Profil profil = profil(joueur.getUUID());
+        int rangAvant = rang(profil.xp);
+        int gain = 10 * etoiles + new int[] {0, 5, 10, 20}[Math.max(0, CATEGORIES.indexOf(d.categorie))] + (d.special != null ? 10 : 0) + (d.nouvelle ? 5 : 0);
+        profil.xp += gain;
+        Fiche fiche = new Fiche();
+        fiche.espece = d.espece;
+        fiche.special = d.special;
+        fiche.categorie = d.categorie;
+        fiche.etoiles = etoiles;
+        fiche.xp = gain;
+        fiche.capture = capture;
+        fiche.date = System.currentTimeMillis();
+        profil.historique.add(fiche);
+        while (profil.historique.size() > 200) profil.historique.remove(0);
+        int rangApres = rang(profil.xp);
+        if (rangApres >= 3) progres(joueur, "rang_inspecteur");
         boolean palier = reglages.palierBonus > 0 && total % reglages.palierBonus == 0;
         List<ItemStack> gains = new ArrayList<>(butin(joueur, "traque/etoiles_" + etoiles));
         gains.addAll(butin(joueur, "traque/rarete_" + d.categorie.replace('-', '_')));
@@ -1655,7 +1781,9 @@ public final class Moteur {
         joueur.playNotifySound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.8f, 1f);
         finir(joueur, d, tr("annonce.resolue.titre", etoilesTexte(etoiles)),
                 tr("annonce.resolue.texte", nomEspece(d.espece), tr(capture ? "annonce.resolue.capture" : "annonce.resolue.vaincu"), total,
-                        palier ? tr("annonce.resolue.palier") : Component.empty(), premier ? Component.empty() : tr("annonce.resolue.butin", liste)), 0x6CCB5F);
+                        palier ? tr("annonce.resolue.palier") : Component.empty(), premier ? Component.empty() : tr("annonce.resolue.butin", liste),
+                        rangApres > rangAvant ? tr("annonce.resolue.rang", gain, tr("rang." + rangApres)) : tr("annonce.resolue.xp", gain)), 0x6CCB5F);
+        if (rangApres > rangAvant) joueur.playNotifySound(SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 1f, 0.8f);
     }
 
     private static List<ItemStack> butin(ServerPlayer joueur, String table) {
@@ -1674,7 +1802,7 @@ public final class Moteur {
     private static void finir(ServerPlayer joueur, Dossier d, Component titre, Component texte, int couleur) {
         if (d.monde.equals(dimension(joueur))) retirerTraces(joueur.serverLevel(), d);
         etat.dossiers.remove(joueur.getUUID());
-        etat.prochaineEnquete.put(joueur.getUUID(), System.currentTimeMillis() + reglages.minutesEntreEnquetes * 60_000L);
+        etat.prochaineEnquete.put(joueur.getUUID(), System.currentTimeMillis() + reglages.minutesEntreEnquetes * 60_000L / (rang(joueur) >= 6 ? 2 : 1));
         sauver();
         annonce(joueur, titre, texte, couleur);
         synchroniser(joueur);
@@ -1695,6 +1823,7 @@ public final class Moteur {
         if (enfoui) genre = List.of("taille", "oeuf", "stat").get(HASARD.nextInt(3));
         Paquet p = Paquet.de("ouvrir");
         p.donnees().putString("ecran", "essai");
+        p.donnees().putBoolean("premiere", premiereFois(joueur, jeu));
         p.donnees().putString("jeu", jeu);
         p.donnees().putString("genre", genre);
         p.donnees().putBoolean("terrain", terrain);

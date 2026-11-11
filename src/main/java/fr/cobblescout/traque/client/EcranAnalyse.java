@@ -21,6 +21,8 @@ public class EcranAnalyse extends Screen {
     private final Jeu jeu;
     // Partie d'essai (commande /hunt game) : rien n'est envoyé au serveur à la fin.
     boolean essai;
+    // Première fois que le joueur voit ce mini-jeu : les règles s'affichent, et rien ne démarre avant qu'il clique « Commencer ».
+    boolean intro;
     private boolean envoye;
     private int finDepuis = -1;
     private int ticks;
@@ -84,6 +86,7 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public void tick() {
+        if (intro) return;
         ticks++;
         // Rythme réglé par le serveur : en facile, le jeu saute un tic sur trois ; en difficile, il en joue un de plus sur quatre.
         int rythme = TraqueClient.etat.getInt("difficulte");
@@ -103,7 +106,8 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public void removed() {
-        if (!envoye && !essai) {
+        // Fermer l'écran pendant l'explication ne coûte rien : la partie n'a pas commencé.
+        if (!envoye && !essai && !intro) {
             envoye = true;
             Paquet p = Paquet.de(filtrage ? "filtrage" : prelevement ? "prelevement" : "analyse");
             p.donnees().putBoolean("succes", jeu.fini && jeu.succes);
@@ -137,7 +141,20 @@ public class EcranAnalyse extends Screen {
         jeu.ox = zx;
         jeu.oy = zy;
         jeu.dessiner(g, mx, my, pt);
-        Dessin.paragraphe(g, jeu.consigne(), zx, zy + ZH + 3, ZL, Dessin.GRIS);
+        if (!intro) Dessin.paragraphe(g, jeu.consigne(), zx, zy + ZH + 3, ZL, Dessin.GRIS);
+        if (intro) {
+            g.pose().pushPose();
+            g.pose().translate(0, 0, 350);
+            g.fill(zx, zy, zx + ZL, zy + ZH, 0xEA0C141C);
+            Dessin.centre(g, T.f("first_time") + T.c(Genetique.nomJeu(idJeu)).toUpperCase(), zx + ZL / 2, zy + 8, Dessin.JAUNE);
+            int ly = Dessin.paragraphe(g, jeu.consigne(), zx + 16, zy + 24, ZL - 32, Dessin.TEXTE);
+            Dessin.paragraphe(g, filtrage ? T.f("a_failure_costs_no_star")
+                    : prelevement ? T.f("a_failure_damages_the_sample")
+                    : T.f("a_failure_loses_one_dose"), zx + 16, ly + 4, ZL - 32, Dessin.GRIS);
+            boolean survol = Dessin.dans(mx, my, zx + ZL / 2 - 60, zy + ZH - 26, 120, 20);
+            Dessin.bouton(g, zx + ZL / 2 - 60, zy + ZH - 26, 120, 20, T.f("start"), survol, true, Dessin.VERT);
+            g.pose().popPose();
+        }
         if (finDepuis >= 0) {
             g.pose().pushPose();
             g.pose().translate(0, 0, 300);
@@ -160,6 +177,15 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int bouton) {
+        if (intro) {
+            Dessin.Fond f = prelevement ? Dessin.KIT : Dessin.SEQUENCEUR;
+            int zx = f.x(width) + (f.il() - ZL) / 2, zy = f.y(height) + (prelevement ? 18 : 15);
+            if (Dessin.dans(mx, my, zx + ZL / 2 - 60, zy + ZH - 26, 120, 20)) {
+                intro = false;
+                Dessin.son(1.2f);
+            }
+            return true;
+        }
         jeu.appui = true;
         if (!jeu.fini) jeu.clic(mx, my);
         return true;
@@ -174,6 +200,13 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public boolean keyPressed(int touche, int scan, int mods) {
+        // Entrée ou Espace lancent aussi la partie depuis l'écran d'explication.
+        if (intro && (touche == 257 || touche == 32)) {
+            intro = false;
+            Dessin.son(1.2f);
+            return true;
+        }
+        if (intro) return super.keyPressed(touche, scan, mods);
         if (!jeu.fini && jeu.touche(touche)) return true;
         return super.keyPressed(touche, scan, mods);
     }

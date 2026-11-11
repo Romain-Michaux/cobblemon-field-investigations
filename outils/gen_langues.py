@@ -470,6 +470,25 @@ NOUVEAUX += [
     ("Descends l'arbre : à chaque embranchement, clique la branche qui porte un caractère de l'échantillon (sa fiche est à droite).",
      "Go down the tree: at each fork, click the branch that carries one of the sample's traits (its card is on the right)."),
 ]
+NOUVEAUX += [
+    # carnet et archives du kit
+    ("Enquête", "Case"), ("Carnet", "Logbook"), ("Archives", "Archives"), ("rang maximal", "top rank"),
+    ("Enquêtes : ", "Cases: "), ("Cinq étoiles : ", "Five stars: "), ("Espèces : ", "Species: "),
+    ("AMÉLIORATIONS DU KIT", "KIT UPGRADES"),
+    ("Radar affiné", "Sharper radar"), ("Fiole de secours", "Spare vial"), ("Scan rapide", "Quick scan"), ("Sang-froid", "Cool head"),
+    ("Oreille fine", "Keen ear"), ("Réseau d'informateurs", "Informant network"),
+    ("détecte de plus loin", "detects from farther away"), ("§aDébloqué au rang : ", "§aUnlocked at rank: "), ("§7Se débloque au rang : ", "§7Unlocks at rank: "), ("1er prélèvement sans fiole", "first sample needs no vial"),
+    ("cible identifiée en 2 s", "target identified in 2 s"), ("un raté de plus pardonné", "one more failure forgiven"),
+    ("relevés de cri plus précis", "more precise cry bearings"), ("attente entre enquêtes ÷ 2", "wait between cases ÷ 2"),
+    ("DOSSIERS CLASSÉS", "CLOSED CASES"),
+    ("Aucun dossier classé pour l'instant. Chaque enquête résolue sera consignée ici.", "No closed case yet. Every solved investigation will be filed here."),
+    ("capturé", "caught"), ("vaincu", "defeated"), ("TYPES  ", "KINDS  "),
+    # première partie d'un mini-jeu
+    ("PREMIÈRE FOIS · ", "FIRST TIME · "), ("Commencer", "Start"),
+    ("Un raté ne coûte pas d'étoile : le relevé est seulement moins précis.", "A failure costs no star: the bearing is only less precise."),
+    ("Un raté abîme le prélèvement : une seule dose, et une demi-étoile en moins.", "A failure damages the sample: a single dose, and half a star lost."),
+    ("Un raté fait perdre une dose de l'échantillon, et une demi-étoile.", "A failure loses one dose of the sample, and half a star."),
+]
 _deja = {f for f, _ in UI}
 UI += [t for t in NOUVEAUX if t[0] not in _deja]
 
@@ -568,7 +587,14 @@ CLES = [
     ("annonce.annulee.titre", "Investigation cancelled", "Enquête annulée"), ("annonce.annulee.texte", "This species no longer exists", "Cette espèce n'existe plus"),
     ("annonce.trop_tard.titre", "Too late", "Trop tard"), ("annonce.trop_tard.texte", "Someone else caught your target", "Quelqu'un d'autre a capturé ta cible"),
     ("annonce.resolue.titre", "Case solved! %s", "Enquête résolue ! %s"),
-    ("annonce.resolue.texte", "%s %s · case no. %s%s%s", "%s %s · dossier n° %s%s%s"),
+    ("annonce.resolue.texte", "%s %s · case no. %s%s%s%s", "%s %s · dossier n° %s%s%s%s"),
+    ("annonce.resolue.xp", " · +%s XP", " · +%s XP"),
+    ("annonce.resolue.rang", " · +%s XP · Promoted: %s!", " · +%s XP · Promotion : %s !"),
+    ("rang.0", "Trainee", "Stagiaire"), ("rang.1", "Junior Investigator", "Enquêteur adjoint"), ("rang.2", "Investigator", "Enquêteur"),
+    ("rang.3", "Inspector", "Inspecteur"), ("rang.4", "Chief Inspector", "Inspecteur principal"), ("rang.5", "Commissioner", "Commissaire"),
+    ("rang.6", "Legend", "Légende"),
+    ("progres.rang_inspecteur.titre", "Inspector", "Inspecteur"),
+    ("progres.rang_inspecteur.texte", "Reach the rank of Inspector", "Atteins le rang d'inspecteur"),
     ("annonce.resolue.capture", "caught", "capturé"), ("annonce.resolue.vaincu", "defeated", "vaincu"),
     ("annonce.resolue.palier", " (milestone!)", " (palier !)"), ("annonce.resolue.butin", " · Loot: %s", " · Butin : %s"),
     # --- 1.1 : signalements, enquêtes spéciales ---

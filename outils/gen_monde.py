@@ -241,3 +241,6 @@ for nom in ("branche", "branche_morte"):
 # image PixelLab, raccordée par un fondu sur dix lignes) qui se répète sans couture et défile.
 for nom in ("tronc", "foret"):
     sauver(ouvrir(nom), "gui", nom)
+
+# Insigne d'enquêteur du carnet (teinté en jeu à la couleur du rang).
+sauver(ouvrir("insigne"), "gui", "insigne")

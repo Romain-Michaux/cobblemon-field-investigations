@@ -7,16 +7,42 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 // Écran du kit de terrain : pendant les prélèvements, l'état du dossier et la direction de la zone ;
 // pendant la traque, la carte des relevés (les droites de cap, leur marge d'erreur et le recoupement).
-// Tout tient dans l'écran du boîtier (texture fond_kit).
+// Deux autres onglets donnent la carrière de l'enquêteur : le carnet (rang, expérience, améliorations du kit) et les
+// archives (dossiers classés, types d'enquête déjà résolus). Tout tient dans l'écran du boîtier (texture fond_kit).
 public class EcranKit extends Screen {
     private static final Dessin.Fond F = Dessin.KIT;
     private static final int L = F.il(), CARTE = 148;
+    static final ResourceLocation INSIGNE = Dessin.texture("insigne");
+    // Couleur de l'insigne et du nom de chaque rang, du stagiaire à la légende.
+    static final int[] COULEURS_RANGS = {0xFFB08D6A, 0xFFE0A060, 0xFFE8EEF2, 0xFFF2C93A, 0xFF6CCB5F, 0xFF4FD1C5, 0xFFC79CFF};
+    static final String[] TYPES = {"", "nocturne", "craintive", "exceptionnel", "migratrice", "aquatique", "fouille", "cimes", "altitude", "givre", "brume"};
+    // 0 = enquête en cours, 1 = carnet de l'enquêteur, 2 = archives.
+    private int onglet;
+    private int defilement;
 
     public EcranKit() {
+        this(0);
+    }
+
+    public EcranKit(int onglet) {
         super(Component.literal(T.f("field_kit")));
+        this.onglet = onglet;
+    }
+
+    private static String[] onglets() {
+        return new String[] {T.f("case"), T.f("logbook"), T.f("archives")};
+    }
+
+    // Abscisse et largeur de l'onglet i, dans le bandeau du haut.
+    private int[] placeOnglet(int x, int i) {
+        String[] noms = onglets();
+        int px = x + 15;
+        for (int k = 0; k < i; k++) px += Dessin.police().width(noms[k]) + 12;
+        return new int[] {px, Dessin.police().width(noms[i])};
     }
 
     @Override
@@ -39,9 +65,25 @@ public class EcranKit extends Screen {
         String phase = e.getString("phase");
         String etape = !actif ? T.f("standby") : phase.equals("PRELEVEMENTS") ? T.f("sampling") : phase.equals("TRAQUE") ? T.f("tracking")
                 : phase.equals("REPERAGE") ? T.f("spotting") : phase.equals("APPROCHE") ? T.f("approach") : T.f("flushed_out");
-        Dessin.bandeau(g, x, y, L, T.f("field_kit_2"), actif ? etape + " · " + T.etoiles(e.getInt("etoiles")) : etape);
+        Dessin.bandeau(g, x, y, L, "", actif ? etape + " · " + T.etoiles(e.getInt("etoiles")) : etape);
+        String[] noms = onglets();
+        for (int i = 0; i < noms.length; i++) {
+            int[] place = placeOnglet(x, i);
+            boolean survol = Dessin.dans(mx, my, place[0] - 3, y, place[1] + 6, 14);
+            g.drawString(Dessin.police(), noms[i], place[0], y + 3, i == onglet ? Dessin.TEXTE : survol ? Dessin.JAUNE : Dessin.GRIS, false);
+            if (i == onglet) g.fill(place[0], y + 12, place[0] + place[1], y + 14, Dessin.ACCENT);
+        }
+        if (onglet == 1) {
+            carnet(g, e.getCompound("carriere"), e.getInt("reussies"), x, y, mx, my);
+            return;
+        }
+        if (onglet == 2) {
+            archives(g, e.getCompound("carriere"), x, y);
+            return;
+        }
         if (!actif) {
-            Dessin.centre(g, T.f("no_investigation_in_progress"), x + L / 2, y + 80, Dessin.GRIS);
+            Dessin.centre(g, T.f("no_investigation_in_progress"), x + L / 2, y + 70, Dessin.GRIS);
+            Dessin.bouton(g, x + L / 2 - 80, y + 90, 160, 22, T.f("check_the_reports"), Dessin.dans(mx, my, x + L / 2 - 80, y + 90, 160, 22), true, Dessin.ACCENT);
             return;
         }
         double jx = minecraft.player.getX(), jz = minecraft.player.getZ();
@@ -92,9 +134,114 @@ public class EcranKit extends Screen {
         Dessin.bouton(g, x + 202, y + 140, 108, 22, T.f("case_file"), Dessin.dans(mx, my, x + 202, y + 140, 108, 22), true, Dessin.ACCENT);
     }
 
+    // ---------- Carnet : rang, expérience, améliorations du kit ----------
+
+    private void carnet(GuiGraphics g, CompoundTag c, int reussies, int x, int y, int mx, int my) {
+        int rang = Math.max(0, Math.min(6, c.getInt("rang"))), xp = c.getInt("xp"), seuil = c.getInt("seuil"), suivant = c.getInt("suivant");
+        int couleur = COULEURS_RANGS[rang];
+        Dessin.encart(g, x + 4, y + 18, 124, 148);
+        // L'insigne, teinté à la couleur du rang.
+        Dessin.teinte(g, couleur);
+        Dessin.morceauAgrandi(g, INSIGNE, x + 34, y + 23, 64, 64, 0, 0, 32, 32, 32, 32);
+        g.setColor(1f, 1f, 1f, 1f);
+        Dessin.centre(g, T.c("cobblemon_field_investigations.rang." + rang), x + 66, y + 90, couleur);
+        g.fill(x + 14, y + 103, x + 118, y + 110, Dessin.BORD);
+        double part = suivant > seuil ? (xp - seuil) / (double) (suivant - seuil) : 1;
+        g.fill(x + 15, y + 104, x + 15 + (int) (102 * Math.max(0, Math.min(1, part))), y + 109, couleur);
+        Dessin.centre(g, suivant > 0 ? xp + " / " + suivant + " XP" : xp + " XP · " + T.f("top_rank"), x + 66, y + 113, Dessin.GRIS);
+        g.drawString(Dessin.police(), T.f("cases") + reussies, x + 12, y + 128, Dessin.TEXTE, false);
+        g.drawString(Dessin.police(), T.f("five_stars") + c.getInt("parfaites"), x + 12, y + 139, Dessin.JAUNE, false);
+        g.drawString(Dessin.police(), T.f("species_3") + c.getInt("especes"), x + 12, y + 150, Dessin.ACCENT, false);
+
+        Dessin.encart(g, x + 132, y + 18, 184, 148);
+        g.drawString(Dessin.police(), T.f("kit_upgrades"), x + 138, y + 23, Dessin.JAUNE, false);
+        String[] titres = {T.f("sharper_radar"), T.f("spare_vial"), T.f("quick_scan"), T.f("cool_head"), T.f("keen_ear"), T.f("informant_network")};
+        String[] effets = {T.f("detects_from_farther_away"), T.f("first_sample_needs_no_vial"), T.f("target_identified_in_2_s"), T.f("one_more_failure_forgiven"),
+                T.f("more_precise_cry_bearings"), T.f("wait_between_cases_2")};
+        int survole = -1;
+        for (int i = 0; i < 6; i++) {
+            int ly = y + 36 + i * 21;
+            boolean acquis = rang >= i + 1;
+            g.fill(x + 138, ly, x + 154, ly + 18, Dessin.BORD);
+            g.fill(x + 139, ly + 1, x + 153, ly + 17, acquis ? 0xFF245C3A : 0xFF1A2633);
+            Dessin.centre(g, acquis ? "✔" : String.valueOf(i + 1), x + 146, ly + 5, acquis ? Dessin.VERT : COULEURS_RANGS[i + 1]);
+            g.drawString(Dessin.police(), titres[i], x + 158, ly, acquis ? Dessin.TEXTE : Dessin.GRIS, false);
+            g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(effets[i], 154), x + 158, ly + 10, acquis ? Dessin.VERT : Dessin.SOMBRE, false);
+            if (Dessin.dans(mx, my, x + 136, ly - 1, 176, 20)) survole = i;
+        }
+        // Au survol : le rang qui débloque l'amélioration.
+        if (survole >= 0) {
+            java.util.List<Component> lignes = new java.util.ArrayList<>();
+            lignes.add(Component.literal(titres[survole]));
+            lignes.add(Component.literal((rang >= survole + 1 ? T.f("aunlocked_at_rank") : T.f("7unlocks_at_rank")) + T.c("cobblemon_field_investigations.rang." + (survole + 1))));
+            Dessin.infobulle(g, lignes, mx, my, width);
+        }
+    }
+
+    // ---------- Archives : dossiers classés, types d'enquête déjà résolus ----------
+
+    private void archives(GuiGraphics g, CompoundTag c, int x, int y) {
+        ListTag fiches = c.getList("archives", Tag.TAG_COMPOUND);
+        Dessin.encart(g, x + 4, y + 18, 196, 148);
+        g.drawString(Dessin.police(), T.f("closed_cases"), x + 10, y + 23, Dessin.JAUNE, false);
+        defilement = Math.max(0, Math.min(Math.max(0, fiches.size() - 6), defilement));
+        if (fiches.isEmpty()) Dessin.paragraphe(g, T.f("no_closed_case_yet_every"), x + 12, y + 44, 180, Dessin.GRIS);
+        java.text.SimpleDateFormat jour = new java.text.SimpleDateFormat("dd/MM");
+        for (int i = 0; i < 6 && i + defilement < fiches.size(); i++) {
+            CompoundTag f = fiches.getCompound(i + defilement);
+            int ly = y + 36 + i * 21;
+            String special = f.getString("special");
+            Dessin.portrait(g, f.getString("espece"), x + 9, ly + 1, 1f);
+            g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(Dessin.nomEspece(f.getString("espece")), 104), x + 29, ly, Dessin.TEXTE, false);
+            String etoiles = T.etoiles(f.getInt("etoiles"));
+            g.drawString(Dessin.police(), etoiles, x + 194 - Dessin.police().width(etoiles), ly, Dessin.JAUNE, false);
+            String type = EcranTableau.nomSpecial(special);
+            g.drawString(Dessin.police(), type, x + 29, ly + 10, EcranTableau.couleurSpecial(special), false);
+            String suite = " · " + (f.getBoolean("capture") ? T.f("caught") : T.f("defeated")) + " · " + jour.format(new java.util.Date(f.getLong("date")));
+            g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(suite, 164 - Dessin.police().width(type)), x + 29 + Dessin.police().width(type), ly + 10, Dessin.SOMBRE, false);
+        }
+        if (fiches.size() > 6) {
+            g.drawString(Dessin.police(), (defilement + 1) + "-" + Math.min(fiches.size(), defilement + 6) + " / " + fiches.size() + "  ▲▼", x + 118, y + 23, Dessin.GRIS, false);
+        }
+        // À droite : la collection des types d'enquête.
+        Dessin.encart(g, x + 204, y + 18, 112, 148);
+        CompoundTag types = c.getCompound("types");
+        int resolus = 0;
+        for (String t : TYPES) resolus += types.getInt(t.isEmpty() ? "ordinaire" : t) > 0 ? 1 : 0;
+        g.drawString(Dessin.police(), T.f("kinds") + resolus + " / " + TYPES.length, x + 210, y + 23, Dessin.JAUNE, false);
+        for (int i = 0; i < TYPES.length; i++) {
+            int n = types.getInt(TYPES[i].isEmpty() ? "ordinaire" : TYPES[i]), ly = y + 36 + i * 11;
+            g.drawString(Dessin.police(), n > 0 ? "✔" : "·", x + 210, ly, n > 0 ? Dessin.VERT : Dessin.SOMBRE, false);
+            g.drawString(Dessin.police(), EcranTableau.nomSpecial(TYPES[i]), x + 221, ly, n > 0 ? EcranTableau.couleurSpecial(TYPES[i]) : Dessin.SOMBRE, false);
+            if (n > 0) g.drawString(Dessin.police(), "×" + n, x + 310 - Dessin.police().width("×" + n), ly, Dessin.GRIS, false);
+        }
+    }
+
+    @Override
+    public boolean mouseScrolled(double mx, double my, double dx, double dy) {
+        if (onglet == 2) defilement -= (int) Math.signum(dy);
+        return true;
+    }
+
     @Override
     public boolean mouseClicked(double mx, double my, int bouton) {
         int x = F.x(width), y = F.y(height);
+        for (int i = 0; i < 3; i++) {
+            int[] place = placeOnglet(x, i);
+            if (Dessin.dans(mx, my, place[0] - 3, y, place[1] + 6, 14)) {
+                onglet = i;
+                Dessin.son(1.2f);
+                return true;
+            }
+        }
+        if (onglet != 0) return true;
+        if (!TraqueClient.etat.getBoolean("actif")) {
+            if (Dessin.dans(mx, my, x + L / 2 - 80, y + 90, 160, 22) && minecraft != null) {
+                Dessin.son(1f);
+                minecraft.setScreen(new EcranTableau());
+            }
+            return true;
+        }
         if (TraqueClient.etat.getString("phase").equals("PRELEVEMENTS") && Dessin.dans(mx, my, x + 202, y + 140, 108, 22) && minecraft != null) {
             Dessin.son(1f);
             minecraft.setScreen(new EcranTableau());

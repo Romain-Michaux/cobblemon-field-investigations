@@ -319,16 +319,23 @@ static String nomSpecial(String special) {
     }
 
     // Réglage d'accessibilité, en bas à gauche du tableau : l'aide aux couleurs chiffre les teintes des mini-jeux.
-    private void reglage(GuiGraphics g, int x, int y, int mx, int my) {
+private void reglage(GuiGraphics g, int x, int y, int mx, int my) {
         String texte = T.f("colour_aid") + (TraqueClient.aideCouleurs ? T.f("on") : T.f("off"));
         boolean survol = Dessin.dans(mx, my, x + 4, y + 171, Dessin.police().width(texte) + 4, 12);
         g.drawString(Dessin.police(), texte, x + 6, y + 173, survol ? Dessin.ENCRE_ROUGE : Dessin.ENCRE, false);
+        // En bas à droite : le carnet de l'enquêteur (rang, améliorations, archives), qui se trouve dans le kit.
+        Dessin.bouton(g, x + L - 78, y + 168, 74, 17, T.f("logbook"), Dessin.dans(mx, my, x + L - 78, y + 168, 74, 17), true, Dessin.ACCENT);
     }
 
     @Override
     public boolean mouseClicked(double mx, double my, int bouton) {
         CompoundTag e = TraqueClient.etat;
         int x = F.x(width), y = F.y(height);
+        if (!e.getBoolean("actif") && Dessin.dans(mx, my, x + L - 78, y + 168, 74, 17) && minecraft != null) {
+            Dessin.son(1f);
+            minecraft.setScreen(new EcranKit(1));
+            return true;
+        }
         if (!e.getBoolean("actif") && Dessin.dans(mx, my, x + 4, y + 171, 96, 12)) {
             TraqueClient.basculerAideCouleurs();
             Dessin.son(1.2f);

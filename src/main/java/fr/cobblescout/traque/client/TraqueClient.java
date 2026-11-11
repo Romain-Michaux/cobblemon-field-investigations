@@ -95,18 +95,16 @@ public class TraqueClient implements ClientModInitializer {
                         switch (d.getString("ecran")) {
                             case "tableau" -> mc.setScreen(new EcranTableau());
                             case "kit" -> mc.setScreen(new EcranKit());
-                            case "analyse" -> mc.setScreen(new EcranAnalyse(d.getString("genre"), d.getString("jeu"), d.getLong("graine"),
-                                    d.getInt("doses"), d.getBoolean("filet"), d.getBoolean("enfoui"), false, d.getInt("variante")));
-                            case "prelevement" -> mc.setScreen(new EcranAnalyse(d.getString("genre"), d.getString("jeu"), d.getLong("graine"),
-                                    0, false, d.getBoolean("enfoui"), true, d.getInt("variante")));
+case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("jeu"), d.getLong("graine"),
+                                    d.getInt("doses"), d.getBoolean("filet"), d.getBoolean("enfoui"), false, d.getInt("variante")), d, false);
+                            case "prelevement" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("jeu"), d.getLong("graine"),
+                                    0, false, d.getBoolean("enfoui"), true, d.getInt("variante")), d, false);
                             case "essai" -> {
                                 boolean terrain = d.getBoolean("terrain");
-                                EcranAnalyse ecran = new EcranAnalyse(d.getString("genre"), d.getString("jeu"), d.getLong("graine"), terrain ? 0 : 2,
-                                        false, d.getBoolean("enfoui"), terrain, d.getInt("variante"));
-                                ecran.essai = true;
-                                mc.setScreen(ecran);
+                                jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("jeu"), d.getLong("graine"), terrain ? 0 : 2,
+                                        false, d.getBoolean("enfoui"), terrain, d.getInt("variante")), d, true);
                             }
-                            case "filtrage" -> mc.setScreen(new EcranAnalyse("", "filtrage", d.getLong("graine"), 0, false, false, true, 0));
+                            case "filtrage" -> jouer(mc, new EcranAnalyse("", "filtrage", d.getLong("graine"), 0, false, false, true, 0), d, false);
                             default -> {}
                         }
                     }
@@ -122,6 +120,13 @@ public class TraqueClient implements ClientModInitializer {
                 // un souci d'affichage ne doit jamais faire planter le jeu
             }
         });
+    }
+
+    // Ouvre un mini-jeu ; la première fois que le joueur le voit, l'écran commence par en expliquer les règles.
+    private static void jouer(Minecraft mc, EcranAnalyse ecran, CompoundTag d, boolean essai) {
+        ecran.essai = essai;
+        ecran.intro = d.getBoolean("premiere");
+        mc.setScreen(ecran);
     }
 
     // Vrai tant que le joueur maintient le clic droit du kit sur une cible à identifier.
@@ -167,7 +172,9 @@ public class TraqueClient implements ClientModInitializer {
         int scan = Demo.scan ? 3 : frais ? signal.getInt("scan") : 0, distance = frais ? signal.getInt("distance") : 0;
         boolean autre = frais && signal.getBoolean("autre"), tropPres = frais && distance < signal.getInt("alerte") + 6;
         boolean vise = scan > 0 || pokemonVise(mc), clignote = (maintenant / 250) % 2 == 0;
-        scanLisse += (scan / 6.0 - scanLisse) * 0.12;
+        // Le scan dure 6 demi-secondes, ou 4 avec le scan rapide du rang d'inspecteur.
+        double dureeScan = frais && signal.getInt("scanMax") > 0 ? signal.getInt("scanMax") : 6;
+        scanLisse += (Math.min(1, scan / dureeScan) - scanLisse) * 0.12;
         // Bips du scanner : de plus en plus rapprochés et aigus à mesure que l'analyse avance ; un bourdonnement grave si ce n'est pas la cible.
         if (!Demo.scan && scan > 0 && maintenant >= prochainBip) {
             mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BIT.value(), (float) (0.75 + scanLisse * 1.25), 0.5f));
@@ -320,7 +327,7 @@ public class TraqueClient implements ClientModInitializer {
                 // La cible est en vue : il faut la scanner de loin (clic droit maintenu, viseur dessus) avant d'approcher.
                 int scan = signal.getInt("scan"), distance = signal.getInt("distance");
                 boolean tropPres = distance < signal.getInt("alerte") + 6, clignote = (maintenant / 250) % 2 == 0;
-                ligne1 = scan > 0 ? T.f("scanning") + (scan * 100 / 6) + " %" : T.f("scan_the_target");
+                ligne1 = scan > 0 ? T.f("scanning") + Math.min(100, scan * 100 / Math.max(1, signal.getInt("scanMax") > 0 ? signal.getInt("scanMax") : 6)) + " %" : T.f("scan_the_target");
                 couleur1 = scan > 0 ? Dessin.ACCENT : Dessin.JAUNE;
                 ligne2 = signal.getBoolean("autre") ? T.f("not_your_target") : tropPres ? T.f("too_close_back_off") : T.f("right_click") + distance + " m";
                 couleur2 = signal.getBoolean("autre") || (tropPres && clignote) ? Dessin.ALERTE : Dessin.GRIS;

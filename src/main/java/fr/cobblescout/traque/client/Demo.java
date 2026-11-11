@@ -94,6 +94,19 @@ final class Demo {
             TraqueClient.etat = etat("DEBUSQUE", 5);
             mc.setScreen(new EcranKit());
         });
+        etape("kit_carnet", () -> {
+            TraqueClient.etat = etat("PRELEVEMENTS", 2);
+            mc.setScreen(new EcranKit(1));
+        });
+        etape("kit_archives", () -> {
+            TraqueClient.etat = etat("PRELEVEMENTS", 2);
+            mc.setScreen(new EcranKit(2));
+        });
+        etape("premiere_fois", () -> {
+            EcranAnalyse ecran = new EcranAnalyse("oeuf", "tri", 7L, 0, false, false, true, 0);
+            ecran.intro = true;
+            mc.setScreen(ecran);
+        });
         etape("hud", () -> {
             mc.setScreen(null);
             TraqueClient.annonceTitre = net.minecraft.network.chat.Component.translatable("cobblemon_field_investigations.annonce.nouvelle_enquete.titre");
@@ -216,6 +229,34 @@ final class Demo {
         t.putDouble("recIncertitude", 60);
         t.putString("espece", "vulpix");
         t.putInt("etoiles", phase.equals("PRELEVEMENTS") ? 4 : 3);
+        CompoundTag carriere = new CompoundTag();
+        carriere.putInt("xp", 395);
+        carriere.putInt("rang", 3);
+        carriere.putInt("seuil", 320);
+        carriere.putInt("suivant", 560);
+        carriere.putInt("parfaites", 2);
+        carriere.putInt("speciales", 3);
+        carriere.putInt("especes", 6);
+        CompoundTag types = new CompoundTag();
+        types.putInt("ordinaire", 4);
+        types.putInt("nocturne", 1);
+        types.putInt("aquatique", 1);
+        types.putInt("cimes", 1);
+        carriere.put("types", types);
+        ListTag archives = new ListTag();
+        String[][] dossiers = {{"vulpix", "", "5"}, {"magikarp", "aquatique", "4"}, {"zubat", "nocturne", "3"}, {"oddish", "", "5"},
+                {"pikachu", "cimes", "2"}, {"geodude", "", "4"}, {"eevee", "", "3"}};
+        for (int i = 0; i < dossiers.length; i++) {
+            CompoundTag c = new CompoundTag();
+            c.putString("espece", dossiers[i][0]);
+            c.putString("special", dossiers[i][1]);
+            c.putInt("etoiles", Integer.parseInt(dossiers[i][2]));
+            c.putBoolean("capture", i % 3 != 2);
+            c.putLong("date", System.currentTimeMillis() - i * 86_400_000L);
+            archives.add(c);
+        }
+        carriere.put("archives", archives);
+        t.put("carriere", carriere);
         return t;
     }
 }

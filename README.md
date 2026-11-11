@@ -77,6 +77,18 @@ Tied to the biome of the trace zone (biome tags, with a fallback on the biome na
 Every special case rolls the `traque/speciale` loot table; biome kinds also roll `traque/type_<kind>`. Half of the
 extra leads are special by default (`chanceEnqueteSpeciale`).
 
+## Rank, kit upgrades and archives
+
+Everything lives in the Field Kit, in three tabs: **Case** (the current investigation), **Logbook** and **Archives**.
+
+- **Rank.** Every solved case gives experience: ten points per star, plus a bonus for the rarity of the species, for a
+  special case and for a species you did not own. Seven ranks, from Trainee to Legend.
+- **Kit upgrades**, one per rank: sharper radar, a spare vial (the first sample of each case needs none), quick scan
+  (2 s instead of 3), one more forgiven failure, more precise cry bearings, half the wait between cases.
+- **Archives.** Your closed cases (species, stars, kind, date) and the kinds of investigation you have already solved.
+
+The first time you meet a mini-game, the screen explains its rules and waits for you to press Start.
+
 ## Advancements
 
 Nine advancements follow your first steps (first sample, first buried clue, first analysis, first solved case) and
