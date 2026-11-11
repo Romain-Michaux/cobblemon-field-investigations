@@ -220,6 +220,7 @@ static String nomSpecial(String special) {
             case "altitude" -> T.f("highlands");
             case "givre" -> T.f("frost");
             case "brume" -> T.f("mist");
+            case "souterraine" -> T.f("underground");
             default -> T.f("standard");
         };
     }
@@ -236,6 +237,7 @@ static String nomSpecial(String special) {
             case "altitude" -> 0xFFC9B8AA;
             case "givre" -> 0xFFA8E4F0;
             case "brume" -> 0xFFB7A8DC;
+            case "souterraine" -> 0xFFD0A070;
             default -> Dessin.GRIS;
         };
     }
@@ -252,6 +254,7 @@ static String nomSpecial(String special) {
             case "altitude" -> new String[] {T.f("7traces_on_rock_faces_across"), T.f("7a_much_wider_zone")};
             case "givre" -> new String[] {T.f("7frozen_fragile_samples"), T.f("7one_dose_fewer_per_sample")};
             case "brume" -> new String[] {T.f("7cries_carry_poorly_bearings"), T.f("7are_much_less_precise")};
+            case "souterraine" -> new String[] {T.f("7cave_species_traces_and_target"), T.f("7underground_bring_torches_and_a")};
             default -> new String[] {T.f("7a_regular_investigation")};
         };
     }
@@ -267,6 +270,7 @@ static String nomSpecial(String special) {
             case "altitude" -> T.f("special_loot_rare_stones");
             case "givre" -> T.f("special_loot_ice_items");
             case "brume" -> T.f("special_loot_swamp_items");
+            case "souterraine" -> T.f("special_loot_ores_and_stones");
             default -> T.f("ivs_and_loot_by_your");
         };
     }

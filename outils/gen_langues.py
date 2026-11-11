@@ -503,6 +503,19 @@ NOUVEAUX += [
     ("Aucun joueur sans enquête à moins de 64 blocs.", "No player without a case within 64 blocks."),
     (" t'invite : voir l'onglet Équipe", " invites you: see the Team tab"),
 ]
+NOUVEAUX += [
+    # enquête souterraine et son mini-jeu
+    ("Souterraine", "Underground"),
+    ("§7Espèces des grottes : traces et cible", "§7Cave species: traces and target are"),
+    ("§7sous terre. Prévois torches et pioche.", "§7underground. Bring torches and a pickaxe."),
+    ("Butin spécial · minerais et pierres", "Special loot · ores and stones"),
+    ("Sous terre : ", "Underground: "),
+    ("Pierres retirées : ", "Stones removed: "), ("Éboulements : ", "Rockslides: "),
+    ("Les pierres assombries portent encore du poids. Les sombres à entailles demandent trois coups.",
+     "Darkened stones still carry weight. Dark notched ones take three hits."),
+    ("Dégage la pierre qui luit, tout en bas. On ne peut retirer qu'une pierre sur laquelle rien ne repose : commence par le haut.",
+     "Free the glowing stone at the very bottom. You can only pull a stone nothing rests on: start from the top."),
+]
 _deja = {f for f, _ in UI}
 UI += [t for t in NOUVEAUX if t[0] not in _deja]
 
@@ -517,6 +530,7 @@ CLES = [
     ("enfoui.taille", "Buried bone", "Ossement enfoui"), ("enfoui.oeuf", "Buried eggshells", "Coquilles enfouies"), ("enfoui.stat", "Broken fang", "Croc brisé"),
     ("enfoui.taille_1", "Buried tooth", "Dent enfouie"), ("enfoui.oeuf_1", "Buried feather", "Plume enfouie"), ("enfoui.oeuf_2", "Buried moult", "Mue enfouie"),
     ("enfoui.stat_1", "Broken claw", "Griffe brisée"), ("enfoui.stat_2", "Torn-off scale", "Écaille arrachée"),
+    ("jeu.eboulis", "Rockfall", "Éboulis"),
     ("jeu.tamisage", "Sieving", "Tamisage"), ("jeu.moulage", "Plaster cast", "Moulage au plâtre"), ("jeu.pince", "Tweezers", "Pince à épiler"),
     ("jeu.photo", "Field photo", "Photo de terrain"), ("jeu.ecouvillon", "Swabbing", "Écouvillonnage"), ("jeu.apnee", "Free dive", "Apnée"),
     ("jeu.grimpe", "Tree climb", "Grimpe"), ("jeu.rappel", "Abseil", "Rappel"), ("jeu.lampe", "UV lamp", "Lampe UV"),
@@ -653,6 +667,9 @@ CLES = [
     ("annonce.enquete_givre.texte", "The samples are frozen and fragile: each one holds one dose fewer. Head to the zone with your kit, vials and a brush", "Les échantillons sont gelés et fragiles : chacun contient une dose de moins. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
     ("annonce.enquete_brume.titre", "Misty investigation", "Enquête dans la brume"),
     ("annonce.enquete_brume.texte", "Cries carry poorly here: your bearings will be much less precise, take more of them. Head to the zone with your kit, vials and a brush", "Les cris portent mal ici : tes relevés seront nettement moins précis, multiplie-les. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_souterraine.titre", "Underground investigation", "Enquête souterraine"),
+    ("annonce.enquete_souterraine.texte", "A cave species: its traces and its lair are underground. The kit radar gives the depth; bring torches and a pickaxe. Head to the zone with your kit and vials",
+     "Une espèce des grottes : ses traces et sa tanière sont sous terre. Le radar du kit donne la profondeur ; prévois torches et pioche. Rends-toi dans la zone avec ton kit et des fioles"),
     # --- 1.1 : progrès ---
     ("progres.racine.titre", "Field Investigations", "Enquêtes de terrain"),
     ("progres.racine.texte", "Get a Field Kit and open your first case", "Procure-toi un kit de terrain et ouvre ta première enquête"),

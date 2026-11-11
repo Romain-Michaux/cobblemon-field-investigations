@@ -136,7 +136,8 @@ public final class Moteur {
     //  - altitude (montagne, collines) : traces sur les parois, zone de recherche bien plus vaste ;
     //  - givre (biomes enneigés) : échantillons fragiles, une dose de moins ;
     //  - brume (marais) : les cris portent mal, relevés moins précis.
-    static final List<String> GENERIQUES = List.of("nocturne", "craintive", "exceptionnel", "migratrice");
+    //  - souterraine : espèces des grottes, traces et cible sous terre (le radar donne la profondeur).
+    static final List<String> GENERIQUES = List.of("nocturne", "craintive", "exceptionnel", "migratrice", "souterraine");
 
     // Type lié au biome : il s'applique si le biome porte l'une de ces étiquettes, ou si son nom contient l'un de ces mots
     // (pour les biomes de mods qui ne sont pas étiquetés).
@@ -172,6 +173,8 @@ public final class Moteur {
         public int brossage;
         // Quel objet est enfoui (voir Genetique.VARIANTES) : os ou dent, coquilles, plume ou mue, croc, griffe ou écaille.
         public int variante;
+        // Enquête souterraine : nombre de fois où aucune grotte n'a été trouvée pour cette trace (à six, elle est posée en surface).
+        public transient int echecs;
 
         boolean finie() {
             return recolte || perdue;
@@ -889,7 +892,8 @@ public final class Moteur {
             double tx = zx + Math.cos(a2) * d2, tz = zz + Math.sin(a2) * d2;
             if (aquatique(monde, tx, tz) != eau) continue; // la tanière est dans le même milieu que les traces
             Holder<Biome> biome = monde.getBiome(BlockPos.containing(tx, 100, tz));
-            List<Candidat> bassin = bassin(biome, monde.dimension().location(), eau);
+            boolean grotte = "souterraine".equals(special);
+            List<Candidat> bassin = bassin(biome, monde.dimension().location(), eau, grotte);
             bassin.removeIf(c -> prises.contains(c.espece)); // jamais deux signalements pour la même espèce
             if (bassin.size() < 3) continue;
             double total = 0;
@@ -943,10 +947,10 @@ public final class Moteur {
             // Fouille : tout est enfoui. Sous l'eau : rien ne l'est (on ne brosse pas au fond d'un lac).
             for (int i = 0; i < enfouissables.size(); i++) {
                 Trace t = enfouissables.get(i);
-                t.enfoui = !eau && (i == 0 || "fouille".equals(special));
+                t.enfoui = !eau && !grotte && (i == 0 || "fouille".equals(special));
                 t.variante = HASARD.nextInt(Genetique.VARIANTES.getOrDefault(t.genre, 1));
             }
-            d.suspects = suspects(cible.espece, bassin, "exceptionnel".equals(special), eau);
+            d.suspects = suspects(cible.espece, bassin, "exceptionnel".equals(special), eau, grotte);
             return d;
         }
         return null;
@@ -964,14 +968,16 @@ public final class Moteur {
     }
 
     // Espèces de surface que Cobblemon fait apparaître dans ce biome (null = partout) : terrestres, ou vivant dans l'eau.
-    private static List<Candidat> bassin(Holder<Biome> biome, ResourceLocation dimension, boolean eau) {
+    // « grotte » : seulement les espèces que Cobblemon fait apparaître sous terre (à l'abri du ciel, ou en profondeur).
+    private static List<Candidat> bassin(Holder<Biome> biome, ResourceLocation dimension, boolean eau, boolean grotte) {
         Map<String, Candidat> resultat = new HashMap<>();
         for (SpawnDetail detail : CobblemonSpawnPools.WORLD_SPAWN_POOL.getDetails()) {
             if (!(detail instanceof PokemonSpawnDetail pokemon)) continue;
             int rang = CATEGORIES.indexOf(detail.getBucket());
             String position = detail.getSpawnablePositionType().getName();
             if (rang < 0 || !(eau ? "submerged".equals(position) || "surface".equals(position) : "grounded".equals(position))) continue;
-            if (pokemon.getPokemon().getForm() != null || (biome != null && !convient(detail, biome, dimension))) continue;
+            if (pokemon.getPokemon().getForm() != null || (biome != null && !convient(detail, biome, dimension, grotte))) continue;
+            if (biome == null && grotte && !sousTerre(detail)) continue;
             String nom = pokemon.getPokemon().getSpecies();
             if (nom == null) continue;
             nom = nom.substring(nom.indexOf(':') + 1).toLowerCase();
@@ -989,12 +995,23 @@ public final class Moteur {
         return new ArrayList<>(resultat.values());
     }
 
-    private static boolean convient(SpawnDetail detail, Holder<Biome> biome, ResourceLocation dimension) {
+    private static boolean sousTerre(SpawningCondition<?> c) {
+        return Boolean.FALSE.equals(c.getCanSeeSky()) || (c.getMaxY() != null && c.getMaxY() < 62);
+    }
+
+    private static boolean sousTerre(SpawnDetail detail) {
+        for (SpawningCondition<?> c : detail.getConditions()) {
+            if (sousTerre(c)) return true;
+        }
+        return false;
+    }
+
+    private static boolean convient(SpawnDetail detail, Holder<Biome> biome, ResourceLocation dimension, boolean grotte) {
         boolean ok = false;
         for (SpawningCondition<?> c : detail.getConditions()) {
             Set<RegistryLikeCondition<Biome>> biomes = c.getBiomes();
             if (biomes == null || biomes.isEmpty()) continue;
-            if (Boolean.FALSE.equals(c.getCanSeeSky()) || (c.getMaxY() != null && c.getMaxY() < 62)) continue;
+            if (sousTerre(c) != grotte) continue; // les enquêtes de surface ignorent les apparitions souterraines, et inversement
             List<ResourceLocation> dims = c.getDimensions();
             if (dims != null && !dims.isEmpty() && !dims.contains(dimension)) continue;
             for (RegistryLikeCondition<Biome> b : biomes) {
@@ -1018,12 +1035,12 @@ public final class Moteur {
 
     // La cible + des leurres au profil proche (mais jamais identique : les 5 marqueurs désignent toujours une seule espèce).
     // « serre » (enquête exceptionnelle) : tous les leurres sont pris parmi les profils les plus proches.
-    private static List<String> suspects(String cible, List<Candidat> locaux, boolean serre, boolean eau) {
+    private static List<String> suspects(String cible, List<Candidat> locaux, boolean serre, boolean eau, boolean grotte) {
         Species s = PokemonSpecies.getByName(cible);
         Set<String> duCoin = new HashSet<>();
         for (Candidat c : locaux) duCoin.add(c.espece);
         Map<String, Double> notes = new HashMap<>();
-        for (Candidat c : bassin(null, null, eau)) {
+        for (Candidat c : bassin(null, null, eau, grotte)) {
             if (c.espece.equals(cible)) continue;
             Species autre = PokemonSpecies.getByName(c.espece);
             int communs = Genetique.communs(s, autre);
@@ -1156,6 +1173,17 @@ public final class Moteur {
             if (!sousLEau(monde, t, bx, bz)) ailleurs(d, t);
             return;
         }
+        if (est(d, "souterraine") && t.echecs < 6) {
+            BlockPos sol = grotte(monde, bx, bz, 10);
+            if (sol != null) {
+                fixer(monde, t, sol, Direction.UP);
+            } else {
+                // Pas de grotte sous cet endroit : on cherche ailleurs dans la zone. Après six essais, la trace finit en surface.
+                t.echecs++;
+                ailleurs(d, t);
+            }
+            return;
+        }
         Random h = new Random(d.graine + t.genre.hashCode());
         // Cimes : tout se trouve dans les arbres. Altitude : sur les parois rocheuses.
         if (est(d, "cimes") && (h.nextBoolean() ? surCime(monde, t, bx, bz) || surParoi(monde, t, bx, bz, true)
@@ -1194,6 +1222,36 @@ public final class Moteur {
         t.z = Math.floor(d.zoneZ + Math.sin(a) * r) + 0.5;
         t.posee = false;
         sauver();
+    }
+
+    // Enquête souterraine : le sol d'une grotte sous ce point (deux blocs d'air sur un bloc plein, à l'abri du ciel, au moins
+    // huit blocs sous la surface), en s'écartant en spirale.
+    private static BlockPos grotte(ServerLevel monde, int bx, int bz, int rayonMax) {
+        int fond = monde.getMinBuildHeight() + 6;
+        for (int rayon = 0; rayon <= rayonMax; rayon++) {
+            for (int dx = -rayon; dx <= rayon; dx++) {
+                for (int dz = -rayon; dz <= rayon; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != rayon) continue;
+                    int x = bx + dx, z = bz + dz;
+                    if (!monde.hasChunk(x >> 4, z >> 4)) continue;
+                    var chunk = monde.getChunk(x >> 4, z >> 4);
+                    int surface = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
+                    BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, surface - 8, z);
+                    boolean dessus = false; // le bloc juste au-dessus est-il de l'air ?
+                    for (int y = surface - 8; y > fond; y--) {
+                        pos.setY(y);
+                        BlockState ici = chunk.getBlockState(pos);
+                        boolean air = ici.isAir();
+                        if (!air && dessus && ici.getFluidState().isEmpty() && ici.isFaceSturdy(monde, pos, Direction.UP)) {
+                            BlockPos sol = new BlockPos(x, y + 1, z);
+                            if (chunk.getBlockState(sol.above()).isAir() && !monde.canSeeSky(sol)) return sol;
+                        }
+                        dessus = air;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     // Enquête aquatique : la trace repose au fond de l'eau, de préférence par petit fond (14 blocs au plus).
@@ -1628,6 +1686,12 @@ public final class Moteur {
                     signal.donnees().putDouble("metres", Math.sqrt(joueur.distanceToSqr(proche.px + 0.5, proche.py + 0.5, proche.pz + 0.5)));
                     signal.donnees().putInt("dessous", (int) Math.round(joueur.getY() - (proche.py + 1)));
                 }
+                // Enquête souterraine : le radar donne aussi la distance réelle et la profondeur de la trace la plus proche.
+                if (est(d, "souterraine") && proche != null && proche.posee && proche.echecs < 6) {
+                    signal.donnees().putBoolean("grotte", true);
+                    signal.donnees().putDouble("metres", Math.sqrt(joueur.distanceToSqr(proche.px + 0.5, proche.py + 0.5, proche.pz + 0.5)));
+                    signal.donnees().putInt("dessous", (int) Math.round(joueur.getY() - proche.py));
+                }
                 signal.donnees().putInt("zone", (int) distance(joueur, d.zoneX, d.zoneZ));
                 envoyer(joueur, signal);
                 return;
@@ -1816,8 +1880,9 @@ public final class Moteur {
             }
         }
         // Elle apparaît sur la terre ferme : jamais dans l'eau, la lave ou au-dessus du vide.
-        BlockPos sol = est(d, "aquatique") ? pleineEau(monde, (int) Math.floor(d.taniereX), (int) Math.floor(d.taniereZ))
-                : solFerme(monde, (int) Math.floor(d.taniereX), (int) Math.floor(d.taniereZ));
+        int tx = (int) Math.floor(d.taniereX), tz = (int) Math.floor(d.taniereZ);
+        BlockPos sol = est(d, "aquatique") ? pleineEau(monde, tx, tz) : est(d, "souterraine") ? grotte(monde, tx, tz, 12) : solFerme(monde, tx, tz);
+        if (sol == null && est(d, "souterraine")) sol = solFerme(monde, tx, tz); // aucune grotte par ici : elle sort en surface
         if (sol == null) {
             deplacer(d, monde, 40, 80); // rien de praticable ici : elle est repérée un peu plus loin
             sauver();

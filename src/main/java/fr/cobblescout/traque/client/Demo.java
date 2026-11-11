@@ -38,7 +38,7 @@ final class Demo {
             CompoundTag t = new CompoundTag();
             t.putInt("reussies", 3);
             ListTag pistes = new ListTag();
-            String[] speciaux = {"", "aquatique", "fouille"};
+            String[] speciaux = {"", "souterraine", "fouille"};
             for (int i = 0; i < 3; i++) {
                 CompoundTag c = new CompoundTag();
                 c.putInt("rang", i);
@@ -71,7 +71,7 @@ final class Demo {
         String[][] prelevements = {{"type1", "memoire"}, {"type2", "pipette"}, {"taille", "mesure"}, {"oeuf", "tri"}, {"stat", "trace"},
                 {"taille", "degagement"}, {"oeuf", "degagement"}, {"stat", "degagement"}, {"oeuf", "tamisage"}, {"type1", "photo"},
                 {"type2", "ecouvillon"}, {"taille", "moulage"}, {"oeuf", "pince"}, {"type1", "apnee"}, {"stat", "grimpe"}, {"stat", "rappel"},
-                {"type1", "lampe"}, {"", "filtrage"}};
+                {"type1", "lampe"}, {"type2", "eboulis"}, {"", "filtrage"}};
         for (String[] a : prelevements) {
             boolean enfoui = a[1].equals("degagement") || a[1].equals("tamisage");
             // Les dégagements montrent les objets de base ; le tamisage, un objet ajouté en 1.1 (la plume).

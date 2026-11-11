@@ -55,6 +55,7 @@ public class EcranAnalyse extends Screen {
             case "grimpe" -> new JeuxNouveaux.Grimpe(h);
             case "rappel" -> new JeuxNouveaux.Rappel(h);
             case "lampe" -> new JeuxNouveaux.LampeUV(h);
+            case "eboulis" -> new JeuxNouveaux.Eboulis(h);
             case "filtrage" -> new JeuxNouveaux.Filtrage(h);
             case "microscope" -> new JeuxNouveaux.Microscope(h);
             case "chromatographie" -> new JeuxNouveaux.Chromato(h);

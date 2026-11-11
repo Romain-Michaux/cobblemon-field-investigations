@@ -20,7 +20,7 @@ public class EcranKit extends Screen {
     static final ResourceLocation INSIGNE = Dessin.texture("insigne");
     // Couleur de l'insigne et du nom de chaque rang, du stagiaire à la légende.
     static final int[] COULEURS_RANGS = {0xFFB08D6A, 0xFFE0A060, 0xFFE8EEF2, 0xFFF2C93A, 0xFF6CCB5F, 0xFF4FD1C5, 0xFFC79CFF};
-    static final String[] TYPES = {"", "nocturne", "craintive", "exceptionnel", "migratrice", "aquatique", "fouille", "cimes", "altitude", "givre", "brume"};
+    static final String[] TYPES = {"", "nocturne", "craintive", "exceptionnel", "migratrice", "aquatique", "fouille", "cimes", "altitude", "givre", "brume", "souterraine"};
     // 0 = enquête en cours, 1 = carnet de l'enquêteur, 2 = archives, 3 = équipe.
     private int onglet;
     private int defilement;
@@ -215,7 +215,7 @@ public class EcranKit extends Screen {
         for (String t : TYPES) resolus += types.getInt(t.isEmpty() ? "ordinaire" : t) > 0 ? 1 : 0;
         Dessin.ecrire(g, T.f("kinds") + resolus + " / " + TYPES.length, x + 210, y + 23, Dessin.JAUNE, false);
         for (int i = 0; i < TYPES.length; i++) {
-            int n = types.getInt(TYPES[i].isEmpty() ? "ordinaire" : TYPES[i]), ly = y + 36 + i * 11;
+            int n = types.getInt(TYPES[i].isEmpty() ? "ordinaire" : TYPES[i]), ly = y + 35 + i * 10;
             Dessin.ecrire(g, n > 0 ? "✔" : "·", x + 210, ly, n > 0 ? Dessin.VERT : Dessin.SOMBRE, false);
             Dessin.ecrire(g, EcranTableau.nomSpecial(TYPES[i]), x + 221, ly, n > 0 ? EcranTableau.couleurSpecial(TYPES[i]) : Dessin.SOMBRE, false);
             if (n > 0) Dessin.ecrire(g, "×" + n, x + 310 - Dessin.police().width("×" + n), ly, Dessin.GRIS, false);

@@ -62,6 +62,7 @@ Possible anywhere:
 | Skittish | The target senses you from much farther away: scan it from a long distance | Double special loot |
 | Exceptional | One more analysis result is required and the suspects all look alike | Hidden ability, special loot |
 | Restless | The target moves twice as often during the hunt and its lair is farther away | Double special loot |
+| Underground | Cave species: traces and lair are underground, the radar gives the depth | Ores and stones, special loot |
 
 Tied to the biome of the trace zone (biome tags, with a fallback on the biome name for untagged modded biomes):
 
@@ -79,13 +80,20 @@ extra leads are special by default (`chanceEnqueteSpeciale`).
 
 ## Rank, kit upgrades and archives
 
-Everything lives in the Field Kit, in three tabs: **Case** (the current investigation), **Logbook** and **Archives**.
+Everything lives in the Field Kit, in four tabs: **Case** (the current investigation), **Logbook**, **Archives** and **Team**.
 
 - **Rank.** Every solved case gives experience: ten points per star, plus a bonus for the rarity of the species, for a
   special case and for a species you did not own. Seven ranks, from Trainee to Legend.
 - **Kit upgrades**, one per rank: sharper radar, a spare vial (the first sample of each case needs none), quick scan
   (2 s instead of 3), one more forgiven failure, more precise cry bearings, half the wait between cases.
 - **Archives.** Your closed cases (species, stars, kind, date) and the kinds of investigation you have already solved.
+
+## Team investigations
+
+The player who opened a case is its lead investigator. From the kit's **Team** tab they can invite players standing
+within 64 blocks who have no case of their own (four investigators at most by default, `tailleEquipe`). Everyone then
+samples, analyses, tracks and scans for the same case. Stars are shared; when the case is solved, every member who is
+online gets their own loot and experience. A teammate can leave at any time; only the lead can close the case.
 
 The first time you meet a mini-game, the screen explains its rules and waits for you to press Start.
 
@@ -129,6 +137,7 @@ Some special investigations bring their own games:
 | Canopy | Tree climb: grab each hold on the right side, in rhythm |
 | Highlands | Abseil: let the rope run and brake level with each trace |
 | Nocturnal | UV lamp: sweep the dark ground to reveal fluorescent stains |
+| Underground | Rockfall: free the glowing stone by pulling the stones that rest on it first |
 | Frost | Thawing: keep the frozen sample in the right temperature range |
 | Mist | Cry filter: before each bearing, track the frequency where the cry stands out; a miss only makes the bearing less precise |
 

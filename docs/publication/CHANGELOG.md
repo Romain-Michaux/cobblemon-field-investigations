@@ -21,6 +21,10 @@
   - Each trace and each marker now picks among several games.
 - **Buried clues**: a single one per regular case (dig sites keep three), dug up with the brush or the sieve, and what
   you find varies: bone or tooth, eggshells, feather or moult, fang, claw or scale.
+- **Team investigations**: the lead investigator invites nearby players from the kit; one shared case, shared stars,
+  loot and experience for every member.
+- **Underground investigations**: cave species, traces and lair in caves, depth shown on the radar, and a dedicated
+  mini-game (rockfall). New loot table `traque/type_souterraine`.
 - **Investigator rank**: experience for every solved case, seven ranks, and one kit upgrade per rank (sharper radar,
   spare vial, quick scan, one more forgiven failure, keener ear, shorter wait between cases).
 - **Logbook and archives** in the Field Kit: rank and upgrades, closed cases, kinds of investigation already solved.

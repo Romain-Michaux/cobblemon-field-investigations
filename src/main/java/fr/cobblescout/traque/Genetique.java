@@ -38,7 +38,7 @@ public final class Genetique {
             "oeuf", List.of("tri", "pince"), "stat", List.of("trace", "photo"));
     // Tous les mini-jeux, pour la commande d'essai /hunt game : prélèvements, puis analyses.
     public static final List<String> JEUX_TERRAIN = List.of("memoire", "pipette", "mesure", "tri", "trace", "degagement", "tamisage", "moulage",
-            "pince", "photo", "ecouvillon", "apnee", "grimpe", "rappel", "lampe", "filtrage");
+            "pince", "photo", "ecouvillon", "apnee", "grimpe", "rappel", "lampe", "eboulis", "filtrage");
     public static final List<String> JEUX_LABO = List.of("sequencage", "appariement", "centrifugation", "fragments", "spectre", "gel", "titrage",
             "pcr", "comptage", "microscope", "chromatographie", "parente", "dosage", "morsure", "degel");
 
@@ -47,7 +47,7 @@ public final class Genetique {
     static {
         String[][] noms = {{"crystals", "memoire"}, {"pipette", "pipette"}, {"measure", "mesure"}, {"sorting", "tri"}, {"tracing", "trace"},
                 {"brush", "degagement"}, {"sieve", "tamisage"}, {"cast", "moulage"}, {"tweezers", "pince"}, {"photo", "photo"}, {"swab", "ecouvillon"},
-                {"dive", "apnee"}, {"climb", "grimpe"}, {"abseil", "rappel"}, {"uvlamp", "lampe"}, {"filter", "filtrage"},
+                {"dive", "apnee"}, {"climb", "grimpe"}, {"abseil", "rappel"}, {"uvlamp", "lampe"}, {"rockfall", "eboulis"}, {"filter", "filtrage"},
                 {"sequencing", "sequencage"}, {"pairing", "appariement"}, {"centrifuge", "centrifugation"}, {"fragments", "fragments"},
                 {"spectrum", "spectre"}, {"gel", "gel"}, {"colour", "titrage"}, {"pcr", "pcr"}, {"count", "comptage"}, {"microscope", "microscope"},
                 {"chromatography", "chromatographie"}, {"tree", "parente"}, {"titration", "dosage"}, {"bite", "morsure"}, {"thaw", "degel"}};
@@ -93,6 +93,7 @@ public final class Genetique {
                 case "cimes": return "grimpe";
                 case "altitude": return "rappel";
                 case "nocturne": return "lampe";
+                case "souterraine": return "eboulis";
                 default:
             }
         }
