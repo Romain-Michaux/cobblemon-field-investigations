@@ -372,6 +372,26 @@ def ambiance_labo():
 
 
 PERSO = os.path.join(ICI, "sons_perso")
+# Durée maximale de chaque son fait à la main, en secondes. Beaucoup sont rejoués plusieurs fois par seconde (le tamis, la
+# corde, le bip du scanner) : trop longs, ils se superposeraient en bouillie. Au-delà, le son est coupé en fondu.
+DUREES = {"clic": 0.12, "molette": 0.08, "tic": 0.1, "carillon": 0.9, "mousqueton": 0.6, "reussite": 1.6, "echec": 0.6, "identifie": 1.6,
+          "grade": 2.1, "scan": 0.18, "papier": 0.5, "tamis": 0.35, "frottement": 0.3, "pinceau": 0.35, "corde": 0.3, "platre": 0.4,
+          "debordement": 0.47, "pluck": 0.25, "fiole": 0.6, "bulle": 0.25, "goutte": 0.24, "pince": 0.15, "coeur": 0.5, "branche": 0.35,
+          "choc": 0.2, "pioche": 0.45, "pierre": 0.45, "craquement": 0.28, "eboulement": 1.4, "glace": 0.42, "obturateur": 0.22,
+          "lampe": 1.2, "flamme": 0.5, "sifflement": 0.6}
+
+
+def ajuster(x, sr, nom):
+    """Retire le silence du début, puis coupe à la durée maximale du son avec un fondu de sortie."""
+    seuil = np.max(np.abs(x)) * 0.02
+    debut = int(np.argmax(np.abs(x) > seuil))
+    x = x[max(0, debut - int(sr * 0.002)):]
+    n = int(sr * DUREES.get(nom, 2.0))
+    if len(x) > n:
+        x = x[:n].copy()
+        f = min(n, int(sr * 0.05))
+        x[-f:] *= np.linspace(1, 0, f) ** 2
+    return x
 
 
 def perso(nom):
@@ -391,7 +411,7 @@ if __name__ == "__main__":
     for nom, fabrique in SONS.items():
         main = perso(nom)
         if main is not None:
-            sf.write(os.path.join(SORTIE, nom + ".ogg"), finir(main[0], fondu=0.003), main[1], format="OGG", subtype="VORBIS")
+            sf.write(os.path.join(SORTIE, nom + ".ogg"), finir(ajuster(main[0], main[1], nom), fondu=0.003), main[1], format="OGG", subtype="VORBIS")
             remplaces.append(nom)
         else:
             sf.write(os.path.join(SORTIE, nom + ".ogg"), finir(fabrique()), SR, format="OGG", subtype="VORBIS")
