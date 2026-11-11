@@ -1,6 +1,8 @@
 # Bruitages et ambiance du mod, fabriqués par synthèse (numpy) et écrits en OGG Vorbis, le seul format que lit Minecraft.
 # Chaque son est un fichier assets/<mod>/sounds/<nom>.ogg déclaré dans sounds.json : pour remplacer un son par un
 # enregistrement ou une génération, il suffit de déposer un autre .ogg du même nom (et de retirer le son de ce script).
+# Sons faits à la main : tout fichier outils/sons_perso/<nom>.wav (ou .ogg, .mp3, .flac) remplace le son synthétisé du
+# même nom. C'est le moyen d'utiliser des sons réglés à l'oreille, par exemple exportés de https://www.bfxr.net/.
 # Usage : python outils/gen_sons.py   (nécessite numpy et soundfile)
 import json
 import os
@@ -369,13 +371,38 @@ def ambiance_labo():
     return (y / np.max(np.abs(y)) * 0.5).astype(np.float32)
 
 
+PERSO = os.path.join(ICI, "sons_perso")
+
+
+def perso(nom):
+    """Le son fait à la main pour ce nom, s'il existe : (échantillons en mono, fréquence), sinon None."""
+    for ext in (".wav", ".ogg", ".flac", ".mp3"):
+        chemin = os.path.join(PERSO, nom + ext)
+        if os.path.exists(chemin):
+            x, sr = sf.read(chemin, dtype="float32", always_2d=True)
+            return x.mean(axis=1), sr
+    return None
+
+
 if __name__ == "__main__":
     os.makedirs(SORTIE, exist_ok=True)
-    declarations = {}
+    os.makedirs(PERSO, exist_ok=True)
+    declarations, remplaces = {}, []
     for nom, fabrique in SONS.items():
-        sf.write(os.path.join(SORTIE, nom + ".ogg"), finir(fabrique()), SR, format="OGG", subtype="VORBIS")
+        main = perso(nom)
+        if main is not None:
+            sf.write(os.path.join(SORTIE, nom + ".ogg"), finir(main[0], fondu=0.003), main[1], format="OGG", subtype="VORBIS")
+            remplaces.append(nom)
+        else:
+            sf.write(os.path.join(SORTIE, nom + ".ogg"), finir(fabrique()), SR, format="OGG", subtype="VORBIS")
         declarations[nom] = {"sounds": [NS + ":" + nom]}
-    sf.write(os.path.join(SORTIE, "ambiance_labo.ogg"), ambiance_labo(), SR, format="OGG", subtype="VORBIS")
+    main = perso("ambiance_labo")
+    if main is not None:
+        sf.write(os.path.join(SORTIE, "ambiance_labo.ogg"), (main[0] / (np.max(np.abs(main[0])) + 1e-9) * 0.5).astype(np.float32), main[1], format="OGG", subtype="VORBIS")
+        remplaces.append("ambiance_labo")
+    else:
+        sf.write(os.path.join(SORTIE, "ambiance_labo.ogg"), ambiance_labo(), SR, format="OGG", subtype="VORBIS")
+    print("sons faits à la main :", ", ".join(remplaces) if remplaces else "aucun")
     declarations["ambiance_labo"] = {"sounds": [{"name": NS + ":ambiance_labo", "stream": True}]}
     with open(os.path.join(SORTIE, "..", "sounds.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(declarations, f, ensure_ascii=False, indent=2, sort_keys=True)
