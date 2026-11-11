@@ -112,15 +112,15 @@ final class JeuxTerrain {
                 g.setColor(1f, 1f, 1f, 1f);
             }
             int tx = ox + 172;
-            g.drawString(Dessin.police(), T.f("deposit") + Math.min(3, manche + 1) + " / 3", tx, oy + 8, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), montre > 0 ? T.f("watch_closely") : pause > 0 ? T.f("deposit_sampled") : T.f("your_turn_sample"), tx, oy + 20,
+            Dessin.ecrire(g, T.f("deposit") + Math.min(3, manche + 1) + " / 3", tx, oy + 8, Dessin.TEXTE, false);
+            Dessin.ecrire(g, montre > 0 ? T.f("watch_closely") : pause > 0 ? T.f("deposit_sampled") : T.f("your_turn_sample"), tx, oy + 20,
                     montre > 0 ? Dessin.JAUNE : pause > 0 ? Dessin.VERT : Dessin.ACCENT, false);
             if (montre > 0) jaugeTemps(g, tx, oy + 32, 100, montre / (double) duree);
             g.fill(tx, oy + 46, tx + 8, oy + 54, STABLE);
-            g.drawString(Dessin.police(), T.f("stable") + restants, tx + 12, oy + 46, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("stable") + restants, tx + 12, oy + 46, Dessin.TEXTE, false);
             g.fill(tx, oy + 58, tx + 8, oy + 66, INSTABLE);
-            g.drawString(Dessin.police(), T.f("unstable_avoid"), tx + 12, oy + 58, Dessin.GRIS, false);
-            g.drawString(Dessin.police(), T.f("faults") + fautes + " / 3", tx, oy + 76, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("unstable_avoid"), tx + 12, oy + 58, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("faults") + fautes + " / 3", tx, oy + 76, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
             Dessin.paragraphe(g, T.f("no_fault_one_extra_dose"), tx, oy + 92, 104, Dessin.SOMBRE);
         }
 
@@ -221,9 +221,9 @@ final class JeuxTerrain {
             g.fill(tx, yBas - 1, tx + tl, yBas, 0xC06CCB5F);
             for (int i = 1; i < 10; i++) g.fill(tx, ty + i * 10, tx + (i % 5 == 0 ? 8 : 4), ty + i * 10 + 1, 0xFF5D6E80);
             int px = ox + 110;
-            g.drawString(Dessin.police(), T.f("dose") + Math.min(3, manche + 1) + " / 3", px, oy + 14, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("faults") + fautes + " / 3", px, oy + 26, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
-            g.drawString(Dessin.police(), pause > 0 ? (dernierOk ? T.f("right_dose") : niveau >= 1 ? T.f("overflow") : T.f("wrong_dose")) : aspire ? T.f("release_in_the_green") : T.f("hold_the_click"),
+            Dessin.ecrire(g, T.f("dose") + Math.min(3, manche + 1) + " / 3", px, oy + 14, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("faults") + fautes + " / 3", px, oy + 26, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, pause > 0 ? (dernierOk ? T.f("right_dose") : niveau >= 1 ? T.f("overflow") : T.f("wrong_dose")) : aspire ? T.f("release_in_the_green") : T.f("hold_the_click"),
                     px, oy + 46, pause > 0 ? (dernierOk ? Dessin.VERT : Dessin.ALERTE) : Dessin.JAUNE, false);
             Dessin.paragraphe(g, T.f("the_green_zone_shrinks_and"), px, oy + 66, 160, Dessin.SOMBRE);
         }
@@ -317,11 +317,11 @@ final class JeuxTerrain {
                 regle(g, etape, p, flash > 0 ? (flashOk ? Dessin.VERT : Dessin.ALERTE) : Dessin.TEXTE);
             }
             int px = ox + 150;
-            g.drawString(Dessin.police(), T.f("jaw") + Math.min(4, etape + 1) + " / 4", px, oy + 12, Dessin.TEXTE, false);
-            if (etape < 4) g.drawString(Dessin.police(), BORDS[etape], px, oy + 24, Dessin.JAUNE, false);
-            g.drawString(Dessin.police(), T.f("faults") + fautes + " / 2", px, oy + 40, fautes > 0 ? Dessin.ALERTE : Dessin.GRIS, false);
-            if (etape >= 2) g.drawString(Dessin.police(), T.f("width") + Math.round((poses[1] - poses[0]) / 2) + T.f("cm"), px, oy + 58, Dessin.ACCENT, false);
-            if (etape >= 4) g.drawString(Dessin.police(), T.f("length") + Math.round((poses[3] - poses[2]) / 2) + T.f("cm"), px, oy + 70, Dessin.ACCENT, false);
+            Dessin.ecrire(g, T.f("jaw") + Math.min(4, etape + 1) + " / 4", px, oy + 12, Dessin.TEXTE, false);
+            if (etape < 4) Dessin.ecrire(g, BORDS[etape], px, oy + 24, Dessin.JAUNE, false);
+            Dessin.ecrire(g, T.f("faults") + fautes + " / 2", px, oy + 40, fautes > 0 ? Dessin.ALERTE : Dessin.GRIS, false);
+            if (etape >= 2) Dessin.ecrire(g, T.f("width") + Math.round((poses[1] - poses[0]) / 2) + T.f("cm"), px, oy + 58, Dessin.ACCENT, false);
+            if (etape >= 4) Dessin.ecrire(g, T.f("length") + Math.round((poses[3] - poses[2]) / 2) + T.f("cm"), px, oy + 70, Dessin.ACCENT, false);
             Dessin.paragraphe(g, T.f("click_when_the_ruler_touches"), px, oy + 88, 124, Dessin.SOMBRE);
         }
 
@@ -392,9 +392,9 @@ final class JeuxTerrain {
                 g.fill(bx + (int) px[ligne][0] - 3, by + (int) py[ligne][0] - 3, bx + (int) px[ligne][0] + 3, by + (int) py[ligne][0] + 3, pulse ? Dessin.ACCENT : Dessin.TEXTE);
             }
             int tx = ox + 172;
-            g.drawString(Dessin.police(), T.f("scratch") + Math.min(3, ligne + 1) + " / 3", tx, oy + 12, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("slips") + fautes + " / 3", tx, oy + 24, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
-            g.drawString(Dessin.police(), enCours ? T.f("follow_the_groove") : attendRelache ? T.f("release_and_retry") : T.f("start_from_the_dot"), tx, oy + 44,
+            Dessin.ecrire(g, T.f("scratch") + Math.min(3, ligne + 1) + " / 3", tx, oy + 12, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("slips") + fautes + " / 3", tx, oy + 24, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, enCours ? T.f("follow_the_groove") : attendRelache ? T.f("release_and_retry") : T.f("start_from_the_dot"), tx, oy + 44,
                     enCours ? Dessin.ACCENT : Dessin.JAUNE, false);
             Dessin.paragraphe(g, T.f("hold_the_click_from_top"), tx, oy + 64, 104, Dessin.SOMBRE);
         }
@@ -559,9 +559,9 @@ final class JeuxTerrain {
             }
             if (!fini && Dessin.dans(mx, my, bx, by, 160, 112)) Dessin.cercle(g, mx - 1, my - 1, RAYON, 2, appui ? Dessin.JAUNE : Dessin.TEXTE);
             int tx = ox + 172;
-            g.drawString(Dessin.police(), T.f("fragments") + trouves + " / " + FRAGMENTS, tx, oy + 12, trouves > 0 ? Dessin.VERT : Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("snags") + fautes + " / 3", tx, oy + 24, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
-            g.drawString(Dessin.police(), flash > 0 ? T.f("too_rough") : T.f("brush_gently"), tx, oy + 44, flash > 0 ? Dessin.ALERTE : Dessin.JAUNE, false);
+            Dessin.ecrire(g, T.f("fragments") + trouves + " / " + FRAGMENTS, tx, oy + 12, trouves > 0 ? Dessin.VERT : Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("snags") + fautes + " / 3", tx, oy + 24, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, flash > 0 ? T.f("too_rough") : T.f("brush_gently"), tx, oy + 44, flash > 0 ? Dessin.ALERTE : Dessin.JAUNE, false);
             Dessin.paragraphe(g, T.f("go_slowly_a_pale_patch"), tx, oy + 60, 104, Dessin.SOMBRE);
             jaugeTemps(g, tx, oy + 104, 100, temps / (double) DUREE);
         }

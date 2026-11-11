@@ -121,6 +121,13 @@ final class Demo {
         ClientTickEvents.END_CLIENT_TICK.register(Demo::tick);
     }
 
+    // Textes trop longs pour leur cadre, relevés pendant la démo (ils défilent en jeu) : écran -> textes et pixels en trop.
+    private static final java.util.Map<String, Integer> DEBORDEMENTS = new java.util.LinkedHashMap<>();
+
+    static void debordement(String texte, int pixels) {
+        if (active && etape >= 0 && etape < NOMS.size()) DEBORDEMENTS.merge(NOMS.get(etape) + "\t" + texte, pixels, Math::max);
+    }
+
     private static void etape(String nom, Runnable action) {
         NOMS.add(String.format("%02d_%s", NOMS.size() + 1, nom));
         ETAPES.add(action);
@@ -149,6 +156,13 @@ final class Demo {
             etape++;
             depuis = 0;
             if (etape >= ETAPES.size()) {
+                try {
+                    StringBuilder sb = new StringBuilder();
+                    DEBORDEMENTS.forEach((cle, px) -> sb.append(cle).append("\t+").append(px).append(" px\n"));
+                    Files.writeString(mc.gameDirectory.toPath().resolve("screenshots").resolve("demo_debordements.txt"), sb.toString());
+                } catch (Exception e) {
+                    // ce relevé n'est qu'une aide à la mise au point
+                }
                 mc.stop();
                 return;
             }

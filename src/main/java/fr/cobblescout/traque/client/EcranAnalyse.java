@@ -133,7 +133,7 @@ public class EcranAnalyse extends Screen {
             String titre = T.f("dna_sequencer_2") + nomJeu;
             if (Dessin.police().width(titre) > 220) titre = nomJeu;
             Dessin.centre(g, titre, x + l / 2, y + 176, 0xFF0E3B3A);
-            g.drawString(Dessin.police(), T.c(Genetique.nomTrace(genre, enfoui, variante)) + T.f("doses") + doses + (filet ? T.f("first_mistake_is_free") : ""),
+            Dessin.ecrire(g, T.c(Genetique.nomTrace(genre, enfoui, variante)) + T.f("doses") + doses + (filet ? T.f("first_mistake_is_free") : ""),
                     zx, y + 3, Dessin.GRIS, false);
             zy = y + 15;
         }
@@ -228,7 +228,7 @@ public class EcranAnalyse extends Screen {
         void dessiner(GuiGraphics g, int mx, int my, float pt) {
             for (int l = 0; l < 6; l++) {
                 int y = oy + 6 + l * 18;
-                g.drawString(Dessin.police(), String.valueOf(l + 1), ox + 8, y + 4, l == ligne ? Dessin.JAUNE : Dessin.SOMBRE, false);
+                Dessin.ecrire(g, String.valueOf(l + 1), ox + 8, y + 4, l == ligne ? Dessin.JAUNE : Dessin.SOMBRE, false);
                 for (int k = 0; k < 4; k++) Dessin.base(g, ox + 22 + k * 20, y, 15, essais[l][k], l == ligne && Dessin.dans(mx, my, ox + 22 + k * 20, y, 15, 15));
                 if (l < ligne) {
                     for (int k = 0; k < 4; k++) {
@@ -241,10 +241,10 @@ public class EcranAnalyse extends Screen {
                 }
             }
             g.fill(ox + 190, oy + 10, ox + 198, oy + 18, Dessin.VERT);
-            g.drawString(Dessin.police(), T.f("right_place"), ox + 202, oy + 10, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("right_place"), ox + 202, oy + 10, Dessin.GRIS, false);
             g.fill(ox + 190, oy + 24, ox + 198, oy + 32, Dessin.JAUNE);
-            g.drawString(Dessin.police(), T.f("wrong_place"), ox + 202, oy + 24, Dessin.GRIS, false);
-            g.drawString(Dessin.police(), T.f("reads_left") + (6 - ligne), ox + 190, oy + 46, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("wrong_place"), ox + 202, oy + 24, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("reads_left") + (6 - ligne), ox + 190, oy + 46, Dessin.TEXTE, false);
         }
 
         boolean complet() {
@@ -341,7 +341,7 @@ public class EcranAnalyse extends Screen {
 
         @Override
         void dessiner(GuiGraphics g, int mx, int my, float pt) {
-            g.drawString(Dessin.police(), T.f("strand_to_complete"), ox + 10, oy + 8, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("strand_to_complete"), ox + 10, oy + 8, Dessin.GRIS, false);
             for (int k = position; k < Math.min(brin.length, position + 6); k++) {
                 int i = k - position;
                 int taille = i == 0 ? 28 : 16;
@@ -358,9 +358,9 @@ public class EcranAnalyse extends Screen {
                 boolean survol = Dessin.dans(mx, my, bx, oy + 74, 48, 24);
                 Dessin.bouton(g, bx, oy + 74, 48, 24, Dessin.BASES[b], survol, true, Dessin.COULEURS_BASES[b]);
             }
-            g.drawString(Dessin.police(), (position) + " / " + brin.length, ox + ZL - 60, oy + 8, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("mistakes") + erreurs + " / 3", ox + ZL - 84, oy + 104, erreurs > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
-            g.drawString(Dessin.police(), "A↔T   C↔G", ox + 10, oy + 104, Dessin.JAUNE, false);
+            Dessin.ecrire(g, (position) + " / " + brin.length, ox + ZL - 60, oy + 8, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("mistakes") + erreurs + " / 3", ox + ZL - 84, oy + 104, erreurs > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, "A↔T   C↔G", ox + 10, oy + 104, Dessin.JAUNE, false);
         }
 
         @Override
@@ -449,8 +449,8 @@ public class EcranAnalyse extends Screen {
                 g.fill(ox + 150 + i * 30, oy + 20, ox + 172 + i * 30, oy + 42, Dessin.BORD);
                 g.fill(ox + 152 + i * 30, oy + 22, ox + 170 + i * 30, oy + 40, i < reussites ? Dessin.VERT : Dessin.ENCART_CLAIR);
             }
-            g.drawString(Dessin.police(), T.f("phases_separated") + reussites + " / 3", ox + 150, oy + 50, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("misses") + rates + " / 3", ox + 150, oy + 62, rates > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("phases_separated") + reussites + " / 3", ox + 150, oy + 50, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("misses") + rates + " / 3", ox + 150, oy + 62, rates > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
             Dessin.bouton(g, ox + 150, oy + 82, 110, 24, T.f("stop_space"), Dessin.dans(mx, my, ox + 150, oy + 82, 110, 24), true, Dessin.ACCENT);
         }
 
@@ -516,15 +516,15 @@ public class EcranAnalyse extends Screen {
                 boolean survol = Dessin.dans(mx, my, ox + 16, y - 1, 100, 18);
                 if (l == selection || survol) g.fill(ox + 14, y - 2, ox + 118, y + 17, l == selection ? Dessin.JAUNE : Dessin.BORD_CLAIR);
                 g.fill(ox + 15, y - 1, ox + 117, y + 16, Dessin.ENCART);
-                g.drawString(Dessin.police(), String.valueOf(l + 1), ox + 20, y + 4, Dessin.SOMBRE, false);
+                Dessin.ecrire(g, String.valueOf(l + 1), ox + 20, y + 4, Dessin.SOMBRE, false);
                 for (int k = 0; k < 4; k++) Dessin.base(g, ox + 34 + k * 20, y, 15, fragments[ordre[l]][k], false);
             }
-            g.drawString(Dessin.police(), T.f("the_end_of_a_fragment"), ox + 132, oy + 10, Dessin.GRIS, false);
-            g.drawString(Dessin.police(), T.f("the_start_of_the_next"), ox + 132, oy + 20, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("the_end_of_a_fragment"), ox + 132, oy + 10, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("the_start_of_the_next"), ox + 132, oy + 20, Dessin.GRIS, false);
             for (int k = 0; k < 4; k++) Dessin.base(g, ox + 132 + k * 13, oy + 36, 11, k < 2 ? -1 : k - 2, false);
             for (int k = 0; k < 4; k++) Dessin.base(g, ox + 158 + k * 13, oy + 50, 11, k < 2 ? k : -1, false);
-            if (jonctions >= 0) g.drawString(Dessin.police(), T.f("correct_joints") + jonctions + " / 4", ox + 132, oy + 68, Dessin.JAUNE, false);
-            g.drawString(Dessin.police(), T.f("tries") + essais, ox + 132, oy + 80, essais == 1 ? Dessin.ALERTE : Dessin.TEXTE, false);
+            if (jonctions >= 0) Dessin.ecrire(g, T.f("correct_joints") + jonctions + " / 4", ox + 132, oy + 68, Dessin.JAUNE, false);
+            Dessin.ecrire(g, T.f("tries") + essais, ox + 132, oy + 80, essais == 1 ? Dessin.ALERTE : Dessin.TEXTE, false);
             Dessin.bouton(g, ox + 132, oy + 92, 110, 20, T.f("assemble"), Dessin.dans(mx, my, ox + 132, oy + 92, 110, 20), true, Dessin.ACCENT);
         }
 
@@ -612,14 +612,14 @@ public class EcranAnalyse extends Screen {
                 Dessin.point(g, px + i, py + ph / 2 - courbe(cible, t), 2, 0xFF7A8A99);
                 Dessin.point(g, px + i, py + ph / 2 - courbe(reglage, t), 2, ecart() == 0 ? Dessin.VERT : Dessin.ACCENT);
             }
-            g.drawString(Dessin.police(), T.f("grey_sample"), px, py + ph + 3, Dessin.SOMBRE, false);
+            Dessin.ecrire(g, T.f("grey_sample"), px, py + ph + 3, Dessin.SOMBRE, false);
             int pourcent = (int) Math.round(ressemblance() * 100);
-            g.drawString(Dessin.police(), T.f("match") + pourcent + " %", px, py + ph + 14, pourcent > 85 ? Dessin.VERT : Dessin.JAUNE, false);
+            Dessin.ecrire(g, T.f("match") + pourcent + " %", px, py + ph + 14, pourcent > 85 ? Dessin.VERT : Dessin.JAUNE, false);
             g.fill(px, oy + ZH - 12, px + pl, oy + ZH - 6, Dessin.BORD);
             g.fill(px + 1, oy + ZH - 11, px + 1 + (int) ((pl - 2) * temps / 900.0), oy + ZH - 7, temps > 200 ? Dessin.ACCENT : Dessin.ALERTE);
             for (int k = 0; k < 3; k++) {
                 int y = oy + 8 + k * 34;
-                g.drawString(Dessin.police(), NOMS[k], ox + 170, y, Dessin.TEXTE, false);
+                Dessin.ecrire(g, NOMS[k], ox + 170, y, Dessin.TEXTE, false);
                 Dessin.bouton(g, ox + 168, y + 10, 22, 18, "-", Dessin.dans(mx, my, ox + 168, y + 10, 22, 18), reglage[k] > 0, 0xFF5E7890);
                 for (int i = 0; i < 7; i++) g.fill(ox + 194 + i * 8, y + 15, ox + 200 + i * 8, y + 23, i == reglage[k] ? Dessin.ACCENT : Dessin.BORD);
                 Dessin.bouton(g, ox + 252, y + 10, 22, 18, "+", Dessin.dans(mx, my, ox + 252, y + 10, 22, 18), reglage[k] < 6, 0xFF5E7890);

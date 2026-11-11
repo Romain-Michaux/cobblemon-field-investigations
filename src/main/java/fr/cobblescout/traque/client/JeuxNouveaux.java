@@ -18,7 +18,7 @@ final class JeuxNouveaux {
     }
 
     static void texte(GuiGraphics g, String s, int x, int y, int couleur) {
-        g.drawString(Dessin.police(), s, x, y, couleur, false);
+        Dessin.ecrire(g, s, x, y, couleur, false);
     }
 
     // Jauge horizontale (part de 0 à 1).
@@ -232,8 +232,8 @@ final class JeuxNouveaux {
             }
             int tx = ox + 172, faits = 0;
             for (int i = 0; i < N; i++) faits += plein(i) ? 1 : 0;
-            texte(g, T.f("sockets_full") + faits + " / " + N, tx, oy + 10, Dessin.TEXTE);
-            texte(g, T.f("overflows") + fautes + " / 3", tx, oy + 22, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS);
+            texte(g, T.f("sockets") + faits + " / " + N, tx, oy + 10, Dessin.TEXTE);
+            texte(g, T.f("spilled") + fautes + " / 3", tx, oy + 22, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS);
             Dessin.paragraphe(g, T.f("fill_up_to_the_green"), tx, oy + 40, 104, Dessin.SOMBRE);
             jaugeTemps(g, tx, oy + 104, 100, temps / (double) DUREE);
         }
@@ -529,7 +529,7 @@ final class JeuxNouveaux {
             }
             if (!fini && Dessin.dans(mx, my, bx, by, L, H)) Dessin.image(g, COTON, mx - 16, my - 62, 32, 64);
             int tx = ox + 172;
-            texte(g, T.f("stain_swabbed") + (faits * 100 / Math.max(1, total)) + " %", tx, oy + 10, Dessin.TEXTE);
+            texte(g, T.f("swabbed") + (faits * 100 / Math.max(1, total)) + " %", tx, oy + 10, Dessin.TEXTE);
             texte(g, T.f("soiled") + fautes + " / 3", tx, oy + 22, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS);
             Dessin.paragraphe(g, T.f("you_may_lift_the_swab"), tx, oy + 42, 104, Dessin.SOMBRE);
             jaugeTemps(g, tx, oy + 104, 100, temps / (double) DUREE);
@@ -1870,7 +1870,7 @@ final class JeuxNouveaux {
             g.fill(gx - 3, gy + 5, gx - 1, gy + 9, 0xFF3A4A5C);
             g.fill(gx + 2, gy + 5, gx + 4, gy + 9, 0xFF3A4A5C);
             int tx = ox + 172;
-            texte(g, T.f("traces_reached") + (fini && succes ? 3 : etape) + " / 3", tx, oy + 10, Dessin.TEXTE);
+            texte(g, T.f("traces") + (fini && succes ? 3 : etape) + " / 3", tx, oy + 10, Dessin.TEXTE);
             texte(g, T.f("too_low") + fautes + " / 3", tx, oy + 22, fautes > 1 ? Dessin.ALERTE : Dessin.GRIS);
             texte(g, T.f("speed"), tx, oy + 40, vitesse > 1.6 ? Dessin.ALERTE : Dessin.JAUNE);
             jauge(g, tx, oy + 51, 100, vitesse / 2.4, vitesse > 1.6 ? Dessin.ALERTE : Dessin.JAUNE);
@@ -1966,7 +1966,7 @@ final class JeuxNouveaux {
                 }
             }
             int tx = ox + 172;
-            texte(g, T.f("stains_found") + trouves + " / " + N, tx, oy + 10, Dessin.TEXTE);
+            texte(g, T.f("stains") + trouves + " / " + N, tx, oy + 10, Dessin.TEXTE);
             texte(g, T.f("battery"), tx, oy + 28, batterie < 30 ? Dessin.ALERTE : 0xFFB79CFF);
             jauge(g, tx, oy + 39, 100, batterie / 100, batterie < 30 ? Dessin.ALERTE : 0xFF9060FF);
             Dessin.paragraphe(g, T.f("stains_only_glow_under_the"), tx, oy + 54, 104, Dessin.SOMBRE);

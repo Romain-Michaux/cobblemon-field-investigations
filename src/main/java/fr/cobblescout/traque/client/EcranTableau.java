@@ -53,10 +53,12 @@ public class EcranTableau extends Screen {
         if (!e.getBoolean("actif")) {
             long attente = e.getLong("attente") - (System.currentTimeMillis() - TraqueClient.etatRecu);
             Dessin.plaque(g, x + 38, y + 26, L - 76, 110);
+            Dessin.zone(x + 46, x + L - 46);
             Dessin.centre(g, T.f("no_investigation_in_progress"), x + L / 2, y + 38, Dessin.TEXTE);
             int ly0 = Dessin.paragraphe(g, T.f("open_an_investigation_to_get"),
                     x + 50, y + 52, L - 100, Dessin.GRIS);
             Dessin.paragraphe(g, T.f("each_star_you_keep_5"), x + 50, ly0 + 2, L - 100, Dessin.JAUNE);
+            Dessin.zone(x + 2, x + L - 2);
             boolean pret = attente <= 0;
             String libelle = pret ? T.f("check_the_reports") : T.f("next_report_in") + (attente / 60000 + 1) + T.f("min");
             Dessin.bouton(g, x + L / 2 - 90, y + 144, 180, 22, libelle, Dessin.dans(mx, my, x + L / 2 - 90, y + 144, 180, 22), pret, Dessin.ACCENT);
@@ -74,16 +76,17 @@ public class EcranTableau extends Screen {
         // La feuille du profil : une bande surlignée par marqueur.
         int px = x + PAPIER_X, py = y + PAPIER_Y, tx = px + 15, tl = 98;
         Dessin.image(g, Dessin.PAPIER, px, py, PAPIER_L, PAPIER_H);
+        Dessin.zone(tx, tx + tl + 2);
         // Qualité de l'enquête : c'est elle qui fixe les IV du Pokémon capturé et le butin.
-        g.drawString(Dessin.police(), T.etoiles(e.getInt("etoiles")), tx, py + 22, 0xFFB07A10, false);
+        Dessin.ecrire(g, T.etoiles(e.getInt("etoiles")), tx, py + 22, 0xFFB07A10, false);
         String special = e.getString("special");
-        if (!special.isEmpty()) g.drawString(Dessin.police(), "✦", tx + 50, py + 22, couleurSpecial(special), false);
+        if (!special.isEmpty()) Dessin.ecrire(g, "✦", tx + 50, py + 22, couleurSpecial(special), false);
         boolean survolEtoiles = Dessin.dans(mx, my, tx - 2, py + 20, 62, 12);
-        g.drawString(Dessin.police(), T.f("species") + RANGS[Math.min(3, e.getInt("rang"))], tx, py + 37, Dessin.ENCRE_ROUGE, false);
+        Dessin.ecrire(g, T.f("species") + RANGS[Math.min(3, e.getInt("rang"))], tx, py + 37, Dessin.ENCRE_ROUGE, false);
         for (int i = 0; i < Genetique.MARQUEURS.size(); i++) {
             String m = Genetique.MARQUEURS.get(i);
             int ly = py + 49 + i * 20;
-            g.drawString(Dessin.police(), T.c(Genetique.NOMS_MARQUEURS.get(m)), tx, ly, Dessin.ENCRE_CLAIRE, false);
+            Dessin.ecrire(g, T.c(Genetique.NOMS_MARQUEURS.get(m)), tx, ly, Dessin.ENCRE_CLAIRE, false);
             CompoundTag trace = null;
             for (int k = 0; k < traces.size(); k++) {
                 if (traces.getCompound(k).getString("genre").equals(m)) trace = traces.getCompound(k);
@@ -97,20 +100,21 @@ public class EcranTableau extends Screen {
                 g.fill(tx, ly + 9, tx + tl, ly + 19, 0x30402A14);
                 g.fill(tx, ly + 18, tx + tl, ly + 19, 0x60402A14);
                 boolean perdue = trace != null && trace.getBoolean("perdue"), aDeterrer = trace != null && trace.getBoolean("enfoui") && !trace.getBoolean("degage");
-                g.drawString(Dessin.police(), perdue ? T.f("clue_destroyed") : recolte ? T.f("to_analyse") : aDeterrer ? T.f("to_dig_up") : T.f("to_sample"), tx + 3, ly + 10,
+                Dessin.ecrire(g, perdue ? T.f("clue_destroyed") : recolte ? T.f("to_analyse") : aDeterrer ? T.f("to_dig_up") : T.f("to_sample"), tx + 3, ly + 10,
                         perdue ? Dessin.ENCRE_ROUGE : recolte ? Dessin.ENCRE : Dessin.ENCRE_CLAIRE, false);
             }
         }
         if (prelevements && minecraft != null && minecraft.player != null) {
             double zx = e.getDouble("zoneX"), zz = e.getDouble("zoneZ");
             double dist = Math.hypot(zx - minecraft.player.getX(), zz - minecraft.player.getZ());
-            g.drawString(Dessin.police(), T.f("zone") + Math.round(dist) + T.f("blocks_2"), tx, py + 151, Dessin.ENCRE, false);
-            g.drawString(Dessin.police(), T.f("compass") + Dessin.vent(Dessin.cap(minecraft.player.getX(), minecraft.player.getZ(), zx, zz)), tx, py + 162, Dessin.ENCRE_ROUGE, false);
+            Dessin.ecrire(g, T.f("zone") + Math.round(dist) + T.f("blocks_2"), tx, py + 151, Dessin.ENCRE, false);
+            Dessin.ecrire(g, T.f("compass") + Dessin.vent(Dessin.cap(minecraft.player.getX(), minecraft.player.getZ(), zx, zz)), tx, py + 162, Dessin.ENCRE_ROUGE, false);
         } else {
-            g.drawString(Dessin.police(), T.f("hunt_in_progress"), tx, py + 151, Dessin.ENCRE, false);
-            g.drawString(Dessin.police(), T.f("kit_map"), tx, py + 162, Dessin.ENCRE_ROUGE, false);
+            Dessin.ecrire(g, T.f("hunt_in_progress"), tx, py + 151, Dessin.ENCRE, false);
+            Dessin.ecrire(g, T.f("kit_map"), tx, py + 162, Dessin.ENCRE_ROUGE, false);
         }
 
+        Dessin.zone(x + GRILLE_X - 2, x + L - 2);
         // Les suspects : des photos épinglées, barrées quand un résultat les écarte.
         int restants = 0;
         String seul = "";
@@ -162,8 +166,8 @@ public class EcranTableau extends Screen {
             if (Dessin.police().width(libelle) > 112) libelle = T.f("start_the_hunt");
             Dessin.bouton(g, bx, by, 122, 18, libelle, Dessin.dans(mx, my, bx, by, 122, 18), pret, Dessin.VERT);
         } else {
-            g.drawString(Dessin.police(), T.f("guess") + Dessin.nomEspece(e.getString("pronostic")), bx, by, Dessin.ENCRE, false);
-            g.drawString(Dessin.police(), phase.equals("DEBUSQUE") ? T.f("target_flushed_out") : T.f("in_the_field_with_the"), bx, by + 10, Dessin.ENCRE_ROUGE, false);
+            Dessin.ecrire(g, T.f("guess") + Dessin.nomEspece(e.getString("pronostic")), bx, by, Dessin.ENCRE, false);
+            Dessin.ecrire(g, phase.equals("DEBUSQUE") ? T.f("target_flushed_out") : T.f("in_the_field_with_the"), bx, by + 10, Dessin.ENCRE_ROUGE, false);
         }
         Dessin.bouton(g, bx + 126, by, 72, 18, T.f("give_up"), Dessin.dans(mx, my, bx + 126, by, 72, 18), true, Dessin.ROUGE_SOMBRE);
 
@@ -288,22 +292,24 @@ static String nomSpecial(String special) {
                 survole = p;
             }
             Dessin.plaque(g, cx, cy, CARTE_L, CARTE_H);
-            g.drawString(Dessin.police(), T.f("lead") + (i + 1), tx, cy + 9, Dessin.ACCENT, false);
-            g.drawString(Dessin.police(), (special.isEmpty() ? "" : "✦ ") + nomSpecial(special), tx, cy + 21, couleurSpecial(special), false);
+            Dessin.zone(cx + 7, cx + CARTE_L - 7);
+            Dessin.ecrire(g, T.f("lead") + (i + 1), tx, cy + 9, Dessin.ACCENT, false);
+            Dessin.ecrire(g, (special.isEmpty() ? "" : "✦ ") + nomSpecial(special), tx, cy + 21, couleurSpecial(special), false);
             g.fill(tx, cy + 32, cx + CARTE_L - 9, cy + 33, 0x40FFFFFF);
-            g.drawString(Dessin.police(), T.f("species_2"), tx, cy + 37, Dessin.GRIS, false);
-            g.drawString(Dessin.police(), RANGS[Math.min(3, p.getInt("rang"))], tx, cy + 47, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("zone_2"), tx, cy + 60, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("species_2"), tx, cy + 37, Dessin.GRIS, false);
+            Dessin.ecrire(g, RANGS[Math.min(3, p.getInt("rang"))], tx, cy + 47, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("zone_2"), tx, cy + 60, Dessin.GRIS, false);
             String ou = "?";
             if (minecraft != null && minecraft.player != null) {
                 double zx = p.getDouble("zoneX"), zz = p.getDouble("zoneZ"), jx = minecraft.player.getX(), jz = minecraft.player.getZ();
                 ou = Math.round(Math.hypot(zx - jx, zz - jz)) + " m · " + Dessin.vent(Dessin.cap(jx, jz, zx, zz));
             }
-            g.drawString(Dessin.police(), ou, tx, cy + 70, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), p.getBoolean("nouvelle") ? T.f("never_caught") : T.f("already_caught"), tx, cy + 84,
+            Dessin.ecrire(g, ou, tx, cy + 70, Dessin.TEXTE, false);
+            Dessin.ecrire(g, p.getBoolean("nouvelle") ? T.f("never_caught") : T.f("already_caught"), tx, cy + 84,
                     p.getBoolean("nouvelle") ? Dessin.VERT : Dessin.SOMBRE, false);
             Dessin.paragraphe(g, gainSpecial(special), tx, cy + 96, CARTE_L - 18, Dessin.JAUNE);
         }
+        Dessin.zone(x + 2, x + L - 2);
         Dessin.centre(g, T.f("reports_valid_for_another") + Math.max(1, reste / 60000 + 1) + T.f("min"), x + L / 2, y + 157, Dessin.ENCRE);
         Dessin.centre(g, T.f("cases_solved") + e.getInt("reussies"), x + L / 2, y + 173, Dessin.ENCRE);
         reglage(g, x, y, mx, my);
@@ -322,7 +328,7 @@ static String nomSpecial(String special) {
 private void reglage(GuiGraphics g, int x, int y, int mx, int my) {
         String texte = T.f("colour_aid") + (TraqueClient.aideCouleurs ? T.f("on") : T.f("off"));
         boolean survol = Dessin.dans(mx, my, x + 4, y + 171, Dessin.police().width(texte) + 4, 12);
-        g.drawString(Dessin.police(), texte, x + 6, y + 173, survol ? Dessin.ENCRE_ROUGE : Dessin.ENCRE, false);
+        Dessin.ecrire(g, texte, x + 6, y + 173, survol ? Dessin.ENCRE_ROUGE : Dessin.ENCRE, false);
         // En bas à droite : le carnet de l'enquêteur (rang, améliorations, archives), qui se trouve dans le kit.
         Dessin.bouton(g, x + L - 78, y + 168, 74, 17, T.f("logbook"), Dessin.dans(mx, my, x + L - 78, y + 168, 74, 17), true, Dessin.ACCENT);
     }

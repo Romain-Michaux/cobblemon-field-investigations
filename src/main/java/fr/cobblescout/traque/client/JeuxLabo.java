@@ -173,11 +173,11 @@ final class JeuxLabo {
                 Dessin.centre(g, String.valueOf(k), px(k) + LARGEUR / 2, oy + 103, cadre == 0 ? Dessin.GRIS : cadre);
             }
             int tx = ox + 246;
-            g.drawString(Dessin.police(), T.f("gel"), tx, oy + 16, Dessin.GRIS, false);
-            g.drawString(Dessin.police(), Math.min(3, manche + (pause > 0 || fini ? 0 : 1)) + " / 3", tx, oy + 27, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("err"), tx, oy + 46, Dessin.GRIS, false);
-            g.drawString(Dessin.police(), erreurs + " / 2", tx, oy + 57, erreurs > 0 ? Dessin.ALERTE : Dessin.TEXTE, false);
-            if (pause > 0 || fini) g.drawString(Dessin.police(), dernierOk ? T.f("yes") : T.f("no"), tx, oy + 78, dernierOk ? Dessin.VERT : Dessin.ALERTE, false);
+            Dessin.ecrire(g, T.f("gel"), tx, oy + 16, Dessin.GRIS, false);
+            Dessin.ecrire(g, Math.min(3, manche + (pause > 0 || fini ? 0 : 1)) + " / 3", tx, oy + 27, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("err"), tx, oy + 46, Dessin.GRIS, false);
+            Dessin.ecrire(g, erreurs + " / 2", tx, oy + 57, erreurs > 0 ? Dessin.ALERTE : Dessin.TEXTE, false);
+            if (pause > 0 || fini) Dessin.ecrire(g, dernierOk ? T.f("yes") : T.f("no"), tx, oy + 78, dernierOk ? Dessin.VERT : Dessin.ALERTE, false);
         }
 
         @Override
@@ -310,36 +310,36 @@ final class JeuxLabo {
             // Colonne du milieu : la teinte à mémoriser, puis cachée, puis la comparaison chiffrée.
             int cx = ox + 74;
             if (visible > 0) {
-                g.drawString(Dessin.police(), T.f("memorise"), cx, oy + 8, Dessin.JAUNE, false);
+                Dessin.ecrire(g, T.f("memorise"), cx, oy + 8, Dessin.JAUNE, false);
                 pastille(g, cx, oy + 20, 64, 52, cible);
                 jaugeTemps(g, cx, oy + 78, 64, visible / (double) MONTRE);
             } else if (pause > 0 || fini) {
                 boolean ok = score >= SEUIL;
-                g.drawString(Dessin.police(), T.f("target"), cx, oy + 8, Dessin.GRIS, false);
+                Dessin.ecrire(g, T.f("target"), cx, oy + 8, Dessin.GRIS, false);
                 pastille(g, cx, oy + 19, 64, 22, cible);
-                g.drawString(Dessin.police(), T.f("your_mix"), cx, oy + 46, Dessin.GRIS, false);
+                Dessin.ecrire(g, T.f("your_mix"), cx, oy + 46, Dessin.GRIS, false);
                 pastille(g, cx, oy + 57, 64, 22, melange(gouttes));
-                g.drawString(Dessin.police(), score + " % " + (ok ? T.f("passed") : T.f("failed")), cx, oy + 86, ok ? Dessin.VERT : Dessin.ALERTE, false);
-                g.drawString(Dessin.police(), T.f("needed") + SEUIL + " %", cx, oy + 97, Dessin.SOMBRE, false);
+                Dessin.ecrire(g, score + " % " + (ok ? T.f("passed") : T.f("failed")), cx, oy + 86, ok ? Dessin.VERT : Dessin.ALERTE, false);
+                Dessin.ecrire(g, T.f("needed") + SEUIL + " %", cx, oy + 97, Dessin.SOMBRE, false);
             } else {
-                g.drawString(Dessin.police(), T.f("target"), cx, oy + 8, Dessin.GRIS, false);
+                Dessin.ecrire(g, T.f("target"), cx, oy + 8, Dessin.GRIS, false);
                 pastille(g, cx, oy + 19, 64, 22, 0xFF1A2633);
                 // Aide aux couleurs : la ressemblance du mélange en cours s'affiche à la place du point d'interrogation.
                 boolean aide = TraqueClient.aideCouleurs && nombre() > 0;
                 Dessin.centre(g, aide ? ressemblance(melange(gouttes), cible) + " %" : "?", cx + 32, oy + 26, aide ? Dessin.TEXTE : Dessin.SOMBRE);
-                g.drawString(Dessin.police(), T.f("your_mix"), cx, oy + 46, Dessin.GRIS, false);
+                Dessin.ecrire(g, T.f("your_mix"), cx, oy + 46, Dessin.GRIS, false);
                 pastille(g, cx, oy + 57, 64, 22, melange(gouttes));
                 // La recette en cours, goutte par goutte.
                 int k = 0;
                 for (int i = 0; i < 4; i++) {
                     for (int n = 0; n < gouttes[i]; n++, k++) g.fill(cx + k * 6, oy + 86, cx + k * 6 + 5, oy + 93, REACTIFS[i]);
                 }
-                g.drawString(Dessin.police(), nombre() + " / " + MAX + T.f("drops"), cx, oy + 97, Dessin.SOMBRE, false);
+                Dessin.ecrire(g, nombre() + " / " + MAX + T.f("drops"), cx, oy + 97, Dessin.SOMBRE, false);
             }
 
             int tx = ox + 152;
-            g.drawString(Dessin.police(), T.f("flask") + Math.min(3, manche + (pause > 0 || fini ? 0 : 1)) + " / 3", tx, oy + 8, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("fails") + echecs + " / 2", tx, oy + 20, echecs > 0 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("flask") + Math.min(3, manche + (pause > 0 || fini ? 0 : 1)) + " / 3", tx, oy + 8, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("fails") + echecs + " / 2", tx, oy + 20, echecs > 0 ? Dessin.ALERTE : Dessin.GRIS, false);
             boolean libre = visible == 0 && pause == 0 && !fini;
             for (int i = 0; i < 4; i++) {
                 boolean actif = libre && nombre() < MAX;
@@ -434,9 +434,9 @@ final class JeuxLabo {
                 Dessin.bouton(g, x, y, 64, 46, PALIERS[b], false, true, vif ? Dessin.assombrir(COULEURS[b], 1.25) : Dessin.assombrir(COULEURS[b], survol ? 0.75 : 0.5));
             }
             int tx = ox + 160;
-            g.drawString(Dessin.police(), T.f("cycle") + Math.min(3, manche + 1) + " / 3", tx, oy + 12, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("mistakes") + erreurs + " / 2", tx, oy + 24, erreurs > 0 ? Dessin.ALERTE : Dessin.GRIS, false);
-            g.drawString(Dessin.police(), saisie < 0 ? T.f("watch_the_program") : T.f("your_turn_repeat_it"), tx, oy + 44, saisie < 0 ? Dessin.JAUNE : Dessin.ACCENT, false);
+            Dessin.ecrire(g, T.f("cycle") + Math.min(3, manche + 1) + " / 3", tx, oy + 12, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("mistakes") + erreurs + " / 2", tx, oy + 24, erreurs > 0 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, saisie < 0 ? T.f("watch_the_program") : T.f("your_turn_repeat_it"), tx, oy + 44, saisie < 0 ? Dessin.JAUNE : Dessin.ACCENT, false);
             for (int i = 0; i < suite.length; i++) {
                 g.fill(tx + i * 12, oy + 60, tx + i * 12 + 9, oy + 69, Dessin.BORD);
                 g.fill(tx + i * 12 + 1, oy + 61, tx + i * 12 + 8, oy + 68, saisie > i ? COULEURS[suite[i]] : Dessin.ENCART_CLAIR);
@@ -536,9 +536,9 @@ final class JeuxLabo {
                 Dessin.centre(g, "?", px + 48, py + 44, Dessin.BORD);
             }
             int tx = ox + 126;
-            g.drawString(Dessin.police(), T.f("dish") + Math.min(3, manche + 1) + T.f("3_mistakes") + erreurs + " / 2", tx, oy + 10, erreurs > 0 ? Dessin.ALERTE : Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("dish") + Math.min(3, manche + 1) + T.f("3_mistakes") + erreurs + " / 2", tx, oy + 10, erreurs > 0 ? Dessin.ALERTE : Dessin.TEXTE, false);
             String etat = pause > 0 ? (dernierOk ? T.f("correct") + nombre + T.f("colonies") : T.f("wrong_there_were") + nombre) : visible > 0 ? T.f("count_the_colonies") : T.f("how_many_were_there");
-            g.drawString(Dessin.police(), etat, tx, oy + 26, pause > 0 ? (dernierOk ? Dessin.VERT : Dessin.ALERTE) : Dessin.JAUNE, false);
+            Dessin.ecrire(g, etat, tx, oy + 26, pause > 0 ? (dernierOk ? Dessin.VERT : Dessin.ALERTE) : Dessin.JAUNE, false);
             boolean libre = visible == 0 && pause == 0 && !fini;
             for (int i = 0; i < 4; i++) {
                 int x = tx + (i % 2) * 74, y = oy + 46 + (i / 2) * 28;

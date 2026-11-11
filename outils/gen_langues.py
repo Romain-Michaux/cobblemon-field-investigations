@@ -359,7 +359,7 @@ NOUVEAUX = [
     ("Maintiens le clic pour secouer le tamis, par à-coups : si la jauge de secousse se remplit, un fragment passe à travers.",
      "Hold the click to shake the sieve, in bursts: if the shaking gauge fills up, a fragment falls through."),
     # moulage
-    ("Creux remplis : ", "Hollows filled: "), ("Débordements : ", "Overflows: "),
+    ("Creux remplis : ", "Hollows filled: "), ("Débordés : ", "Spilled: "),
     ("Arrête-toi dans la bande verte, juste sous le trait.", "Stop in the green band, just under the line."),
     ("Place le bec sur un creux et maintiens le clic pour couler le plâtre. Remplis chaque creux jusqu'à la bande verte, sans dépasser le trait.",
      "Put the spout over a hollow and hold the click to pour plaster. Fill each hollow up to the green band without going over the line."),
@@ -374,7 +374,7 @@ NOUVEAUX = [
     ("Suis la trace avec le viseur et clique quand elle est nette (viseur vert). Trois photos avant que la lumière baisse.",
      "Follow the trace with the viewfinder and click when it is sharp (green viewfinder). Three photos before the light fades."),
     # écouvillon
-    ("Tache prélevée : ", "Stain swabbed: "), ("Souillé : ", "Soiled: "),
+    ("Prélevé : ", "Swabbed: "), ("Souillé : ", "Soiled: "),
     ("Tu peux lever l'écouvillon pour reprendre ailleurs.", "You may lift the swab and start again elsewhere."),
     ("Maintiens le clic et frotte toute la tache violette. Ne repasse pas sur une zone déjà claire : l'écouvillon serait contaminé.",
      "Hold the click and rub the whole purple stain. Do not go back over a spot that is already clear: the swab would be contaminated."),
@@ -423,12 +423,12 @@ NOUVEAUX = [
     ("Les prises défilent le long du tronc. Clique à gauche ou à droite, du côté de la prise, quand elle passe dans la bande claire.",
      "Holds scroll down the trunk. Click left or right, on the side of the hold, when it passes through the light band."),
     # rappel
-    ("Traces atteintes : ", "Traces reached: "), ("Trop bas : ", "Too low: "), ("Vitesse", "Speed"),
+    ("Traces : ", "Traces: "), ("Trop bas : ", "Too low: "), ("Vitesse", "Speed"),
     ("La corde met du temps à freiner : relâche avant la bande.", "The rope takes a while to brake: let go before the band."),
     ("Maintiens le clic pour laisser filer la corde, relâche pour freiner. Arrête-toi dans la bande jaune de chaque trace, sans la dépasser.",
      "Hold the click to let the rope run, let go to brake. Stop in the yellow band of each trace without going past it."),
     # lampe UV
-    ("Taches relevées : ", "Stains found: "), ("Batterie", "Battery"),
+    ("Taches : ", "Stains: "), ("Batterie", "Battery"),
     ("Les taches ne brillent que sous le faisceau. Un clic dans le vide use la batterie.",
      "Stains only glow under the beam. A click on nothing drains the battery."),
     ("Balaie le sol avec la lampe : les taches n'apparaissent que dans le faisceau. Clique chacune avant que la batterie soit vide.",
@@ -436,7 +436,7 @@ NOUVEAUX = [
 ]
 NOUVEAUX += [
     # moulage (mâchoire)
-    ("Alvéoles pleines : ", "Sockets full: "),
+    ("Alvéoles : ", "Sockets: "),
     ("Remplis jusqu'aux repères verts, puis relève le bec. Les alvéoles n'ont pas toutes la même profondeur.",
      "Fill up to the green marks, then lift the spout. The sockets are not all the same depth."),
     ("Place le bec sur une alvéole et maintiens le clic pour couler le plâtre. Remplis-les toutes à ras bord sans déborder, puis relâche.",

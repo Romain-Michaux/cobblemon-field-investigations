@@ -168,6 +168,7 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
     // Vue du scanner : l'écran s'assombrit autour d'une fenêtre de visée, le viseur change de couleur selon ce qu'il
     // accroche et un anneau se remplit pendant les trois secondes d'analyse.
     private static void scanner(GuiGraphics g, Minecraft mc, int l, int h, long maintenant) {
+        Dessin.sansZone();
         boolean frais = maintenant - signalRecu < 1500 && signal.getString("phase").equals("REPERAGE");
         int scan = Demo.scan ? 3 : frais ? signal.getInt("scan") : 0, distance = frais ? signal.getInt("distance") : 0;
         boolean autre = frais && signal.getBoolean("autre"), tropPres = frais && distance < signal.getInt("alerte") + 6;
@@ -215,10 +216,10 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
         }
         g.fill(cx - 1, cy - 1, cx + 1, cy + 1, 0xFFFFFFFF);
         // Bandeau du haut : nom de l'instrument et distance ; bandeau du bas : ce que voit le scanner.
-        g.drawString(Dessin.police(), T.f("scanner"), cx - vl, cy - vh - 13, Dessin.ACCENT, false);
+        Dessin.ecrire(g, T.f("scanner"), cx - vl, cy - vh - 13, Dessin.ACCENT, false);
         if (frais) {
             String d = distance + " m";
-            g.drawString(Dessin.police(), d, cx + vl - Dessin.police().width(d), cy - vh - 13, tropPres && clignote ? Dessin.ALERTE : Dessin.TEXTE, false);
+            Dessin.ecrire(g, d, cx + vl - Dessin.police().width(d), cy - vh - 13, tropPres && clignote ? Dessin.ALERTE : Dessin.TEXTE, false);
         }
         String etat = autre ? T.f("this_is_not_your_target") : tropPres ? T.f("too_close_back_off") : scan > 0 ? T.f("scanning") + Math.round(scanLisse * 100) + " %"
                 : vise ? T.f("locking_on") : T.f("aim_at_the_pok_mon");
@@ -232,6 +233,7 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
     private static void hud(GuiGraphics g) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.options.hideGui) return;
+        Dessin.sansZone();
         long maintenant = System.currentTimeMillis();
         int l = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
 
@@ -249,8 +251,8 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
             int couleur = Dessin.opaque(annonceCouleur);
             Dessin.plaque(g, x - 5, y - 6, w + 10, haut + 11);
             g.fill(x, y + 1, x + 4, y + haut - 1, couleur);
-            g.drawString(Dessin.police(), titre, x + 11, y + 4, couleur, false);
-            for (int i = 0; i < lignes.size(); i++) g.drawString(Dessin.police(), lignes.get(i), x + 11, y + 15 + i * 10, Dessin.TEXTE, false);
+            Dessin.ecrire(g, titre, x + 11, y + 4, couleur, false);
+            for (int i = 0; i < lignes.size(); i++) Dessin.ecrire(g, lignes.get(i), x + 11, y + 15 + i * 10, Dessin.TEXTE, false);
         }
 
         // Instrument du kit de terrain, au-dessus de la barre d'objets : un détecteur avec son écran sonar (à gauche)
@@ -349,7 +351,7 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
         }
         Dessin.segment(g, cx - 0.5, cy - 0.5, cx - 0.5 + Math.sin(balayage) * 8, cy - 0.5 - Math.cos(balayage) * 8, 1, aiguille ? Dessin.JAUNE : 0xFF3EA162);
         int place = ligne1.equals(T.f("all_sampled")) || signal.getBoolean("jour") || !phase.equals("PRELEVEMENTS") ? 119 : 93;
-        g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(ligne1, place), ex, ey, couleur1, false);
-        g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(ligne2, place), ex, ey + 9, couleur2, false);
+        Dessin.defile(g, ligne1, ex, ey, place, couleur1);
+        Dessin.defile(g, ligne2, ex, ey + 9, place, couleur2);
     }
 }

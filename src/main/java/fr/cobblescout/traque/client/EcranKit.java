@@ -70,7 +70,7 @@ public class EcranKit extends Screen {
         for (int i = 0; i < noms.length; i++) {
             int[] place = placeOnglet(x, i);
             boolean survol = Dessin.dans(mx, my, place[0] - 3, y, place[1] + 6, 14);
-            g.drawString(Dessin.police(), noms[i], place[0], y + 3, i == onglet ? Dessin.TEXTE : survol ? Dessin.JAUNE : Dessin.GRIS, false);
+            Dessin.ecrire(g, noms[i], place[0], y + 3, i == onglet ? Dessin.TEXTE : survol ? Dessin.JAUNE : Dessin.GRIS, false);
             if (i == onglet) g.fill(place[0], y + 12, place[0] + place[1], y + 14, Dessin.ACCENT);
         }
         if (onglet == 1) {
@@ -97,7 +97,7 @@ public class EcranKit extends Screen {
     private void prelevements(GuiGraphics g, CompoundTag e, int x, int y, double jx, double jz, int mx, int my) {
         ListTag traces = e.getList("traces", Tag.TAG_COMPOUND);
         Dessin.encart(g, x + 4, y + 18, 188, 148);
-        g.drawString(Dessin.police(), T.f("samples"), x + 10, y + 23, Dessin.JAUNE, false);
+        Dessin.ecrire(g, T.f("samples"), x + 10, y + 23, Dessin.JAUNE, false);
         for (int i = 0; i < traces.size() && i < 5; i++) {
             CompoundTag t = traces.getCompound(i);
             String genre = t.getString("genre");
@@ -115,14 +115,14 @@ public class EcranKit extends Screen {
                 g.fill(x + 179, ly + 13, x + 185, ly + 19, Dessin.BORD);
                 g.fill(x + 180, ly + 14, x + 184, ly + 18, Dessin.VERT);
             }
-            g.drawString(Dessin.police(), T.c(Genetique.nomTrace(genre, enfoui, t.getInt("variante"))), x + 36, ly + 1, perdue ? Dessin.SOMBRE : Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), perdue ? T.f("clue_destroyed") : epingle ? T.f("analysed_in_the_file") : recolte ? T.f("sampled_to_analyse")
+            Dessin.ecrire(g, T.c(Genetique.nomTrace(genre, enfoui, t.getInt("variante"))), x + 36, ly + 1, perdue ? Dessin.SOMBRE : Dessin.TEXTE, false);
+            Dessin.ecrire(g, perdue ? T.f("clue_destroyed") : epingle ? T.f("analysed_in_the_file") : recolte ? T.f("sampled_to_analyse")
                     : enfoui ? (degage ? T.f("uncovered_to_sample") : T.f("buried_brush_needed")) : T.f("to_sample_in_the_zone"), x + 36, ly + 11, couleur, false);
         }
         // Boussole vers la zone des traces (le haut du cadran est la direction du regard).
         int cx = x + 256, cy = y + 72;
         Dessin.encart(g, x + 196, y + 18, 120, 148);
-        g.drawString(Dessin.police(), T.f("trace_zone"), x + 202, y + 23, Dessin.JAUNE, false);
+        Dessin.ecrire(g, T.f("trace_zone"), x + 202, y + 23, Dessin.JAUNE, false);
         double zx = e.getDouble("zoneX"), zz = e.getDouble("zoneZ");
         double cap = Dessin.cap(jx, jz, zx, zz);
         double relatif = Math.toRadians(cap - (minecraft.player.getYRot() + 180));
@@ -149,12 +149,12 @@ public class EcranKit extends Screen {
         double part = suivant > seuil ? (xp - seuil) / (double) (suivant - seuil) : 1;
         g.fill(x + 15, y + 104, x + 15 + (int) (102 * Math.max(0, Math.min(1, part))), y + 109, couleur);
         Dessin.centre(g, suivant > 0 ? xp + " / " + suivant + " XP" : xp + " XP · " + T.f("top_rank"), x + 66, y + 113, Dessin.GRIS);
-        g.drawString(Dessin.police(), T.f("cases") + reussies, x + 12, y + 128, Dessin.TEXTE, false);
-        g.drawString(Dessin.police(), T.f("five_stars") + c.getInt("parfaites"), x + 12, y + 139, Dessin.JAUNE, false);
-        g.drawString(Dessin.police(), T.f("species_3") + c.getInt("especes"), x + 12, y + 150, Dessin.ACCENT, false);
+        Dessin.ecrire(g, T.f("cases") + reussies, x + 12, y + 128, Dessin.TEXTE, false);
+        Dessin.ecrire(g, T.f("five_stars") + c.getInt("parfaites"), x + 12, y + 139, Dessin.JAUNE, false);
+        Dessin.ecrire(g, T.f("species_3") + c.getInt("especes"), x + 12, y + 150, Dessin.ACCENT, false);
 
         Dessin.encart(g, x + 132, y + 18, 184, 148);
-        g.drawString(Dessin.police(), T.f("kit_upgrades"), x + 138, y + 23, Dessin.JAUNE, false);
+        Dessin.ecrire(g, T.f("kit_upgrades"), x + 138, y + 23, Dessin.JAUNE, false);
         String[] titres = {T.f("sharper_radar"), T.f("spare_vial"), T.f("quick_scan"), T.f("cool_head"), T.f("keen_ear"), T.f("informant_network")};
         String[] effets = {T.f("detects_from_farther_away"), T.f("first_sample_needs_no_vial"), T.f("target_identified_in_2_s"), T.f("one_more_failure_forgiven"),
                 T.f("more_precise_cry_bearings"), T.f("wait_between_cases_2")};
@@ -165,8 +165,8 @@ public class EcranKit extends Screen {
             g.fill(x + 138, ly, x + 154, ly + 18, Dessin.BORD);
             g.fill(x + 139, ly + 1, x + 153, ly + 17, acquis ? 0xFF245C3A : 0xFF1A2633);
             Dessin.centre(g, acquis ? "✔" : String.valueOf(i + 1), x + 146, ly + 5, acquis ? Dessin.VERT : COULEURS_RANGS[i + 1]);
-            g.drawString(Dessin.police(), titres[i], x + 158, ly, acquis ? Dessin.TEXTE : Dessin.GRIS, false);
-            g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(effets[i], 154), x + 158, ly + 10, acquis ? Dessin.VERT : Dessin.SOMBRE, false);
+            Dessin.ecrire(g, titres[i], x + 158, ly, acquis ? Dessin.TEXTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, effets[i], x + 158, ly + 10, acquis ? Dessin.VERT : Dessin.SOMBRE, false);
             if (Dessin.dans(mx, my, x + 136, ly - 1, 176, 20)) survole = i;
         }
         // Au survol : le rang qui débloque l'amélioration.
@@ -183,7 +183,7 @@ public class EcranKit extends Screen {
     private void archives(GuiGraphics g, CompoundTag c, int x, int y) {
         ListTag fiches = c.getList("archives", Tag.TAG_COMPOUND);
         Dessin.encart(g, x + 4, y + 18, 196, 148);
-        g.drawString(Dessin.police(), T.f("closed_cases"), x + 10, y + 23, Dessin.JAUNE, false);
+        Dessin.ecrire(g, T.f("closed_cases"), x + 10, y + 23, Dessin.JAUNE, false);
         defilement = Math.max(0, Math.min(Math.max(0, fiches.size() - 6), defilement));
         if (fiches.isEmpty()) Dessin.paragraphe(g, T.f("no_closed_case_yet_every"), x + 12, y + 44, 180, Dessin.GRIS);
         java.text.SimpleDateFormat jour = new java.text.SimpleDateFormat("dd/MM");
@@ -192,28 +192,28 @@ public class EcranKit extends Screen {
             int ly = y + 36 + i * 21;
             String special = f.getString("special");
             Dessin.portrait(g, f.getString("espece"), x + 9, ly + 1, 1f);
-            g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(Dessin.nomEspece(f.getString("espece")), 104), x + 29, ly, Dessin.TEXTE, false);
+            Dessin.defile(g, Dessin.nomEspece(f.getString("espece")), x + 29, ly, 104, Dessin.TEXTE);
             String etoiles = T.etoiles(f.getInt("etoiles"));
-            g.drawString(Dessin.police(), etoiles, x + 194 - Dessin.police().width(etoiles), ly, Dessin.JAUNE, false);
+            Dessin.ecrire(g, etoiles, x + 194 - Dessin.police().width(etoiles), ly, Dessin.JAUNE, false);
             String type = EcranTableau.nomSpecial(special);
-            g.drawString(Dessin.police(), type, x + 29, ly + 10, EcranTableau.couleurSpecial(special), false);
+            Dessin.ecrire(g, type, x + 29, ly + 10, EcranTableau.couleurSpecial(special), false);
             String suite = " · " + (f.getBoolean("capture") ? T.f("caught") : T.f("defeated")) + " · " + jour.format(new java.util.Date(f.getLong("date")));
-            g.drawString(Dessin.police(), Dessin.police().plainSubstrByWidth(suite, 164 - Dessin.police().width(type)), x + 29 + Dessin.police().width(type), ly + 10, Dessin.SOMBRE, false);
+            Dessin.defile(g, suite, x + 29 + Dessin.police().width(type), ly + 10, 164 - Dessin.police().width(type), Dessin.SOMBRE);
         }
         if (fiches.size() > 6) {
-            g.drawString(Dessin.police(), (defilement + 1) + "-" + Math.min(fiches.size(), defilement + 6) + " / " + fiches.size() + "  ▲▼", x + 118, y + 23, Dessin.GRIS, false);
+            Dessin.ecrire(g, (defilement + 1) + "-" + Math.min(fiches.size(), defilement + 6) + " / " + fiches.size() + "  ▲▼", x + 118, y + 23, Dessin.GRIS, false);
         }
         // À droite : la collection des types d'enquête.
         Dessin.encart(g, x + 204, y + 18, 112, 148);
         CompoundTag types = c.getCompound("types");
         int resolus = 0;
         for (String t : TYPES) resolus += types.getInt(t.isEmpty() ? "ordinaire" : t) > 0 ? 1 : 0;
-        g.drawString(Dessin.police(), T.f("kinds") + resolus + " / " + TYPES.length, x + 210, y + 23, Dessin.JAUNE, false);
+        Dessin.ecrire(g, T.f("kinds") + resolus + " / " + TYPES.length, x + 210, y + 23, Dessin.JAUNE, false);
         for (int i = 0; i < TYPES.length; i++) {
             int n = types.getInt(TYPES[i].isEmpty() ? "ordinaire" : TYPES[i]), ly = y + 36 + i * 11;
-            g.drawString(Dessin.police(), n > 0 ? "✔" : "·", x + 210, ly, n > 0 ? Dessin.VERT : Dessin.SOMBRE, false);
-            g.drawString(Dessin.police(), EcranTableau.nomSpecial(TYPES[i]), x + 221, ly, n > 0 ? EcranTableau.couleurSpecial(TYPES[i]) : Dessin.SOMBRE, false);
-            if (n > 0) g.drawString(Dessin.police(), "×" + n, x + 310 - Dessin.police().width("×" + n), ly, Dessin.GRIS, false);
+            Dessin.ecrire(g, n > 0 ? "✔" : "·", x + 210, ly, n > 0 ? Dessin.VERT : Dessin.SOMBRE, false);
+            Dessin.ecrire(g, EcranTableau.nomSpecial(TYPES[i]), x + 221, ly, n > 0 ? EcranTableau.couleurSpecial(TYPES[i]) : Dessin.SOMBRE, false);
+            if (n > 0) Dessin.ecrire(g, "×" + n, x + 310 - Dessin.police().width("×" + n), ly, Dessin.GRIS, false);
         }
     }
 
@@ -298,7 +298,7 @@ public class EcranKit extends Screen {
                 Dessin.segment(g, px, py, px + Math.sin(a) * longueur, py - Math.cos(a) * longueur, cote == 0 ? 2 : 1, cote == 0 ? Dessin.ACCENT : 0xFF2C6F73);
             }
             g.fill((int) px - 2, (int) py - 2, (int) px + 3, (int) py + 3, Dessin.TEXTE);
-            g.drawString(Dessin.police(), String.valueOf(i + 1), (int) px + 4, (int) py - 9, Dessin.TEXTE, false);
+            Dessin.ecrire(g, String.valueOf(i + 1), (int) px + 4, (int) py - 9, Dessin.TEXTE, false);
         }
         if (rec) {
             double px = ccx + (rx - mx0) * echelle, py = ccy + (rz - mz0) * echelle;
@@ -309,14 +309,14 @@ public class EcranKit extends Screen {
         double pjx = ccx + (jx - mx0) * echelle, pjy = ccy + (jz - mz0) * echelle;
         g.fill((int) pjx - 2, (int) pjy - 2, (int) pjx + 3, (int) pjy + 3, Dessin.VERT);
         g.disableScissor();
-        g.drawString(Dessin.police(), "N", ccx - 2, oy + 4, Dessin.GRIS, false);
-        g.drawString(Dessin.police(), T.f("1_square_50_blocks"), ox + 4, oy + CARTE - 8, Dessin.SOMBRE, false);
+        Dessin.ecrire(g, "N", ccx - 2, oy + 4, Dessin.GRIS, false);
+        Dessin.ecrire(g, T.f("1_square_50_blocks"), ox + 4, oy + CARTE - 8, Dessin.SOMBRE, false);
 
         // Colonne de droite : lecture.
         int tx = ox + CARTE + 10, lw = L - CARTE - 22;
         Dessin.encart(g, tx - 4, oy, lw + 8, CARTE + 2);
         String phase = e.getString("phase");
-        g.drawString(Dessin.police(), phase.equals("TRAQUE") ? T.f("bearings") + n + ")" : phase.equals("REPERAGE") ? T.f("target_in_sight")
+        Dessin.ecrire(g, phase.equals("TRAQUE") ? T.f("bearings") + n + ")" : phase.equals("REPERAGE") ? T.f("target_in_sight")
                 : phase.equals("APPROCHE") ? T.f("approach").toUpperCase() : T.f("flushed_out_2"), tx, oy + 6, Dessin.JAUNE, false);
         int ly = oy + 20;
         int et = e.getInt("etoiles");
@@ -337,10 +337,10 @@ public class EcranKit extends Screen {
             return;
         }
         if (rec) {
-            g.drawString(Dessin.police(), T.f("fix"), tx, ly, Dessin.ACCENT, false);
-            g.drawString(Dessin.police(), "X " + Math.round(rx) + "  Z " + Math.round(rz), tx, ly + 11, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), "± " + Math.round(inc / 5) * 5 + T.f("blocks_2"), tx, ly + 22, Dessin.JAUNE, false);
-            g.drawString(Dessin.police(), T.f("at") + Math.round(Math.hypot(rx - jx, rz - jz)) + T.f("blocks") + Dessin.vent(Dessin.cap(jx, jz, rx, rz)), tx, ly + 33, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("fix"), tx, ly, Dessin.ACCENT, false);
+            Dessin.ecrire(g, "X " + Math.round(rx) + "  Z " + Math.round(rz), tx, ly + 11, Dessin.TEXTE, false);
+            Dessin.ecrire(g, "± " + Math.round(inc / 5) * 5 + T.f("blocks_2"), tx, ly + 22, Dessin.JAUNE, false);
+            Dessin.ecrire(g, T.f("at") + Math.round(Math.hypot(rx - jx, rz - jz)) + T.f("blocks") + Dessin.vent(Dessin.cap(jx, jz, rx, rz)), tx, ly + 33, Dessin.GRIS, false);
             ly += 48;
         } else {
             ly = Dessin.paragraphe(g, T.c(e.getString("recMessage")), tx, ly, lw, Dessin.GRIS) + 6;
