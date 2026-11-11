@@ -39,6 +39,10 @@ public class EcranTableau extends Screen {
 
     @Override
     public void render(GuiGraphics g, int mx, int my, float pt) {
+        if (Demo.souris != null) {
+            mx = Demo.souris[0];
+            my = Demo.souris[1];
+        }
         renderBackground(g, mx, my, pt);
         CompoundTag e = TraqueClient.etat;
         int x = F.x(width), y = F.y(height);

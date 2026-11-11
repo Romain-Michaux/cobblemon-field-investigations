@@ -18,6 +18,8 @@ import net.minecraft.nbt.StringTag;
 // screenshots/demo_*.png puis quitte le jeu.
 final class Demo {
     static boolean active, scan;
+    // Position de souris simulée pour une étape de la démo (null = la vraie souris).
+    static int[] souris;
     private static final List<String> NOMS = new ArrayList<>();
     private static final List<Runnable> ETAPES = new ArrayList<>();
     private static int attente = 120, etape = -1, depuis, dureeEtape = 20;
@@ -83,12 +85,11 @@ final class Demo {
         etape("tableau_infobulle", () -> {
             TraqueClient.etat = etat("PRELEVEMENTS", 3);
             mc.setScreen(new EcranTableau());
-            // La souris est placée sur un suspect entouré de Poké Ball : l'infobulle doit passer devant elles.
-            double echelle = mc.getWindow().getGuiScale();
-            int cx = (mc.getWindow().getGuiScaledWidth() - 336) / 2 + 134 + 50 + 20, cy = (mc.getWindow().getGuiScaledHeight() - 189) / 2 + 20;
-            org.lwjgl.glfw.GLFW.glfwSetCursorPos(mc.getWindow().getWindow(), cx * echelle, cy * echelle);
+            // La souris est simulée sur un suspect entouré de Poké Ball : l'infobulle doit passer devant elles.
+            souris = new int[] {(mc.getWindow().getGuiScaledWidth() - 336) / 2 + 134 + 50 + 20, (mc.getWindow().getGuiScaledHeight() - 189) / 2 + 24};
         });
         etape("tableau_traque", () -> {
+            souris = null;
             TraqueClient.etat = etat("TRAQUE", 5);
             mc.setScreen(new EcranTableau());
         });
