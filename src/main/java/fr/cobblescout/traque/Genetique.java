@@ -42,6 +42,26 @@ public final class Genetique {
     public static final List<String> JEUX_LABO = List.of("sequencage", "appariement", "centrifugation", "fragments", "spectre", "gel", "titrage",
             "pcr", "comptage", "microscope", "chromatographie", "parente", "dosage", "morsure", "degel");
 
+    // Noms anglais des mini-jeux pour la commande /hunt game (les identifiants internes restent ceux du code, en français).
+    public static final Map<String, String> NOMS_COMMANDE = new java.util.LinkedHashMap<>();
+    static {
+        String[][] noms = {{"crystals", "memoire"}, {"pipette", "pipette"}, {"measure", "mesure"}, {"sorting", "tri"}, {"tracing", "trace"},
+                {"brush", "degagement"}, {"sieve", "tamisage"}, {"cast", "moulage"}, {"tweezers", "pince"}, {"photo", "photo"}, {"swab", "ecouvillon"},
+                {"dive", "apnee"}, {"climb", "grimpe"}, {"abseil", "rappel"}, {"uvlamp", "lampe"}, {"filter", "filtrage"},
+                {"sequencing", "sequencage"}, {"pairing", "appariement"}, {"centrifuge", "centrifugation"}, {"fragments", "fragments"},
+                {"spectrum", "spectre"}, {"gel", "gel"}, {"colour", "titrage"}, {"pcr", "pcr"}, {"count", "comptage"}, {"microscope", "microscope"},
+                {"chromatography", "chromatographie"}, {"tree", "parente"}, {"titration", "dosage"}, {"bite", "morsure"}, {"thaw", "degel"}};
+        for (String[] n : noms) NOMS_COMMANDE.put(n[0], n[1]);
+    }
+
+    // Nom anglais d'un mini-jeu (pour l'afficher dans la liste de la commande).
+    public static String nomCommande(String jeu) {
+        for (Map.Entry<String, String> e : NOMS_COMMANDE.entrySet()) {
+            if (e.getValue().equals(jeu)) return e.getKey();
+        }
+        return jeu;
+    }
+
     // Clé de traduction du nom d'un mini-jeu.
     public static String nomJeu(String jeu) {
         return "cobblemon_field_investigations.jeu." + jeu;

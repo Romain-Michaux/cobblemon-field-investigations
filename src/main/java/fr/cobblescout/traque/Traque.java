@@ -85,19 +85,18 @@ public class Traque implements ModInitializer {
                 }))
                 .then(Commands.literal("game").requires(src -> src.hasPermission(2))
                         .executes(ctx -> {
-                            ctx.getSource().sendSuccess(() -> Component.literal("Field: " + String.join(", ", Genetique.JEUX_TERRAIN)).withStyle(ChatFormatting.AQUA), false);
-                            ctx.getSource().sendSuccess(() -> Component.literal("Lab: " + String.join(", ", Genetique.JEUX_LABO)).withStyle(ChatFormatting.AQUA), false);
+                            ctx.getSource().sendSuccess(() -> Component.literal("Field: " + String.join(", ", Genetique.JEUX_TERRAIN.stream().map(Genetique::nomCommande).toList())).withStyle(ChatFormatting.AQUA), false);
+                            ctx.getSource().sendSuccess(() -> Component.literal("Lab: " + String.join(", ", Genetique.JEUX_LABO.stream().map(Genetique::nomCommande).toList())).withStyle(ChatFormatting.AQUA), false);
                             return 1;
                         })
                         .then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
                                 .suggests((ctx, b) -> {
-                                    java.util.List<String> tous = new ArrayList<>(Genetique.JEUX_TERRAIN);
-                                    tous.addAll(Genetique.JEUX_LABO);
-                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(tous, b);
+                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(Genetique.NOMS_COMMANDE.keySet(), b);
                                 })
                                 .executes(ctx -> {
                                     String id = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id");
-                                    if (Moteur.essayer(ctx.getSource().getPlayerOrException(), id, -1)) return 1;
+                                    // Le nom anglais est attendu ; l'identifiant interne reste accepté.
+                                    if (Moteur.essayer(ctx.getSource().getPlayerOrException(), Genetique.NOMS_COMMANDE.getOrDefault(id, id), -1)) return 1;
                                     ctx.getSource().sendFailure(Component.literal("Unknown mini-game: " + id + " (run /hunt game for the list)"));
                                     return 0;
                                 })))
