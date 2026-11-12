@@ -9,7 +9,7 @@ import io.github.romainmichaux.fieldinvestigations.client.FieldInvestigationsCli
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 
-// Pendant le scan au kit de terrain, le champ de vision se resserre, comme avec une longue-vue.
+// While scanning with the field kit, the field of view narrows, like a spyglass.
 @Mixin(AbstractClientPlayer.class)
 public class ZoomScanMixin {
     @Inject(method = "getFieldOfViewModifier", at = @At("RETURN"), cancellable = true)

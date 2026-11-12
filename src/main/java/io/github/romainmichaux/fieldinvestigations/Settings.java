@@ -7,8 +7,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-// Clés du fichier de config en anglais ; "alternate" garde les anciens noms français lisibles, et le fichier est
-// réécrit en anglais au premier démarrage (Moteur relit puis réécrit la config).
+// Config keys are English; "alternate" keeps the old French names readable, and the file is rewritten in English on
+// first start (Engine.load reads then rewrites the config).
 public class Settings {
     public List<String> dimensions = new ArrayList<>(List.of("minecraft:overworld"));
     @SerializedName(value = "zoneMinDistance", alternate = "zoneDistanceMin")
@@ -28,7 +28,7 @@ public class Settings {
     @SerializedName(value = "pinsToStartHunt", alternate = "epinglesPourTraquer")
     public int pinsToStartHunt = 3;
     @SerializedName(value = "minutesBetweenCases", alternate = "minutesEntreEnquetes")
-    public int minutesEntreEnquetes = 10;
+    public int minutesBetweenCases = 10;
     @SerializedName(value = "secondsBetweenBearings", alternate = "secondesEntreReleves")
     public int secondsBetweenBearings = 6;
     @SerializedName(value = "distanceBetweenBearings", alternate = "distanceEntreReleves")
@@ -38,7 +38,7 @@ public class Settings {
     @SerializedName(value = "bearingErrorMaxDegrees", alternate = "erreurMaxDegres")
     public double bearingErrorMaxDegrees = 14;
     @SerializedName(value = "minutesBeforeTargetMoves", alternate = "minutesAvantDeplacement")
-    public int minutesAvantDeplacement = 8;
+    public int minutesBeforeTargetMoves = 8;
     @SerializedName(value = "approachRadius", alternate = "rayonApproche")
     public int approachRadius = 48;
     @SerializedName(value = "alertRadius", alternate = "rayonAlerte")
@@ -48,27 +48,27 @@ public class Settings {
     @SerializedName(value = "shinyMultiplierPerStar", alternate = "multChromaParEtoile")
     public double shinyMultiplierPerStar = 3.0;
     @SerializedName(value = "newSpeciesWeight", alternate = "bonusNouvelleEspece")
-    public double bonusNewSpecies = 2.0;
+    public double newSpeciesWeight = 2.0;
     @SerializedName(value = "rarityWeights", alternate = "poidsCategories")
     public Map<String, Double> rarityWeights = new LinkedHashMap<>(Map.of("common", 1.0, "uncommon", 2.5, "rare", 3.0, "ultra-rare", 2.0));
     @SerializedName(value = "excludedLabels", alternate = "etiquettesInterdites")
     public List<String> excludedLabels = new ArrayList<>(List.of("legendary", "mythical", "ultra_beast", "paradox"));
-    // Le butin d'une enquête résolue vient des tables de butin du mod (data/cobblemon_field_investigations/loot_table/investigation) :
-    // stars_1 à stars_5 selon la qualité de l'enquête, rarity_<catégorie> selon l'espèce, milestone tous les N dossiers.
+    // Loot for a solved case comes from the mod's loot tables (data/cobblemon_field_investigations/loot_table/investigation):
+    // stars_1 to stars_5 by case quality, rarity_<category> by species, milestone every N cases.
     @SerializedName(value = "milestoneEveryCases", alternate = "palierBonus")
     public int milestoneEveryCases = 5;
-    // À l'ouverture d'une enquête, le joueur choisit parmi plusieurs signalements (1 = pas de choix, comme en 1.0).
+    // When opening a case, the player picks from several reports (1 = no choice, as in 1.0).
     @SerializedName(value = "leadCount", alternate = "nombrePistes")
     public int leadCount = 3;
     @SerializedName(value = "leadValidityMinutes", alternate = "minutesValiditePistes")
-    public int minutesValiditePistes = 10;
-    // Chance qu'un signalement (autre que le premier) soit une enquête spéciale (voir Signalement).
+    public int leadValidityMinutes = 10;
+    // Chance that a report (other than the first) is a special case (see Reports).
     @SerializedName(value = "specialCaseChance", alternate = "chanceEnqueteSpeciale")
-    public double chanceSpecialCase = 0.5;
-    // Rythme des mini-jeux : "easy" (un tiers plus lent), "normal" ou "hard" (un quart plus rapide).
+    public double specialCaseChance = 0.5;
+    // Mini-game pace: "easy" (a third slower), "normal" or "hard" (a quarter faster).
     @SerializedName(value = "miniGameDifficulty", alternate = "difficulteMiniJeux")
     public String miniGameDifficulty = "normal";
-    // Nombre maximal d'enquêteurs sur un même dossier (1 = pas d'enquête en équipe).
+    // Maximum investigators on one case (1 = no team cases).
     @SerializedName(value = "maxTeamSize", alternate = "tailleEquipe")
     public int maxTeamSize = 4;
 }

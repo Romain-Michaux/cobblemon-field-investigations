@@ -4,23 +4,23 @@ import java.util.Random;
 
 import net.minecraft.client.gui.GuiGraphics;
 
-// Microscope : faire la mise au point, puis désigner la cellule anormale
+// Microscope: bring the slide into focus, then point out the abnormal cell.
 final class MicroscopeGame extends MiniGame {
     static final int N = 10;
     final Random h;
     final int[] px = new int[N], py = new int[N];
-    int setup, target, abnormal, round, faults, time, duration, flash, pause;
-    boolean net;
+    int focus, target, abnormal, round, faults, time, duration, flash, pause;
+    boolean sharp;
 
     MicroscopeGame(Random h) {
         this.h = h;
-        newB();
+        newRound();
     }
 
-    void newB() {
+    void newRound() {
         target = 15 + h.nextInt(70);
         int gap = 18 + h.nextInt(20);
-        setup = target + (target > 50 ? -gap : gap);
+        focus = target + (target > 50 ? -gap : gap);
         abnormal = h.nextInt(N);
         for (int i = 0; i < N; i++) {
             for (int attempt = 0; attempt < 80; attempt++) {
@@ -33,22 +33,22 @@ final class MicroscopeGame extends MiniGame {
             }
         }
         duration = time = 300 - round * 40;
-        net = false;
+        sharp = false;
     }
 
     int blur() {
-        return Math.abs(setup - target);
+        return Math.abs(focus - target);
     }
 
     @Override
     void tick() {
         if (flash > 0) flash--;
         if (pause > 0) {
-            if (--pause == 0 && !finished) newB();
+            if (--pause == 0 && !finished) newRound();
             return;
         }
         if (--time <= 0) fault();
-        else press1(time, duration);
+        else hurryTicks(time, duration);
     }
 
     void fault() {
@@ -69,16 +69,16 @@ final class MicroscopeGame extends MiniGame {
     @Override
     void click(double mx, double my) {
         if (pause > 0) return;
-        int[] stepSize = {-5, 5, -1, 1};
+        int[] steps = {-5, 5, -1, 1};
         for (int i = 0; i < 4; i++) {
             if (!Draw.in(mx, my, bx(i), by(i), 48, 18)) continue;
-            setup = Math.max(0, Math.min(100, setup + stepSize[i]));
+            focus = Math.max(0, Math.min(100, focus + steps[i]));
             Draw.beep(Sounds.KNOB, 0.8f + (float) Math.max(0, 30 - blur()) / 30f, 0.6f);
-            if (blur() <= 2 && !net) {
-                net = true;
+            if (blur() <= 2 && !sharp) {
+                sharp = true;
                 Draw.note(1.6f);
             } else if (blur() > 2) {
-                net = false;
+                sharp = false;
             }
             return;
         }
@@ -111,7 +111,7 @@ final class MicroscopeGame extends MiniGame {
         for (int i = 0; i < N; i++) {
             int x = ax + px[i], y = ay + py[i];
             if (f > 2) {
-                // Flou : la cellule n'est qu'une tache pâle, d'autant plus large que la mise au point est loin.
+                // Out of focus: the cell is just a pale blob, wider the further off the focus is.
                 disc(g, x, y, 7 + Math.min(6, f / 4), 0x3060A080);
                 disc(g, x, y, 5, 0x4060A080);
             } else {
@@ -131,8 +131,8 @@ final class MicroscopeGame extends MiniGame {
         text(g, T.f("mistakes") + faults + " / 2", tx, oy + 90, faults > 0 ? Draw.ALERT : Draw.GREY);
         text(g, T.f("sharpness"), tx, oy + 20, f <= 2 ? Draw.GREEN : Draw.YELLOW);
         gauge(g, tx, oy + 31, 100, 1 - f / 40.0, f <= 2 ? Draw.GREEN : Draw.YELLOW);
-        String[] names = {"<<", ">>", "<", ">"};
-        for (int i = 0; i < 4; i++) Draw.button(g, bx(i), by(i), 48, 18, names[i], pause == 0 && Draw.in(mx, my, bx(i), by(i), 48, 18), pause == 0 && !finished, 0xFF7C8FA3);
+        String[] labels = {"<<", ">>", "<", ">"};
+        for (int i = 0; i < 4; i++) Draw.button(g, bx(i), by(i), 48, 18, labels[i], pause == 0 && Draw.in(mx, my, bx(i), by(i), 48, 18), pause == 0 && !finished, 0xFF7C8FA3);
         timeGauge(g, tx, oy + 104, 100, pause > 0 ? 0 : time / (double) duration);
     }
 

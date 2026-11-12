@@ -11,17 +11,17 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 
-// Séquenceur ADN : chaque type d'échantillon s'analyse par un mini-jeu différent.
-// Quitter l'écran avant la fin gâche une dose, comme un échec.
+// DNA sequencer: each sample kind is analysed through a different mini-game.
+// Leaving the screen before the end wastes a dose, like a failure.
 public class AnalysisScreen extends Screen {
-    private static final int ZL = 280, ZH = 118;
+    private static final int AREA_W = 280, AREA_H = 118;
     private final String kind, gameId;
     private final boolean sampling, mesh, buried, filtering;
     private final int doses, variant;
     private final MiniGame game;
-    // Partie d'essai (commande /hunt game) : rien n'est envoyé au serveur à la fin.
+    // Practice game (/hunt game command): nothing is sent to the server at the end.
     boolean attempt;
-    // Première fois que le joueur voit ce mini-jeu : les règles s'affichent, et rien ne démarre avant qu'il clique « Commencer ».
+    // First time the player sees this mini-game: the rules are shown, and nothing starts until they click "Start".
     boolean intro;
     private boolean sent;
     private int endSince = -1;
@@ -36,42 +36,42 @@ public class AnalysisScreen extends Screen {
         this.doses = doses;
         this.mesh = mesh;
         this.variant = variant;
-        // Le filtrage du cri se joue pendant la traque, avant un relevé : ni fiole ni étoile en jeu.
+        // Cry filtering is played during tracking, before a bearing: no vial or star at stake.
         this.filtering = gameId.equals("filter");
-        Random h = new Random(seed);
+        Random rng = new Random(seed);
         this.game = switch (gameId) {
-            case "crystals" -> new CrystalsGame(h);
-            case "pipette" -> new PipetteGame(h);
-            case "measure" -> new MeasureGame(h);
-            case "sorting" -> new SortingGame(h);
-            case "trace" -> new TracingGame(h);
-            case "brush" -> new BrushGame(h, kind, variant);
-            case "sieving" -> new SieveGame(h, kind, variant);
-            case "cast" -> new CastGame(h);
-            case "tweezers" -> new TweezersGame(h);
-            case "photo" -> new PhotoGame(h);
-            case "swab" -> new SwabGame(h);
-            case "dive" -> new DiveGame(h);
-            case "climb" -> new ClimbGame(h);
-            case "abseil" -> new AbseilGame(h);
-            case "lamp" -> new UvLampGame(h);
-            case "rockfall" -> new RockfallGame(h);
-            case "filter" -> new FilterGame(h);
-            case "microscope" -> new MicroscopeGame(h);
-            case "chromatography" -> new ChromatographyGame(h);
-            case "family_tree" -> new FamilyTreeGame(h);
-            case "titration" -> new TitrationGame(h);
-            case "bite" -> new BiteGame(h);
-            case "thaw" -> new ThawGame(h);
-            case "pairing" -> new PairingGame(h);
-            case "centrifugation" -> new CentrifugeGame(h);
-            case "fragments" -> new FragmentsGame(h);
-            case "spectrum" -> new SpectrumGame(h);
-            case "gel" -> new GelGame(h);
-            case "colorimetry" -> new ColorimetryGame(h);
-            case "pcr" -> new PcrGame(h);
-            case "count" -> new CountGame(h);
-            default -> new SequencingGame(h);
+            case "crystals" -> new CrystalsGame(rng);
+            case "pipette" -> new PipetteGame(rng);
+            case "measure" -> new MeasureGame(rng);
+            case "sorting" -> new SortingGame(rng);
+            case "trace" -> new TracingGame(rng);
+            case "brush" -> new BrushGame(rng, kind, variant);
+            case "sieving" -> new SieveGame(rng, kind, variant);
+            case "cast" -> new CastGame(rng);
+            case "tweezers" -> new TweezersGame(rng);
+            case "photo" -> new PhotoGame(rng);
+            case "swab" -> new SwabGame(rng);
+            case "dive" -> new DiveGame(rng);
+            case "climb" -> new ClimbGame(rng);
+            case "abseil" -> new AbseilGame(rng);
+            case "lamp" -> new UvLampGame(rng);
+            case "rockfall" -> new RockfallGame(rng);
+            case "filter" -> new FilterGame(rng);
+            case "microscope" -> new MicroscopeGame(rng);
+            case "chromatography" -> new ChromatographyGame(rng);
+            case "family_tree" -> new FamilyTreeGame(rng);
+            case "titration" -> new TitrationGame(rng);
+            case "bite" -> new BiteGame(rng);
+            case "thaw" -> new ThawGame(rng);
+            case "pairing" -> new PairingGame(rng);
+            case "centrifugation" -> new CentrifugeGame(rng);
+            case "fragments" -> new FragmentsGame(rng);
+            case "spectrum" -> new SpectrumGame(rng);
+            case "gel" -> new GelGame(rng);
+            case "colorimetry" -> new ColorimetryGame(rng);
+            case "pcr" -> new PcrGame(rng);
+            case "count" -> new CountGame(rng);
+            default -> new SequencingGame(rng);
         };
     }
 
@@ -89,7 +89,7 @@ public class AnalysisScreen extends Screen {
     public void tick() {
         if (intro) return;
         ticks++;
-        // Rythme réglé par le serveur : en facile, le jeu saute un tic sur trois ; en difficile, il en joue un de plus sur quatre.
+        // Pace set by the server: on easy, the game skips one tick in three; on hard, it plays an extra one every four.
         int pace = FieldInvestigationsClient.state.getInt("difficulty");
         if (!game.finished && !(pace < 0 && ticks % 3 == 0)) {
             game.tick();
@@ -97,8 +97,8 @@ public class AnalysisScreen extends Screen {
         }
         if (game.finished && endSince < 0) {
             endSince = ticks;
-            Draw.note(game.succes ? 1.6f : 0.6f);
-            if (game.succes) Draw.beep(Sounds.SUCCESS, game.perfect ? 1.4f : 1f, 0.6f);
+            Draw.note(game.success ? 1.6f : 0.6f);
+            if (game.success) Draw.beep(Sounds.SUCCESS, game.perfect ? 1.4f : 1f, 0.6f);
             else Draw.beep(Sounds.FAILURE, 0.5f, 0.9f);
         }
         if (endSince >= 0 && ticks - endSince > 32) onClose();
@@ -106,12 +106,12 @@ public class AnalysisScreen extends Screen {
 
     @Override
     public void removed() {
-        // Fermer l'écran pendant l'explication ne coûte rien : la partie n'a pas commencé.
+        // Closing the screen during the explanation costs nothing: the game has not started.
         if (!sent && !attempt && !intro) {
             sent = true;
             Packet p = Packet.from(filtering ? "filter" : sampling ? "sampling" : "analyse");
-            p.data().putBoolean("succeeded", game.finished && game.succes);
-            p.data().putBoolean("perfect", game.finished && game.succes && game.perfect);
+            p.data().putBoolean("succeeded", game.finished && game.success);
+            p.data().putBoolean("perfect", game.finished && game.success && game.perfect);
             FieldInvestigationsClient.send(p);
         }
     }
@@ -119,56 +119,56 @@ public class AnalysisScreen extends Screen {
     @Override
     public void render(GuiGraphics g, int mx, int my, float pt) {
         renderBackground(g, mx, my, pt);
-        // Un prélèvement se fait sur le terrain, dans l'écran du kit ; une analyse, dans celui du séquenceur.
-        Draw.Backdrop f = sampling ? Draw.KIT : Draw.SEQUENCER;
-        int x = f.x(width), y = f.y(height), l = f.il();
-        Draw.background(g, f, width, height);
-        int zx = x + (l - ZL) / 2, zy;
+        // Sampling happens in the field, on the kit screen; analysis, on the sequencer screen.
+        Draw.Backdrop backdrop = sampling ? Draw.KIT : Draw.SEQUENCER;
+        int x = backdrop.x(width), y = backdrop.y(height), w = backdrop.il();
+        Draw.background(g, backdrop, width, height);
+        int zx = x + (w - AREA_W) / 2, zy;
         if (sampling) {
-            Draw.banner(g, x, y, l, T.c(Genetics.gameName(gameId)).toUpperCase(), filtering ? T.f("cry_bearing") : T.c(Genetics.traceName(kind, buried, variant)));
+            Draw.banner(g, x, y, w, T.c(Genetics.gameName(gameId)).toUpperCase(), filtering ? T.f("cry_bearing") : T.c(Genetics.traceName(kind, buried, variant)));
             zy = y + 18;
         } else {
             String gameName = T.c(Genetics.gameName(gameId)).toUpperCase();
             String title = T.f("dna_sequencer_2") + gameName;
             if (Draw.textFont().width(title) > 220) title = gameName;
-            Draw.centre(g, title, x + l / 2, y + 176, 0xFF0E3B3A);
+            Draw.centre(g, title, x + w / 2, y + 176, 0xFF0E3B3A);
             Draw.write(g, T.c(Genetics.traceName(kind, buried, variant)) + T.f("doses") + doses + (mesh ? T.f("first_mistake_is_free") : ""),
                     zx, y + 3, Draw.GREY, false);
             zy = y + 15;
         }
-        Draw.inset(g, zx, zy, ZL, ZH);
+        Draw.inset(g, zx, zy, AREA_W, AREA_H);
         game.ox = zx;
         game.oy = zy;
         game.draw(g, mx, my, pt);
-        if (!intro) Draw.paragraph(g, game.instruction(), zx, zy + ZH + 3, ZL, Draw.GREY);
+        if (!intro) Draw.paragraph(g, game.instruction(), zx, zy + AREA_H + 3, AREA_W, Draw.GREY);
         if (intro) {
             g.pose().pushPose();
             g.pose().translate(0, 0, 350);
-            g.fill(zx, zy, zx + ZL, zy + ZH, 0xEA0C141C);
-            Draw.centre(g, T.f("first_time") + T.c(Genetics.gameName(gameId)).toUpperCase(), zx + ZL / 2, zy + 8, Draw.YELLOW);
-            int ly = Draw.paragraph(g, game.instruction(), zx + 16, zy + 24, ZL - 32, Draw.TEXT);
+            g.fill(zx, zy, zx + AREA_W, zy + AREA_H, 0xEA0C141C);
+            Draw.centre(g, T.f("first_time") + T.c(Genetics.gameName(gameId)).toUpperCase(), zx + AREA_W / 2, zy + 8, Draw.YELLOW);
+            int ly = Draw.paragraph(g, game.instruction(), zx + 16, zy + 24, AREA_W - 32, Draw.TEXT);
             Draw.paragraph(g, filtering ? T.f("a_failure_costs_no_star")
                     : sampling ? T.f("a_failure_damages_the_sample")
-                    : T.f("a_failure_loses_one_dose"), zx + 16, ly + 4, ZL - 32, Draw.GREY);
-            boolean hover = Draw.in(mx, my, zx + ZL / 2 - 60, zy + ZH - 26, 120, 20);
-            Draw.button(g, zx + ZL / 2 - 60, zy + ZH - 26, 120, 20, T.f("start"), hover, true, Draw.GREEN);
+                    : T.f("a_failure_loses_one_dose"), zx + 16, ly + 4, AREA_W - 32, Draw.GREY);
+            boolean hover = Draw.in(mx, my, zx + AREA_W / 2 - 60, zy + AREA_H - 26, 120, 20);
+            Draw.button(g, zx + AREA_W / 2 - 60, zy + AREA_H - 26, 120, 20, T.f("start"), hover, true, Draw.GREEN);
             g.pose().popPose();
         }
         if (endSince >= 0) {
             g.pose().pushPose();
             g.pose().translate(0, 0, 300);
-            g.fill(zx + 40, zy + 40, zx + ZL - 40, zy + 78, Draw.EDGE);
-            g.fill(zx + 42, zy + 42, zx + ZL - 42, zy + 76, game.succes ? 0xFF245C3A : 0xFF6B2420);
+            g.fill(zx + 40, zy + 40, zx + AREA_W - 40, zy + 78, Draw.EDGE);
+            g.fill(zx + 42, zy + 42, zx + AREA_W - 42, zy + 76, game.success ? 0xFF245C3A : 0xFF6B2420);
             if (filtering) {
-                Draw.centre(g, game.succes ? T.f("cry_isolated") : T.f("cry_lost_in_noise"), zx + ZL / 2, zy + 49, Draw.TEXT);
-                Draw.centre(g, game.succes ? T.f("precise_bearing") : T.f("less_precise_bearing"), zx + ZL / 2, zy + 62, Draw.GREY);
+                Draw.centre(g, game.success ? T.f("cry_isolated") : T.f("cry_lost_in_noise"), zx + AREA_W / 2, zy + 49, Draw.TEXT);
+                Draw.centre(g, game.success ? T.f("precise_bearing") : T.f("less_precise_bearing"), zx + AREA_W / 2, zy + 62, Draw.GREY);
             } else if (sampling) {
-                Draw.centre(g, game.succes ? (game.perfect ? T.f("perfect_sample") : T.f("sample_taken")) : T.f("sample_damaged"), zx + ZL / 2, zy + 49, Draw.TEXT);
-                Draw.centre(g, game.succes ? (game.perfect ? T.f("one_extra_dose") : T.f("full_sample")) : T.f("a_single_dose_half_star"), zx + ZL / 2, zy + 62, Draw.GREY);
+                Draw.centre(g, game.success ? (game.perfect ? T.f("perfect_sample") : T.f("sample_taken")) : T.f("sample_damaged"), zx + AREA_W / 2, zy + 49, Draw.TEXT);
+                Draw.centre(g, game.success ? (game.perfect ? T.f("one_extra_dose") : T.f("full_sample")) : T.f("a_single_dose_half_star"), zx + AREA_W / 2, zy + 62, Draw.GREY);
             } else {
-                Draw.centre(g, game.succes ? T.f("analysis_complete") : T.f("analysis_failed"), zx + ZL / 2, zy + 49, Draw.TEXT);
-                Draw.centre(g, game.succes ? T.f("marker") + T.c(Genetics.MARKER_NAMES.get(kind)) + T.f("added_to_the_case_file")
-                        : mesh ? T.f("the_sequencer_saved_the_dose") : T.f("one_dose_lost_half_star"), zx + ZL / 2, zy + 62, Draw.GREY);
+                Draw.centre(g, game.success ? T.f("analysis_complete") : T.f("analysis_failed"), zx + AREA_W / 2, zy + 49, Draw.TEXT);
+                Draw.centre(g, game.success ? T.f("marker") + T.c(Genetics.MARKER_NAMES.get(kind)) + T.f("added_to_the_case_file")
+                        : mesh ? T.f("the_sequencer_saved_the_dose") : T.f("one_dose_lost_half_star"), zx + AREA_W / 2, zy + 62, Draw.GREY);
             }
             g.pose().popPose();
         }
@@ -177,48 +177,48 @@ public class AnalysisScreen extends Screen {
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (intro) {
-            Draw.Backdrop f = sampling ? Draw.KIT : Draw.SEQUENCER;
-            int zx = f.x(width) + (f.il() - ZL) / 2, zy = f.y(height) + (sampling ? 18 : 15);
-            if (Draw.in(mx, my, zx + ZL / 2 - 60, zy + ZH - 26, 120, 20)) {
+            Draw.Backdrop backdrop = sampling ? Draw.KIT : Draw.SEQUENCER;
+            int zx = backdrop.x(width) + (backdrop.il() - AREA_W) / 2, zy = backdrop.y(height) + (sampling ? 18 : 15);
+            if (Draw.in(mx, my, zx + AREA_W / 2 - 60, zy + AREA_H - 26, 120, 20)) {
                 intro = false;
-                Draw.sound1(1.2f);
+                Draw.click(1.2f);
             }
             return true;
         }
-        game.press = true;
+        game.mouseDown = true;
         if (!game.finished) game.click(mx, my);
         return true;
     }
 
     @Override
     public boolean mouseReleased(double mx, double my, int button) {
-        game.press = false;
+        game.mouseDown = false;
         if (!game.finished) game.released(mx, my);
         return true;
     }
 
     @Override
-    public boolean keyPressed(int pressedKey, int scan, int mods) {
-        if (intro && (pressedKey == 257 || pressedKey == 32)) {
+    public boolean keyPressed(int key, int scan, int mods) {
+        if (intro && (key == 257 || key == 32)) {
             intro = false;
-            Draw.sound1(1.2f);
+            Draw.click(1.2f);
             return true;
         }
-        if (intro) return super.keyPressed(pressedKey, scan, mods);
-        if (!game.finished && game.pressedKey(pressedKey)) return true;
-        return super.keyPressed(pressedKey, scan, mods);
+        if (intro) return super.keyPressed(key, scan, mods);
+        if (!game.finished && game.keyPressed(key)) return true;
+        return super.keyPressed(key, scan, mods);
     }
 
-    // ---------- 1. Séquençage : retrouver 4 bases en 6 lectures ----------
+    // ---------- 1. Sequencing: find 4 bases in 6 reads ----------
 
     private static final class SequencingGame extends MiniGame {
         final int[] code = new int[4];
         final int[][] attempts = new int[6][4];
-        final int[][] returns = new int[6][2];
+        final int[][] feedback = new int[6][2];
         int line;
 
-        SequencingGame(Random h) {
-            for (int k = 0; k < 4; k++) code[k] = h.nextInt(4);
+        SequencingGame(Random rng) {
+            for (int k = 0; k < 4; k++) code[k] = rng.nextInt(4);
             for (int[] e : attempts) java.util.Arrays.fill(e, -1);
         }
 
@@ -230,7 +230,7 @@ public class AnalysisScreen extends Screen {
                 for (int k = 0; k < 4; k++) Draw.base(g, ox + 22 + k * 20, y, 15, attempts[l][k], l == line && Draw.in(mx, my, ox + 22 + k * 20, y, 15, 15));
                 if (l < line) {
                     for (int k = 0; k < 4; k++) {
-                        int c = k < returns[l][0] ? Draw.GREEN : k < returns[l][0] + returns[l][1] ? Draw.YELLOW : Draw.INSET_LIGHT;
+                        int c = k < feedback[l][0] ? Draw.GREEN : k < feedback[l][0] + feedback[l][1] ? Draw.YELLOW : Draw.INSET_LIGHT;
                         g.fill(ox + 110 + k * 11, y + 4, ox + 118 + k * 11, y + 12, Draw.EDGE);
                         g.fill(ox + 111 + k * 11, y + 5, ox + 117 + k * 11, y + 11, c);
                     }
@@ -258,7 +258,7 @@ public class AnalysisScreen extends Screen {
             for (int k = 0; k < 4; k++) {
                 if (Draw.in(mx, my, ox + 22 + k * 20, y, 15, 15)) {
                     attempts[line][k] = (attempts[line][k] + 1) % 4;
-                    Draw.sound1(1f + attempts[line][k] * 0.15f);
+                    Draw.click(1f + attempts[line][k] * 0.15f);
                     return;
                 }
             }
@@ -273,8 +273,8 @@ public class AnalysisScreen extends Screen {
                 }
             }
             for (int b = 0; b < 4; b++) present += Math.min(codeLeft[b], attemptsLeft[b]);
-            returns[line][0] = exact;
-            returns[line][1] = present;
+            feedback[line][0] = exact;
+            feedback[line][1] = present;
             Draw.note(0.8f + exact * 0.2f);
             line++;
             if (exact == 4) end(true);
@@ -288,7 +288,7 @@ public class AnalysisScreen extends Screen {
         }
     }
 
-    // ---------- 2. Appariement des brins : donner la base complémentaire avant la fin du temps ----------
+    // ---------- 2. Strand pairing: give the complementary base before time runs out ----------
 
     private static final class PairingGame extends MiniGame {
         static final int[] COMPLEMENT = {1, 0, 3, 2};
@@ -297,8 +297,8 @@ public class AnalysisScreen extends Screen {
         int position, errors, time;
         int flash, flashOk;
 
-        PairingGame(Random h) {
-            for (int k = 0; k < strand.length; k++) strand[k] = h.nextInt(4);
+        PairingGame(Random rng) {
+            for (int k = 0; k < strand.length; k++) strand[k] = rng.nextInt(4);
         }
 
         int duration() {
@@ -332,7 +332,7 @@ public class AnalysisScreen extends Screen {
             if (b == COMPLEMENT[strand[position]]) {
                 flash = 6;
                 flashOk = 1;
-                Draw.sound1(1.2f + position * 0.05f);
+                Draw.click(1.2f + position * 0.05f);
                 next();
             } else fault();
         }
@@ -346,18 +346,18 @@ public class AnalysisScreen extends Screen {
                 int bx = i == 0 ? ox + 20 : ox + 62 + (i - 1) * 22, by = i == 0 ? oy + 22 : oy + 28;
                 Draw.base(g, bx, by, size, strand[k], i == 0);
             }
-            int banner = flash > 0 ? (flashOk == 1 ? Draw.GREEN : Draw.ALERT) : Draw.INSET_LIGHT;
-            g.fill(ox + 20, oy + 56, ox + ZL - 20, oy + 62, Draw.EDGE);
+            int flashColour = flash > 0 ? (flashOk == 1 ? Draw.GREEN : Draw.ALERT) : Draw.INSET_LIGHT;
+            g.fill(ox + 20, oy + 56, ox + AREA_W - 20, oy + 62, Draw.EDGE);
             double part = 1 - Math.min(1.0, (time + pt) / duration());
-            g.fill(ox + 21, oy + 57, ox + 21 + (int) ((ZL - 42) * part), oy + 61, part > 0.35 ? Draw.ACCENT : Draw.ALERT);
-            g.fill(ox + 20, oy + 64, ox + ZL - 20, oy + 65, banner);
+            g.fill(ox + 21, oy + 57, ox + 21 + (int) ((AREA_W - 42) * part), oy + 61, part > 0.35 ? Draw.ACCENT : Draw.ALERT);
+            g.fill(ox + 20, oy + 64, ox + AREA_W - 20, oy + 65, flashColour);
             for (int b = 0; b < 4; b++) {
                 int bx = ox + 30 + b * 56;
                 boolean hover = Draw.in(mx, my, bx, oy + 74, 48, 24);
                 Draw.button(g, bx, oy + 74, 48, 24, Draw.BASES[b], hover, true, Draw.BASE_COLOURS[b]);
             }
-            Draw.write(g, (position) + " / " + strand.length, ox + ZL - 60, oy + 8, Draw.TEXT, false);
-            Draw.write(g, T.f("mistakes") + errors + " / 3", ox + ZL - 84, oy + 104, errors > 1 ? Draw.ALERT : Draw.GREY, false);
+            Draw.write(g, (position) + " / " + strand.length, ox + AREA_W - 60, oy + 8, Draw.TEXT, false);
+            Draw.write(g, T.f("mistakes") + errors + " / 3", ox + AREA_W - 84, oy + 104, errors > 1 ? Draw.ALERT : Draw.GREY, false);
             Draw.write(g, "A↔T   C↔G", ox + 10, oy + 104, Draw.YELLOW, false);
         }
 
@@ -369,9 +369,9 @@ public class AnalysisScreen extends Screen {
         }
 
         @Override
-        boolean pressedKey(int pressedKey) {
+        boolean keyPressed(int key) {
             for (int b = 0; b < 4; b++) {
-                if (pressedKey == KEYS[b]) {
+                if (key == KEYS[b]) {
                     answer(b);
                     return true;
                 }
@@ -385,16 +385,16 @@ public class AnalysisScreen extends Screen {
         }
     }
 
-    // ---------- 3. Centrifugation : arrêter l'aiguille dans la zone verte, trois fois ----------
+    // ---------- 3. Centrifugation: stop the needle in the green zone, three times ----------
 
     private static final class CentrifugeGame extends MiniGame {
-        final Random h;
-        double angle, speed = 7, start, widthPx = 56;
+        final Random rng;
+        double angle, speed = 7, zoneStart, arcWidth = 56;
         int successes, misses, flash;
 
-        CentrifugeGame(Random h) {
-            this.h = h;
-            start = h.nextInt(360);
+        CentrifugeGame(Random rng) {
+            this.rng = rng;
+            zoneStart = rng.nextInt(360);
         }
 
         @Override
@@ -407,8 +407,8 @@ public class AnalysisScreen extends Screen {
 
         void stopNow(float pt) {
             double a = (angle + speed * pt) % 360;
-            double gap = ((a - start) % 360 + 360) % 360;
-            if (gap <= widthPx) {
+            double gap = ((a - zoneStart) % 360 + 360) % 360;
+            if (gap <= arcWidth) {
                 successes++;
                 Draw.note(1f + successes * 0.25f);
                 if (successes >= 3) {
@@ -416,8 +416,8 @@ public class AnalysisScreen extends Screen {
                     return;
                 }
                 speed += 2.5;
-                widthPx -= 13;
-                start = h.nextInt(360);
+                arcWidth -= 13;
+                zoneStart = rng.nextInt(360);
             } else {
                 misses++;
                 flash = 6;
@@ -428,16 +428,16 @@ public class AnalysisScreen extends Screen {
 
         @Override
         void draw(GuiGraphics g, int mx, int my, float pt) {
-            int cx = ox + 70, cy = oy + ZH / 2, radius = 51;
+            int cx = ox + 70, cy = oy + AREA_H / 2, radius = 51;
             double degrees = finished ? angle : angle + speed * pt;
             g.pose().pushPose();
             g.pose().translate(cx, cy, 0);
-            // Le rotor tourne à contresens de l'aiguille.
+            // The rotor turns opposite to the needle.
             g.pose().mulPose(Axis.ZP.rotationDegrees((float) -degrees));
             Draw.image(g, Draw.ROTOR, -48, -48, 96, 96);
             g.pose().popPose();
             Draw.circle(g, cx - 1, cy - 1, radius, 2, flash > 0 ? Draw.ALERT : Draw.EDGE_LIGHT);
-            for (double a = start; a <= start + widthPx; a += 2) {
+            for (double a = zoneStart; a <= zoneStart + arcWidth; a += 2) {
                 double r = Math.toRadians(a);
                 Draw.point(g, cx + Math.sin(r) * radius - 2, cy - Math.cos(r) * radius - 2, 4, Draw.GREEN);
             }
@@ -458,8 +458,8 @@ public class AnalysisScreen extends Screen {
         }
 
         @Override
-        boolean pressedKey(int pressedKey) {
-            if (pressedKey == 32) {
+        boolean keyPressed(int key) {
+            if (key == 32) {
                 stopNow(0f);
                 return true;
             }
@@ -472,17 +472,17 @@ public class AnalysisScreen extends Screen {
         }
     }
 
-    // ---------- 4. Assemblage : remettre 5 fragments dans l'ordre grâce à leurs chevauchements ----------
+    // ---------- 4. Assembly: put 5 fragments back in order using their overlaps ----------
 
     private static final class FragmentsGame extends MiniGame {
         final int[][] fragments = new int[5][4];
         final int[] order = {0, 1, 2, 3, 4};
-        int selection = -1, attempts = 3, joints = -1;
+        int selection = -1, triesLeft = 3, joints = -1;
 
-        FragmentsGame(Random h) {
+        FragmentsGame(Random rng) {
             int[] seq = new int[12];
             while (true) {
-                for (int k = 0; k < 12; k++) seq[k] = h.nextInt(4);
+                for (int k = 0; k < 12; k++) seq[k] = rng.nextInt(4);
                 java.util.Set<Integer> pairs = new java.util.HashSet<>();
                 for (int i = 0; i < 6; i++) pairs.add(seq[2 * i] * 4 + seq[2 * i + 1]);
                 if (pairs.size() == 6) break;
@@ -490,15 +490,15 @@ public class AnalysisScreen extends Screen {
             for (int i = 0; i < 5; i++) System.arraycopy(seq, 2 * i, fragments[i], 0, 4);
             do {
                 for (int i = 4; i > 0; i--) {
-                    int j = h.nextInt(i + 1);
+                    int j = rng.nextInt(i + 1);
                     int t = order[i];
                     order[i] = order[j];
                     order[j] = t;
                 }
-            } while (goodOnes() == 4);
+            } while (correctJoints() == 4);
         }
 
-        int goodOnes() {
+        int correctJoints() {
             int n = 0;
             for (int i = 0; i < 4; i++) {
                 int[] a = fragments[order[i]], b = fragments[order[i + 1]];
@@ -522,7 +522,7 @@ public class AnalysisScreen extends Screen {
             for (int k = 0; k < 4; k++) Draw.base(g, ox + 132 + k * 13, oy + 36, 11, k < 2 ? -1 : k - 2, false);
             for (int k = 0; k < 4; k++) Draw.base(g, ox + 158 + k * 13, oy + 50, 11, k < 2 ? k : -1, false);
             if (joints >= 0) Draw.write(g, T.f("correct_joints") + joints + " / 4", ox + 132, oy + 68, Draw.YELLOW, false);
-            Draw.write(g, T.f("tries") + attempts, ox + 132, oy + 80, attempts == 1 ? Draw.ALERT : Draw.TEXT, false);
+            Draw.write(g, T.f("tries") + triesLeft, ox + 132, oy + 80, triesLeft == 1 ? Draw.ALERT : Draw.TEXT, false);
             Draw.button(g, ox + 132, oy + 92, 110, 20, T.f("assemble"), Draw.in(mx, my, ox + 132, oy + 92, 110, 20), true, Draw.ACCENT);
         }
 
@@ -537,16 +537,16 @@ public class AnalysisScreen extends Screen {
                     order[selection] = t;
                     selection = -1;
                 }
-                Draw.sound1(1.2f);
+                Draw.click(1.2f);
                 return;
             }
             if (Draw.in(mx, my, ox + 132, oy + 92, 110, 20)) {
-                joints = goodOnes();
+                joints = correctJoints();
                 if (joints == 4) end(true);
                 else {
-                    attempts--;
+                    triesLeft--;
                     Draw.note(0.6f);
-                    if (attempts <= 0) end(false);
+                    if (triesLeft <= 0) end(false);
                 }
             }
         }
@@ -557,18 +557,18 @@ public class AnalysisScreen extends Screen {
         }
     }
 
-    // ---------- 5. Accord du spectre : régler trois paramètres pour superposer sa courbe à celle de l'échantillon ----------
+    // ---------- 5. Spectrum tuning: adjust three parameters so your curve overlays the sample's ----------
 
     private static final class SpectrumGame extends MiniGame {
         static final String[] NAMES = {T.f("frequency"), T.f("amplitude"), T.f("phase")};
         final int[] target = new int[3], setting = new int[3];
-        int time = 900, tuning;
+        int time = 900, tunedTicks;
 
-        SpectrumGame(Random h) {
+        SpectrumGame(Random rng) {
             do {
                 for (int k = 0; k < 3; k++) {
-                    target[k] = h.nextInt(7);
-                    setting[k] = h.nextInt(7);
+                    target[k] = rng.nextInt(7);
+                    setting[k] = rng.nextInt(7);
                 }
             } while (gap() < 5);
         }
@@ -584,18 +584,18 @@ public class AnalysisScreen extends Screen {
         }
 
         double likeness() {
-            double sum1 = 0;
-            for (int i = 0; i < 64; i++) sum1 += Math.abs(curve(target, i / 64.0) - curve(setting, i / 64.0));
-            return Math.max(0, 1 - sum1 / 64 / 20);
+            double total = 0;
+            for (int i = 0; i < 64; i++) total += Math.abs(curve(target, i / 64.0) - curve(setting, i / 64.0));
+            return Math.max(0, 1 - total / 64 / 20);
         }
 
         @Override
         void tick() {
             if (--time <= 0) end(false);
-            press1(time, 900);
+            hurryTicks(time, 900);
             if (gap() == 0) {
-                if (tuning == 0) Draw.beep(Sounds.CHIME, 1.5f, 0.6f);
-                if (++tuning > 6) end(true);
+                if (tunedTicks == 0) Draw.beep(Sounds.CHIME, 1.5f, 0.6f);
+                if (++tunedTicks > 6) end(true);
             }
         }
 
@@ -613,8 +613,8 @@ public class AnalysisScreen extends Screen {
             Draw.write(g, T.f("grey_sample"), px, py + ph + 3, Draw.DARK, false);
             int percent = (int) Math.round(likeness() * 100);
             Draw.write(g, T.f("match") + percent + " %", px, py + ph + 14, percent > 85 ? Draw.GREEN : Draw.YELLOW, false);
-            g.fill(px, oy + ZH - 12, px + pl, oy + ZH - 6, Draw.EDGE);
-            g.fill(px + 1, oy + ZH - 11, px + 1 + (int) ((pl - 2) * time / 900.0), oy + ZH - 7, time > 200 ? Draw.ACCENT : Draw.ALERT);
+            g.fill(px, oy + AREA_H - 12, px + pl, oy + AREA_H - 6, Draw.EDGE);
+            g.fill(px + 1, oy + AREA_H - 11, px + 1 + (int) ((pl - 2) * time / 900.0), oy + AREA_H - 7, time > 200 ? Draw.ACCENT : Draw.ALERT);
             for (int k = 0; k < 3; k++) {
                 int y = oy + 8 + k * 34;
                 Draw.write(g, NAMES[k], ox + 170, y, Draw.TEXT, false);
@@ -630,12 +630,12 @@ public class AnalysisScreen extends Screen {
                 int y = oy + 8 + k * 34;
                 if (Draw.in(mx, my, ox + 168, y + 10, 22, 18) && setting[k] > 0) {
                     setting[k]--;
-                    tuning = 0;
-                    Draw.sound1(0.9f + setting[k] * 0.08f);
+                    tunedTicks = 0;
+                    Draw.click(0.9f + setting[k] * 0.08f);
                 } else if (Draw.in(mx, my, ox + 252, y + 10, 22, 18) && setting[k] < 6) {
                     setting[k]++;
-                    tuning = 0;
-                    Draw.sound1(0.9f + setting[k] * 0.08f);
+                    tunedTicks = 0;
+                    Draw.click(0.9f + setting[k] * 0.08f);
                 }
             }
         }

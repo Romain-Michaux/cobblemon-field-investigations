@@ -6,29 +6,29 @@ import java.util.UUID;
 
 public class CaseFile {
     public long id;
-    public String phase = "SAMPLING"; // PRELEVEMENTS -> TRAQUE -> APPROCHE -> DEBUSQUE
-    public String level1, species, category, guess;
-    // Type d'enquête spéciale (voir Signalement), ou null pour une enquête ordinaire.
+    public String phase = "SAMPLING"; // SAMPLING -> TRACKING -> SPOTTING -> APPROACH -> FLUSHED
+    public String dimension, species, category, guess;
+    // Special case type (see Reports), or null for an ordinary case.
     public String special;
-    // Améliorations du kit acquises à l'ouverture de l'enquête : ratés pardonnés en plus, et fiole de secours déjà utilisée.
+    // Kit upgrades fixed when the case opens: extra forgiven faults, and whether the spare vial was already used.
     public int forgiven;
-    public boolean vialGiven;
-    public boolean newB;
+    public boolean spareVialUsed;
+    public boolean newSpecies;
     public long seed;
-    public int level2, leaks;
-    // Ratés des mini-jeux (prélèvement abîmé, dose perdue, indice détruit) : chacun coûte une demi-étoile.
+    public int level, flees;
+    // Mini-game faults (damaged sample, lost dose, destroyed clue): each costs half a star.
     public int faults;
-    // Le chef d'enquête (celui qui a ouvert le dossier) et les coéquipiers qu'il a invités : tous travaillent sur le
-    // même dossier, partagent ses étoiles et reçoivent chacun le butin et l'expérience.
+    // The lead investigator (who opened the case) and the teammates they invited: all work on the same case, share its
+    // stars and each receive the loot and XP.
     public UUID leader;
     public List<UUID> team = new ArrayList<>();
-    // Dernier instant où la cible a été vue en combat près du joueur (pour savoir qui l'a mise K.O.).
+    // Last time the target was seen in battle near the player (to know who knocked it out).
     public transient long lastBattle;
     public double zoneX, zoneZ, lairX, lairZ;
     public List<Trace> traces = new ArrayList<>();
     public List<String> suspects = new ArrayList<>();
     public List<String> pins = new ArrayList<>();
-    // Suspects que le joueur a lui-même barrés sur son tableau (le mod n'écarte personne à sa place).
+    // Suspects the player crossed out on their board themselves (the mod never rules anyone out for them).
     public List<String> ruledOut = new ArrayList<>();
     public List<Bearing> bearings = new ArrayList<>();
     public long nextBearing, nextMove, glowEnd;

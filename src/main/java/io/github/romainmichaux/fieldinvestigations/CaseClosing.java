@@ -20,9 +20,9 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
-// Fin d'une enquête : capture ou KO, récompenses, expérience, archives.
+// End of an investigation: capture or KO, rewards, experience, archives.
 final class CaseClosing {
-    // Noms anglais des tables de butin par type d'enquête (data/cobblemon_field_investigations/loot_table/investigation/kind_<nom>).
+    // Loot table name per investigation kind (data/cobblemon_field_investigations/loot_table/investigation/kind_<name>).
     static final Map<String, String> KIND_NAMES = Map.ofEntries(Map.entry("nocturnal", "nocturnal"), Map.entry("skittish", "skittish"),
             Map.entry("exceptional", "exceptional"), Map.entry("restless", "restless"), Map.entry("aquatic", "aquatic"),
             Map.entry("dig_site", "dig_site"), Map.entry("canopy", "canopy"), Map.entry("altitude", "highlands"), Map.entry("frost", "frost"),
@@ -31,15 +31,15 @@ final class CaseClosing {
     private CaseClosing() {}
 
     static void capture(PokemonCapturedEvent evt) {
-        UUID capture = evt.getPokemon().getUuid();
+        UUID caught = evt.getPokemon().getUuid();
         for (Map.Entry<UUID, CaseFile> en : new ArrayList<>(Engine.state.caseFiles.entrySet())) {
             CaseFile d = en.getValue();
-            if (!capture.equals(d.pokemon)) continue;
-            ServerPlayer author = evt.getPlayer();
-            List<ServerPlayer> present = Engine.online(d, author.server);
+            if (!caught.equals(d.pokemon)) continue;
+            ServerPlayer catcher = evt.getPlayer();
+            List<ServerPlayer> present = Engine.online(d, catcher.server);
             Engine.ENTITIES.remove(en.getKey());
-            if (Engine.members(d).contains(author.getUUID())) {
-                solve(author, d, true); // capturée par le chef ou par un coéquipier : l'enquête est résolue pour toute l'équipe
+            if (Engine.members(d).contains(catcher.getUUID())) {
+                solve(catcher, d, true); // caught by the leader or a teammate: solved for the whole team
             } else if (present.isEmpty()) {
                 Engine.state.caseFiles.remove(en.getKey());
                 Engine.save();
@@ -50,7 +50,7 @@ final class CaseClosing {
         }
     }
 
-    // L'enquête est résolue : chaque enquêteur présent reçoit son butin et son expérience, puis le dossier est classé.
+    // Investigation solved: each investigator present gets their loot and experience, then the case is closed.
     static void solve(ServerPlayer player, CaseFile d, boolean capture) {
         List<ServerPlayer> present = Engine.online(d, player.server);
         for (ServerPlayer m : present) reward(m, d, capture);
@@ -62,28 +62,28 @@ final class CaseClosing {
         closeCase(player, d);
     }
 
-    // Enquête menée à son terme (cible capturée ou mise K.O.) : le butin est tiré dans les tables de butin du mod.
-    // Plus l'enquête a d'étoiles, plus la table est fournie ; la rareté de l'espèce et les paliers ajoutent leur part.
+    // Investigation completed (target caught or knocked out): loot is rolled from the mod's loot tables.
+    // More stars means a richer table; species rarity and milestones add their share.
     private static void reward(ServerPlayer player, CaseFile d, boolean capture) {
         int total = Engine.state.succeeded.merge(player.getUUID(), 1, Integer::sum);
         int stars = Engine.stars(d);
-        // Expérience : dix points par étoile, plus la rareté de l'espèce, le type d'enquête et la nouveauté.
+        // Experience: ten points per star, plus species rarity, investigation kind and novelty.
         Profile profile = Engine.profile(player.getUUID());
         int rankBefore = Engine.rank(profile.xp);
-        int gain = 10 * stars + new int[] {0, 5, 10, 20}[Math.max(0, Reports.CATEGORIES.indexOf(d.category))] + (d.special != null ? 10 : 0) + (d.newB ? 5 : 0);
+        int gain = 10 * stars + new int[] {0, 5, 10, 20}[Math.max(0, Reports.CATEGORIES.indexOf(d.category))] + (d.special != null ? 10 : 0) + (d.newSpecies ? 5 : 0);
         profile.xp += gain;
-        CaseRecord record = new CaseRecord();
-        record.species = d.species;
-        record.special = d.special;
-        record.category = d.category;
-        record.stars = stars;
-        record.xp = gain;
-        record.capture = capture;
-        record.date = System.currentTimeMillis();
-        profile.history.add(record);
+        CaseRecord entry = new CaseRecord();
+        entry.species = d.species;
+        entry.special = d.special;
+        entry.category = d.category;
+        entry.stars = stars;
+        entry.xp = gain;
+        entry.capture = capture;
+        entry.date = System.currentTimeMillis();
+        profile.history.add(entry);
         while (profile.history.size() > 200) profile.history.remove(0);
         int rankAfter = Engine.rank(profile.xp);
-        if (rankAfter >= 3) Engine.progress1(player, "rank_inspector");
+        if (rankAfter >= 3) Engine.grantAdvancement(player, "rank_inspector");
         boolean milestone = Engine.settings.milestoneEveryCases > 0 && total % Engine.settings.milestoneEveryCases == 0;
         List<ItemStack> gains = new ArrayList<>(loot(player, "investigation/stars_" + stars));
         gains.addAll(loot(player, "investigation/rarity_" + d.category.replace('-', '_')));
@@ -91,12 +91,12 @@ final class CaseClosing {
         if (d.special != null) {
             gains.addAll(loot(player, "investigation/special"));
             if (Engine.is(d, "skittish") || Engine.is(d, "restless")) gains.addAll(loot(player, "investigation/special"));
-            gains.addAll(loot(player, "investigation/kind_" + KIND_NAMES.getOrDefault(d.special, d.special))); // table propre au type, vide si elle n'existe pas
-            Engine.progress1(player, "special_investigation");
+            gains.addAll(loot(player, "investigation/kind_" + KIND_NAMES.getOrDefault(d.special, d.special))); // kind-specific table, empty if it does not exist
+            Engine.grantAdvancement(player, "special_investigation");
         }
-        Engine.progress1(player, "first_investigation");
-        if (stars >= 5) Engine.progress1(player, "five_stars");
-        if (total >= 10) Engine.progress1(player, "ten_investigations");
+        Engine.grantAdvancement(player, "first_investigation");
+        if (stars >= 5) Engine.grantAdvancement(player, "five_stars");
+        if (total >= 10) Engine.grantAdvancement(player, "ten_investigations");
         MutableComponent list = Component.empty();
         boolean first = true;
         for (ItemStack stack : gains) {
@@ -122,19 +122,19 @@ final class CaseClosing {
                     .withOptionalParameter(LootContextParams.THIS_ENTITY, player).create(LootContextParamSets.CHEST);
             return t.getRandomItems(params);
         } catch (Exception e) {
-            System.err.println("[Field Investigations] Table de butin illisible : " + table + " : " + e);
+            System.err.println("[Field Investigations] Unreadable loot table: " + table + ": " + e);
             return List.of();
         }
     }
 
-    // Classe le dossier pour toute l'équipe : traces retirées, délai avant la prochaine enquête pour chacun.
+    // Closes the case for the whole team: traces removed, cooldown before the next investigation for each member.
     static void closeCase(ServerPlayer player, CaseFile d) {
-        if (d.level1.equals(Engine.dimension(player))) Traces.removeTraces(player.serverLevel(), d);
+        if (d.dimension.equals(Engine.dimension(player))) Traces.removeTraces(player.serverLevel(), d);
         Engine.state.caseFiles.remove(d.leader);
         Engine.ENTITIES.remove(d.leader);
         for (UUID u : Engine.members(d)) {
             Engine.SCANS.remove(u);
-            Engine.state.nextInvestigation.put(u, System.currentTimeMillis() + Engine.settings.minutesEntreEnquetes * 60_000L / (Engine.rank(Engine.profile(u).xp) >= 6 ? 2 : 1));
+            Engine.state.nextInvestigation.put(u, System.currentTimeMillis() + Engine.settings.minutesBetweenCases * 60_000L / (Engine.rank(Engine.profile(u).xp) >= 6 ? 2 : 1));
         }
         Engine.save();
         for (ServerPlayer m : Engine.online(d, player.server)) Messages.sendState(m);

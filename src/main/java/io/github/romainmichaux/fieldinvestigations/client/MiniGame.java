@@ -3,13 +3,13 @@ package io.github.romainmichaux.fieldinvestigations.client;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.sounds.SoundEvents;
 
-// Un mini-jeu (prélèvement sur le terrain ou analyse au séquenceur), dessiné dans une zone de ZL x ZH dont le coin est (ox, oy).
+// A mini-game (field sampling or sequencer analysis), drawn in a ZL x ZH area whose corner is (ox, oy).
 abstract class MiniGame {
-    static final int ZL = 280, ZH = 118;
-    boolean finished, succes, perfect;
+    static final int AREA_W = 280, AREA_H = 118;
+    boolean finished, success, perfect;
     int ox, oy;
-    // Bouton de la souris maintenu (pour les jeux où l'on aspire, trace ou brosse).
-    boolean press;
+    // Mouse button held down (for games where you suck up, trace or brush).
+    boolean mouseDown;
 
     void tick() {}
 
@@ -19,7 +19,7 @@ abstract class MiniGame {
 
     void released(double mx, double my) {}
 
-    boolean pressedKey(int pressedKey) {
+    boolean keyPressed(int key) {
         return false;
     }
 
@@ -27,17 +27,17 @@ abstract class MiniGame {
 
     void end(boolean ok) {
         finished = true;
-        succes = ok;
+        success = ok;
     }
 
-    // Dernier quart du temps : un tic toutes les demi-secondes, de plus en plus aigu, pour presser le joueur.
-    void press1(int time, int duration) {
+    // Last quarter of the time: a tick every half second, rising in pitch, to hurry the player.
+    void hurryTicks(int time, int duration) {
         if (time > 0 && time * 4 < duration && time % 10 == 0) {
             Draw.beep(Sounds.TICK, 1.2f + 0.8f * (1 - time * 4f / duration), 0.6f);
         }
     }
 
-    // Quelque chose à mémoriser apparaît / disparaît.
+    // Something to memorize appears / disappears.
     void shownSound() {
         Draw.beep(Sounds.CHIME, 1.2f, 0.5f);
     }
@@ -51,7 +51,7 @@ abstract class MiniGame {
         g.fill(x + 1, y + 1, x + 1 + (int) ((l - 2) * Math.max(0, Math.min(1, part))), y + 5, part > 0.25 ? Draw.ACCENT : Draw.ALERT);
     }
 
-    // Aire de jeu des mini-jeux de la 1.1 : 160 x 112 à gauche, compteurs et consigne à droite.
+    // Play area of the 1.1 mini-games: 160 x 112 on the left, counters and instruction on the right.
     static final int L = 160, H = 112;
 
     static void frame(GuiGraphics g, int bx, int by, boolean alert) {

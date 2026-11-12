@@ -8,11 +8,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 
-// Enquêtes à plusieurs : invitations, arrivées et départs.
+// Team investigations: invitations, joining and leaving.
 final class Team {
     private Team() {}
 
-    // Invitations en attente : invité -> chef d'enquête, et leur date d'expiration.
+    // Pending invitations: invitee -> case leader, and their expiry time.
     static final Map<UUID, UUID> INVITATIONS = new HashMap<>();
 
     static final Map<UUID, Long> INVITATION_EXPIRY = new HashMap<>();
@@ -65,7 +65,7 @@ final class Team {
         Messages.sync(player);
     }
 
-    // Un coéquipier quitte le dossier (le chef, lui, ne peut que le classer pour tout le monde).
+    // A teammate leaves the case (the leader can only close it for everyone).
     static void leave(ServerPlayer player, CaseFile d) {
         d.team.remove(player.getUUID());
         Engine.SCANS.remove(player.getUUID());

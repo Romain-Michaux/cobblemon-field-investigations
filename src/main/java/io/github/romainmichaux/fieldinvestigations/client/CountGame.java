@@ -8,28 +8,28 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Comptage de colonies : compter d'un coup d'œil, puis répondre
+// Colony counting: count at a glance, then answer
 final class CountGame extends MiniGame {
     static final ResourceLocation PETRI = Draw.texture("petri");
     static final int[] TINTS = {0xFFFFFFFF, 0xFFE07A5F, 0xFF7FB069, 0xFF6C8EBF};
     final Random h;
-    int[] cx, cy, size, tint, choice = new int[4];
-    int count1, round, errors, visible, pause;
+    int[] cx, cy, size, tint, choices = new int[4];
+    int colonyCount, round, errors, visible, pause;
     boolean lastOk;
 
     CountGame(Random h) {
         this.h = h;
-        newB();
+        newRound();
     }
 
-    void newB() {
+    void newRound() {
         shownSound();
-        count1 = 7 + round * 2 + h.nextInt(4);
-        cx = new int[count1];
-        cy = new int[count1];
-        size = new int[count1];
-        tint = new int[count1];
-        for (int i = 0; i < count1; i++) {
+        colonyCount = 7 + round * 2 + h.nextInt(4);
+        cx = new int[colonyCount];
+        cy = new int[colonyCount];
+        size = new int[colonyCount];
+        tint = new int[colonyCount];
+        for (int i = 0; i < colonyCount; i++) {
             size[i] = 4 + h.nextInt(3);
             tint[i] = h.nextInt(TINTS.length);
             for (int attempt = 0; attempt < 80; attempt++) {
@@ -41,19 +41,19 @@ final class CountGame extends MiniGame {
                 if (free) break;
             }
         }
-        List<Integer> options = new ArrayList<>(List.of(count1 - 2, count1 - 1, count1 + 1, count1 + 2));
+        List<Integer> options = new ArrayList<>(List.of(colonyCount - 2, colonyCount - 1, colonyCount + 1, colonyCount + 2));
         Collections.shuffle(options, h);
         List<Integer> kept = new ArrayList<>(options.subList(0, 3));
-        kept.add(count1);
+        kept.add(colonyCount);
         Collections.sort(kept);
-        for (int i = 0; i < 4; i++) choice[i] = kept.get(i);
+        for (int i = 0; i < 4; i++) choices[i] = kept.get(i);
         visible = 56 - round * 6;
     }
 
     @Override
     void tick() {
         if (visible > 0 && --visible == 0) hiddenSound();
-        if (pause > 0 && --pause == 0 && !finished) newB();
+        if (pause > 0 && --pause == 0 && !finished) newRound();
     }
 
     @Override
@@ -61,7 +61,7 @@ final class CountGame extends MiniGame {
         if (visible > 0 || pause > 0) return;
         for (int i = 0; i < 4; i++) {
             if (!Draw.in(mx, my, ox + 126 + (i % 2) * 74, oy + 46 + (i / 2) * 28, 68, 22)) continue;
-            lastOk = choice[i] == count1;
+            lastOk = choices[i] == colonyCount;
             pause = 24;
             if (lastOk) {
                 Draw.note(1f + round * 0.25f);
@@ -81,9 +81,9 @@ final class CountGame extends MiniGame {
     void draw(GuiGraphics g, int mx, int my, float pt) {
         int px = ox + 12, py = oy + 11;
         Draw.image(g, PETRI, px, py, 96, 96);
-        boolean shows = visible > 0 || pause > 0;
-        if (shows) {
-            for (int i = 0; i < count1; i++) {
+        boolean showing = visible > 0 || pause > 0;
+        if (showing) {
+            for (int i = 0; i < colonyCount; i++) {
                 int x = px + 48 + cx[i] - size[i] / 2, y = py + 48 + cy[i] - size[i] / 2, c = TINTS[tint[i]];
                 g.fill(x - 1, y, x + size[i] + 1, y + size[i], Draw.darken(c, 0.45));
                 g.fill(x, y - 1, x + size[i], y + size[i] + 1, Draw.darken(c, 0.45));
@@ -94,12 +94,12 @@ final class CountGame extends MiniGame {
         }
         int tx = ox + 126;
         Draw.write(g, T.f("dish") + Math.min(3, round + 1) + T.f("3_mistakes") + errors + " / 2", tx, oy + 10, errors > 0 ? Draw.ALERT : Draw.TEXT, false);
-        String state = pause > 0 ? (lastOk ? T.f("correct") + count1 + T.f("colonies") : T.f("wrong_there_were") + count1) : visible > 0 ? T.f("count_the_colonies") : T.f("how_many_were_there");
+        String state = pause > 0 ? (lastOk ? T.f("correct") + colonyCount + T.f("colonies") : T.f("wrong_there_were") + colonyCount) : visible > 0 ? T.f("count_the_colonies") : T.f("how_many_were_there");
         Draw.write(g, state, tx, oy + 26, pause > 0 ? (lastOk ? Draw.GREEN : Draw.ALERT) : Draw.YELLOW, false);
-        boolean free = visible == 0 && pause == 0 && !finished;
+        boolean enabled = visible == 0 && pause == 0 && !finished;
         for (int i = 0; i < 4; i++) {
             int x = tx + (i % 2) * 74, y = oy + 46 + (i / 2) * 28;
-            Draw.button(g, x, y, 68, 22, String.valueOf(choice[i]), free && Draw.in(mx, my, x, y, 68, 22), free, Draw.ACCENT);
+            Draw.button(g, x, y, 68, 22, String.valueOf(choices[i]), enabled && Draw.in(mx, my, x, y, 68, 22), enabled, Draw.ACCENT);
         }
         if (visible > 0) timeGauge(g, tx, oy + 106, 142, visible / (double) (56 - round * 6));
     }

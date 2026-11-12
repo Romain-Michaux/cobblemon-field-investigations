@@ -12,12 +12,12 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 
-// Tableau d'enquête : un panneau de liège. À gauche, la feuille du profil génétique reconstitué ; à droite, les suspects
-// en photos épinglées. Chaque résultat épinglé écarte les suspects incompatibles ; avec assez de résultats, on désigne
-// un suspect et on lance la traque.
+// Investigation board: a cork board. On the left, the sheet of the reconstructed genetic profile; on the right, the suspects
+// as pinned photos. Each pinned result rules out incompatible suspects; with enough results, the player names a suspect
+// and starts the hunt.
 public class BoardScreen extends Screen {
-    private static final Draw.Backdrop F = Draw.BOARD;
-    private static final int L = F.il();
+    private static final Draw.Backdrop BG = Draw.BOARD;
+    private static final int L = BG.il();
     private static final int PAPER_X = 3, PAPER_Y = 3, PAPER_W = 128, PAPER_H = 183;
     private static final int GRID_X = 134, STEP_X = 50, STEP_Y = 55, BUTTONS_Y = 171;
     private static final String[] RANKS = {T.f("common"), T.f("uncommon"), T.f("rare"), T.f("very_rare")};
@@ -45,8 +45,8 @@ public class BoardScreen extends Screen {
         }
         renderBackground(g, mx, my, pt);
         CompoundTag e = FieldInvestigationsClient.state;
-        int x = F.x(width), y = F.y(height);
-        Draw.background(g, F, width, height);
+        int x = BG.x(width), y = BG.y(height);
+        Draw.background(g, BG, width, height);
         Draw.centre(g, T.f("case_board"), x + L / 2 + 1, y - 14, Draw.INK);
 
         if (!e.getBoolean("active") && !e.getList("leads", Tag.TAG_COMPOUND).isEmpty()) {
@@ -71,7 +71,7 @@ public class BoardScreen extends Screen {
         }
 
         String phase = e.getString("phase");
-        boolean samplings = phase.equals("SAMPLING");
+        boolean sampling = phase.equals("SAMPLING");
         ListTag traces = e.getList("traces", Tag.TAG_COMPOUND);
         ListTag suspects = e.getList("suspects", Tag.TAG_COMPOUND);
         int pins = 0;
@@ -79,7 +79,7 @@ public class BoardScreen extends Screen {
         int px = x + PAPER_X, py = y + PAPER_Y, tx = px + 15, tl = 98;
         Draw.image(g, Draw.PAPER, px, py, PAPER_W, PAPER_H);
         Draw.zone(tx, tx + tl + 2);
-        // Qualité de l'enquête : c'est elle qui fixe les IV du Pokémon capturé et le butin.
+        // Investigation quality: it sets the IVs of the caught Pokémon and the loot.
         Draw.write(g, T.stars(e.getInt("stars")), tx, py + 22, 0xFFB07A10, false);
         String special = e.getString("special");
         if (!special.isEmpty()) Draw.write(g, "✦", tx + 50, py + 22, specialColour(special), false);
@@ -106,11 +106,11 @@ public class BoardScreen extends Screen {
                         lost ? Draw.INK_RED : harvest ? Draw.INK : Draw.INK_LIGHT, false);
             }
         }
-        if (samplings && minecraft != null && minecraft.player != null) {
+        if (sampling && minecraft != null && minecraft.player != null) {
             double zx = e.getDouble("zoneX"), zz = e.getDouble("zoneZ");
             double dist = Math.hypot(zx - minecraft.player.getX(), zz - minecraft.player.getZ());
             Draw.write(g, T.f("zone") + Math.round(dist) + T.f("blocks_2"), tx, py + 151, Draw.INK, false);
-            Draw.write(g, T.f("compass") + Draw.wind(Draw.cap(minecraft.player.getX(), minecraft.player.getZ(), zx, zz)), tx, py + 162, Draw.INK_RED, false);
+            Draw.write(g, T.f("compass") + Draw.wind(Draw.bearing(minecraft.player.getX(), minecraft.player.getZ(), zx, zz)), tx, py + 162, Draw.INK_RED, false);
         } else {
             Draw.write(g, T.f("hunt_in_progress"), tx, py + 151, Draw.INK, false);
             Draw.write(g, T.f("kit_map"), tx, py + 162, Draw.INK_RED, false);
@@ -118,19 +118,19 @@ public class BoardScreen extends Screen {
 
         Draw.zone(x + GRID_X - 2, x + L - 2);
         int remaining = 0;
-        String alone = "";
+        String lastRemaining = "";
         CompoundTag hovered = null;
         for (int i = 0; i < suspects.size() && i < 12; i++) {
             CompoundTag s = suspects.getCompound(i);
             int cx = x + GRID_X + (i % 4) * STEP_X, cy = y + (i / 4) * STEP_Y;
-            boolean ruledOut1 = s.getBoolean("ruled_out");
+            boolean ruledOut = s.getBoolean("ruled_out");
             String species = s.getString("species");
-            boolean chosen = species.equals(samplings ? choice : e.getString("pronostic"));
-            if (!ruledOut1) {
+            boolean chosen = species.equals(sampling ? choice : e.getString("pronostic"));
+            if (!ruledOut) {
                 remaining++;
-                alone = species;
+                lastRemaining = species;
             }
-            if (chosen && !ruledOut1) g.fill(cx - 2, cy + 2, cx + 50, cy + 62, Draw.YELLOW);
+            if (chosen && !ruledOut) g.fill(cx - 2, cy + 2, cx + 50, cy + 62, Draw.YELLOW);
             Draw.image(g, Draw.POLAROID, cx, cy, 48, 60);
             Draw.portrait(g, species, cx + 8, cy + 12, 2f);
             ListTag values = s.getList("values", Tag.TAG_STRING);
@@ -142,24 +142,24 @@ public class BoardScreen extends Screen {
                 g.fill(cx + 5 + m * 8, cy + 51, cx + 10 + m * 8, cy + 55, c);
             }
             if (s.getBoolean("owned")) Draw.pokeBall(g, cx + 32, cy + 9);
-            if (ruledOut1) {
+            if (ruledOut) {
                 g.fill(cx + 1, cy + 5, cx + 47, cy + 59, 0x9C241A12);
                 Draw.image(g, Draw.CROSS, cx + 10, cy + 14, 28, 28);
             }
             g.pose().popPose();
             if (Draw.in(mx, my, cx, cy + 4, 48, 56)) hovered = s;
         }
-        // Les épingles passent par-dessus tout : sinon la photo de la rangée du dessus (et son voile) en cache le haut.
+        // Pins go on top of everything: otherwise the photo in the row above (and its overlay) hides their top.
         g.pose().pushPose();
         g.pose().translate(0, 0, 320);
         for (int i = 0; i < suspects.size() && i < 12; i++) {
             Draw.image(g, Draw.PIN, x + GRID_X + (i % 4) * STEP_X + 18, y + (i / 4) * STEP_Y, 12, 10);
         }
         g.pose().popPose();
-        if (remaining == 1 && samplings) choice = alone;
+        if (remaining == 1 && sampling) choice = lastRemaining;
 
         int bx = x + GRID_X, by = y + BUTTONS_Y;
-        if (samplings) {
+        if (sampling) {
             int required = e.getInt("required");
             boolean ready = pins >= required && !choice.isEmpty();
             String label = pins < required ? T.f("results") + pins + " / " + required : choice.isEmpty() ? T.f("pick_a_suspect") : T.f("track") + Draw.speciesName(choice);
@@ -172,10 +172,10 @@ public class BoardScreen extends Screen {
         Draw.button(g, bx + 126, by, 72, 18, T.f("give_up"), Draw.in(mx, my, bx + 126, by, 72, 18), true, Draw.DARK_RED);
 
         if (hoverStars) {
-            int and = e.getInt("stars");
+            int stars = e.getInt("stars");
             List<Component> lines = new ArrayList<>();
-            lines.add(Component.literal(T.f("investigation_quality") + and + " / 5"));
-            lines.add(Component.literal("§b" + T.iv(and) + T.f("perfect_ivs_7on_the_caught")));
+            lines.add(Component.literal(T.f("investigation_quality") + stars + " / 5"));
+            lines.add(Component.literal("§b" + T.iv(stars) + T.f("perfect_ivs_7on_the_caught")));
             lines.add(Component.literal(T.f("7and_richer_loot_with_each")));
             lines.add(Component.literal(T.f("8_one_star_no_perfect")));
             lines.add(Component.literal(T.f("8mini_game_failure_half") + e.getInt("fautes") + ")"));
@@ -196,7 +196,7 @@ public class BoardScreen extends Screen {
                 lines.add(Component.literal("§7" + T.c(Genetics.MARKER_NAMES.get(marker)) + " : §f").append(Genetics.label(marker, values.getString(m))));
             }
             lines.add(Component.literal(hovered.getBoolean("owned") ? T.f("aalready_caught") : T.f("7not_caught_yet")));
-            if (samplings) {
+            if (sampling) {
                 lines.add(Component.literal(T.f("8left_click_name_this_suspect")));
                 lines.add(Component.literal(T.f("8right_click_rule_out_restore")));
             }
@@ -204,9 +204,9 @@ public class BoardScreen extends Screen {
         }
     }
 
-    // ---------- Signalements à choisir ----------
+    // ---------- Leads to choose from ----------
 
-    private static final int MAP_W = 104, MAP_H = 130, MAP_Y = 21, MAP_STEP = 110;
+    private static final int CARD_W = 104, CARD_H = 130, CARD_Y = 21, CARD_STEP = 110;
 
 static String specialName(String special) {
         return switch (special) {
@@ -275,46 +275,46 @@ static String specialName(String special) {
         };
     }
 
-    private static int mapX(int x, int n, int i) {
-        return x + (L - (n * MAP_W + (n - 1) * (MAP_STEP - MAP_W))) / 2 + i * MAP_STEP;
+    private static int cardX(int x, int n, int i) {
+        return x + (L - (n * CARD_W + (n - 1) * (CARD_STEP - CARD_W))) / 2 + i * CARD_STEP;
     }
 
-    // Trois signalements épinglés au tableau : le joueur choisit son enquête (rareté, type, distance).
+    // Three leads pinned to the board: the player picks their investigation (rarity, kind, distance).
     private void leads(GuiGraphics g, CompoundTag e, int x, int y, int mx, int my) {
         ListTag leads = e.getList("leads", Tag.TAG_COMPOUND);
         int n = Math.min(3, leads.size());
-        long left1 = e.getLong("leadsEnd") - (System.currentTimeMillis() - FieldInvestigationsClient.stateReceived);
+        long timeLeft = e.getLong("leadsEnd") - (System.currentTimeMillis() - FieldInvestigationsClient.stateReceived);
         Draw.centre(g, T.f("pick_your_investigation"), x + L / 2, y + 8, Draw.INK);
         CompoundTag hovered = null;
         for (int i = 0; i < n; i++) {
             CompoundTag p = leads.getCompound(i);
-            int cx = mapX(x, n, i), cy = y + MAP_Y, tx = cx + 9;
-            boolean hover = Draw.in(mx, my, cx, cy, MAP_W, MAP_H);
+            int cx = cardX(x, n, i), cy = y + CARD_Y, tx = cx + 9;
+            boolean hover = Draw.in(mx, my, cx, cy, CARD_W, CARD_H);
             String special = p.getString("special");
             if (hover) {
-                g.fill(cx - 2, cy - 2, cx + MAP_W + 2, cy + MAP_H + 2, Draw.YELLOW);
+                g.fill(cx - 2, cy - 2, cx + CARD_W + 2, cy + CARD_H + 2, Draw.YELLOW);
                 hovered = p;
             }
-            Draw.plate(g, cx, cy, MAP_W, MAP_H);
-            Draw.zone(cx + 7, cx + MAP_W - 7);
+            Draw.plate(g, cx, cy, CARD_W, CARD_H);
+            Draw.zone(cx + 7, cx + CARD_W - 7);
             Draw.write(g, T.f("lead") + (i + 1), tx, cy + 9, Draw.ACCENT, false);
             Draw.write(g, (special.isEmpty() ? "" : "✦ ") + specialName(special), tx, cy + 21, specialColour(special), false);
-            g.fill(tx, cy + 32, cx + MAP_W - 9, cy + 33, 0x40FFFFFF);
+            g.fill(tx, cy + 32, cx + CARD_W - 9, cy + 33, 0x40FFFFFF);
             Draw.write(g, T.f("species_2"), tx, cy + 37, Draw.GREY, false);
             Draw.write(g, RANKS[Math.min(3, p.getInt("rank"))], tx, cy + 47, Draw.TEXT, false);
             Draw.write(g, T.f("zone_2"), tx, cy + 60, Draw.GREY, false);
-            String or = "?";
+            String whereabouts = "?";
             if (minecraft != null && minecraft.player != null) {
                 double zx = p.getDouble("zoneX"), zz = p.getDouble("zoneZ"), jx = minecraft.player.getX(), jz = minecraft.player.getZ();
-                or = Math.round(Math.hypot(zx - jx, zz - jz)) + " m · " + Draw.wind(Draw.cap(jx, jz, zx, zz));
+                whereabouts = Math.round(Math.hypot(zx - jx, zz - jz)) + " m · " + Draw.wind(Draw.bearing(jx, jz, zx, zz));
             }
-            Draw.write(g, or, tx, cy + 70, Draw.TEXT, false);
+            Draw.write(g, whereabouts, tx, cy + 70, Draw.TEXT, false);
             Draw.write(g, p.getBoolean("new") ? T.f("never_caught") : T.f("already_caught"), tx, cy + 84,
                     p.getBoolean("new") ? Draw.GREEN : Draw.DARK, false);
-            Draw.paragraph(g, specialGain(special), tx, cy + 96, MAP_W - 18, Draw.YELLOW);
+            Draw.paragraph(g, specialGain(special), tx, cy + 96, CARD_W - 18, Draw.YELLOW);
         }
         Draw.zone(x + 2, x + L - 2);
-        Draw.centre(g, T.f("reports_valid_for_another") + Math.max(1, left1 / 60000 + 1) + T.f("min"), x + L / 2, y + 157, Draw.INK);
+        Draw.centre(g, T.f("reports_valid_for_another") + Math.max(1, timeLeft / 60000 + 1) + T.f("min"), x + L / 2, y + 157, Draw.INK);
         Draw.centre(g, T.f("cases_solved") + e.getInt("passed"), x + L / 2, y + 173, Draw.INK);
         setting(g, x, y, mx, my);
         if (hovered != null) {
@@ -328,68 +328,68 @@ static String specialName(String special) {
         }
     }
 
-    // Réglage d'accessibilité, en bas à gauche du tableau : l'aide aux couleurs chiffre les teintes des mini-jeux.
+    // Accessibility setting, bottom left of the board: the colour aid shows mini-game hues as numbers.
 private void setting(GuiGraphics g, int x, int y, int mx, int my) {
         String text = T.f("colour_aid") + (FieldInvestigationsClient.colourAid ? T.f("on") : T.f("off"));
         boolean hover = Draw.in(mx, my, x + 4, y + 171, Draw.textFont().width(text) + 4, 12);
         Draw.write(g, text, x + 6, y + 173, hover ? Draw.INK_RED : Draw.INK, false);
-        // Une invitation à rejoindre une équipe : elle se traite dans le kit, onglet Équipe.
+        // An invitation to join a team: it is handled in the kit, Team tab.
         String invitation = FieldInvestigationsClient.state.getString("invitation");
         if (!invitation.isEmpty()) {
             Draw.zone(x + 2, x + L - 2);
             Draw.button(g, x + L / 2 - 110, y + 2, 220, 18, invitation + T.f("invites_you_see_the_team"), Draw.in(mx, my, x + L / 2 - 110, y + 2, 220, 18), true, Draw.GREEN);
         }
-        // En bas à droite : le carnet de l'enquêteur (rang, améliorations, archives), qui se trouve dans le kit.
+        // Bottom right: the investigator's logbook (rank, upgrades, archives), which lives in the kit.
         Draw.button(g, x + L - 78, y + 168, 74, 17, T.f("logbook"), Draw.in(mx, my, x + L - 78, y + 168, 74, 17), true, Draw.ACCENT);
     }
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         CompoundTag e = FieldInvestigationsClient.state;
-        int x = F.x(width), y = F.y(height);
+        int x = BG.x(width), y = BG.y(height);
         if (!e.getBoolean("active") && !e.getString("invitation").isEmpty() && Draw.in(mx, my, x + L / 2 - 110, y + 2, 220, 18) && minecraft != null) {
-            Draw.sound1(1f);
+            Draw.click(1f);
             minecraft.setScreen(new KitScreen(3));
             return true;
         }
         if (!e.getBoolean("active") && Draw.in(mx, my, x + L - 78, y + 168, 74, 17) && minecraft != null) {
-            Draw.sound1(1f);
+            Draw.click(1f);
             minecraft.setScreen(new KitScreen(1));
             return true;
         }
         if (!e.getBoolean("active") && Draw.in(mx, my, x + 4, y + 171, 96, 12)) {
             FieldInvestigationsClient.toggleColourAid();
-            Draw.sound1(1.2f);
+            Draw.click(1.2f);
             return true;
         }
         ListTag leads = e.getList("leads", Tag.TAG_COMPOUND);
         if (!e.getBoolean("active") && !leads.isEmpty()) {
             int n = Math.min(3, leads.size());
             for (int i = 0; i < n; i++) {
-                if (!Draw.in(mx, my, mapX(x, n, i), y + MAP_Y, MAP_W, MAP_H)) continue;
+                if (!Draw.in(mx, my, cardX(x, n, i), y + CARD_Y, CARD_W, CARD_H)) continue;
                 Packet p = Packet.from("choose");
                 p.data().putInt("index", i);
                 FieldInvestigationsClient.send(p);
-                Draw.sound1(1.3f);
+                Draw.click(1.3f);
             }
             return true;
         }
         if (!e.getBoolean("active")) {
             long waiting = e.getLong("waiting") - (System.currentTimeMillis() - FieldInvestigationsClient.stateReceived);
             if (waiting <= 0 && Draw.in(mx, my, x + L / 2 - 90, y + 144, 180, 22)) {
-                Draw.sound1(1f);
+                Draw.click(1f);
                 FieldInvestigationsClient.send(Packet.from("open_investigation"));
             }
             return true;
         }
         int bx = x + GRID_X, by = y + BUTTONS_Y;
         if (Draw.in(mx, my, bx + 126, by, 72, 18)) {
-            Draw.sound1(0.7f);
+            Draw.click(0.7f);
             FieldInvestigationsClient.send(Packet.from("abandon"));
             return true;
         }
         if (Draw.in(mx, my, x + PAPER_X, y + PAPER_Y + 146, PAPER_W, 30) && minecraft != null) {
-            Draw.sound1(1f);
+            Draw.click(1f);
             minecraft.setScreen(new KitScreen());
             return true;
         }
@@ -400,17 +400,17 @@ private void setting(GuiGraphics g, int x, int y, int mx, int my) {
             int cx = x + GRID_X + (i % 4) * STEP_X, cy = y + (i / 4) * STEP_Y;
             if (!Draw.in(mx, my, cx, cy + 4, 48, 56)) continue;
             if (button == 1) {
-                // Clic droit : le joueur barre (ou rétablit) lui-même ce suspect.
-                boolean bar = !s.getBoolean("ruled_out");
-                s.putBoolean("ruled_out", bar);
-                if (bar && choice.equals(s.getString("species"))) choice = "";
+                // Right click: the player rules out (or restores) this suspect themselves.
+                boolean ruleOut = !s.getBoolean("ruled_out");
+                s.putBoolean("ruled_out", ruleOut);
+                if (ruleOut && choice.equals(s.getString("species"))) choice = "";
                 Packet p = Packet.from("rule_out");
                 p.data().putString("species", s.getString("species"));
                 FieldInvestigationsClient.send(p);
-                Draw.sound1(bar ? 0.8f : 1.1f);
+                Draw.click(ruleOut ? 0.8f : 1.1f);
             } else if (!s.getBoolean("ruled_out")) {
                 choice = s.getString("species");
-                Draw.sound1(1.3f);
+                Draw.click(1.3f);
             }
             return true;
         }
@@ -418,7 +418,7 @@ private void setting(GuiGraphics g, int x, int y, int mx, int my) {
             Packet p = Packet.from("start");
             p.data().putString("species", choice);
             FieldInvestigationsClient.send(p);
-            Draw.sound1(1f);
+            Draw.click(1f);
         }
         return true;
     }

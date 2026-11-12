@@ -5,14 +5,14 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Lampe UV (enquête nocturne) : balayer le sol dans le noir pour révéler les taches fluorescentes
+// UV lamp (night investigation): sweep the ground in the dark to reveal the fluorescent stains
 final class UvLampGame extends MiniGame {
     static final ResourceLocation NIGHT = Draw.texture("night");
     static final int N = 5, RANGE = 22;
     final int[] sx = new int[N], sy = new int[N];
-    final boolean[] found1 = new boolean[N];
+    final boolean[] found = new boolean[N];
     double battery = 100, cx, cy;
-    int foundOnes, flash, tic;
+    int foundCount, flash, tic;
 
     UvLampGame(Random h) {
         for (int i = 0; i < N; i++) {
@@ -40,16 +40,16 @@ final class UvLampGame extends MiniGame {
         int bx = ox + 4, by = oy + 3;
         if (!Draw.in(mx, my, bx, by, L, H)) return;
         for (int i = 0; i < N; i++) {
-            if (found1[i] || Math.hypot(mx - bx - sx[i], my - by - sy[i]) > 9) continue;
-            found1[i] = true;
-            Draw.note(1f + foundOnes * 0.2f);
-            if (++foundOnes >= N) {
+            if (found[i] || Math.hypot(mx - bx - sx[i], my - by - sy[i]) > 9) continue;
+            found[i] = true;
+            Draw.note(1f + foundCount * 0.2f);
+            if (++foundCount >= N) {
                 perfect = battery >= 35;
                 end(true);
             }
             return;
         }
-        // Un clic dans le vide vide la batterie.
+        // A click on empty ground drains the battery.
         battery -= 8;
         flash = 6;
         Draw.beep(Sounds.FAILURE, 1.2f, 0.6f);
@@ -74,7 +74,7 @@ final class UvLampGame extends MiniGame {
         }
         for (int i = 0; i < N; i++) {
             int x = bx + sx[i], y = by + sy[i];
-            if (found1[i]) {
+            if (found[i]) {
                 disc(g, x, y, 4, 0xFF6CCB5F);
                 Draw.circle(g, x, y, 7, 1, Draw.GREEN);
             } else if (inside && Math.hypot(mx - x, my - y) < RANGE) {
@@ -85,7 +85,7 @@ final class UvLampGame extends MiniGame {
             }
         }
         int tx = ox + 172;
-        text(g, T.f("stains") + foundOnes + " / " + N, tx, oy + 10, Draw.TEXT);
+        text(g, T.f("stains") + foundCount + " / " + N, tx, oy + 10, Draw.TEXT);
         text(g, T.f("battery"), tx, oy + 28, battery < 30 ? Draw.ALERT : 0xFFB79CFF);
         gauge(g, tx, oy + 39, 100, battery / 100, battery < 30 ? Draw.ALERT : 0xFF9060FF);
         Draw.paragraph(g, T.f("stains_only_glow_under_the"), tx, oy + 54, 104, Draw.DARK);

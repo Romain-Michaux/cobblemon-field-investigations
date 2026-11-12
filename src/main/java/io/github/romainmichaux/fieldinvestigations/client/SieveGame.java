@@ -5,14 +5,14 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Tamisage (indice enfoui) : secouer par à-coups pour faire tomber le sable sans perdre les fragments
+// Sieving (buried clue): shake in bursts to let the sand through without losing the fragments
 final class SieveGame extends MiniGame {
     static final ResourceLocation SIEVE = Draw.texture("sieve");
     static final int DURATION = 620, GRAINS = 110;
     final ResourceLocation clue;
     final int[] gx = new int[GRAINS], gy = new int[GRAINS], fx = new int[3], fy = new int[3];
     double sand = 100, shake;
-    int time = DURATION, faults, flash, tic, visibleOnes;
+    int time = DURATION, faults, flash, tic, revealed;
 
     SieveGame(Random h, String kind, int variant) {
         clue = Draw.buriedIcon(kind, variant);
@@ -35,9 +35,9 @@ final class SieveGame extends MiniGame {
             end(false);
             return;
         }
-        press1(time, DURATION);
+        hurryTicks(time, DURATION);
         tic++;
-        if (press) {
+        if (mouseDown) {
             sand -= 0.55;
             shake += 2.2;
             if (tic % 4 == 0) Draw.beep(Sounds.SIEVE, (float) (0.8 + shake / 160), 0.5f);
@@ -45,15 +45,15 @@ final class SieveGame extends MiniGame {
             shake = Math.max(0, shake - 3);
         }
         if (shake >= 100) {
-            // Secoué trop longtemps d'affilée : un fragment passe à travers les mailles.
+            // Shaken too long in one go: a fragment slips through the mesh.
             shake = 35;
             flash = 8;
             Draw.beep(Sounds.CRACK, 1.2f, 0.7f);
             if (++faults >= 3) end(false);
         }
         int v = sand <= 0 ? 3 : sand < 34 ? 2 : sand < 67 ? 1 : 0;
-        if (v > visibleOnes) {
-            visibleOnes = v;
+        if (v > revealed) {
+            revealed = v;
             Draw.note(1f + v * 0.2f);
         }
         if (sand <= 0 && !finished) {
@@ -67,14 +67,14 @@ final class SieveGame extends MiniGame {
         int bx = ox + 4, by = oy + 3;
         frame(g, bx, by, flash > 0);
         g.fill(bx, by, bx + L, by + H, 0xFF2A2019);
-        int dx = press && !finished ? (tic % 2) * 4 - 2 : 0, sx = bx + 32 + dx, sy = by + 8;
+        int dx = mouseDown && !finished ? (tic % 2) * 4 - 2 : 0, sx = bx + 32 + dx, sy = by + 8;
         Draw.image(g, SIEVE, sx, sy, 96, 96);
         for (int i = 0; i < 3; i++) {
-            if (i < visibleOnes) Draw.image(g, clue, sx + fx[i], sy + fy[i], 16, 16);
+            if (i < revealed) Draw.image(g, clue, sx + fx[i], sy + fy[i], 16, 16);
         }
         int n = (int) (Math.max(0, sand) / 100 * GRAINS);
         for (int i = 0; i < n; i++) g.fill(sx + gx[i], sy + gy[i], sx + gx[i] + 3, sy + gy[i] + 3, i % 3 == 0 ? 0xFFB98F4E : 0xFFD9B36A);
-        if (press && !finished) {
+        if (mouseDown && !finished) {
             for (int i = 0; i < 6; i++) g.fill(sx + 20 + (tic * 7 + i * 13) % 56, by + 100 + (tic + i * 5) % 10, sx + 22 + (tic * 7 + i * 13) % 56, by + 102 + (tic + i * 5) % 10, 0xFFD9B36A);
         }
         int tx = ox + 172;

@@ -22,19 +22,19 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 
-// Petite boîte à outils de dessin en pixel art : panneaux, encarts, boutons, puces de couleur, tracés point par point.
-// Les fonds, boutons et accessoires sont des textures en pixel art (générées avec PixelLab, préparées par outils/gen_interfaces.py) ;
-// le reste (tracés, puces, jauges) est dessiné point par point par-dessus.
+// Small pixel-art drawing toolkit: panels, insets, buttons, colour chips, point-by-point lines.
+// Backgrounds, buttons and props are pixel-art textures (generated with PixelLab, prepared by outils/gen_interfaces.py);
+// the rest (lines, chips, gauges) is drawn point by point on top.
 final class Draw {
     static final int BACKGROUND = 0xFF1D2733, EDGE = 0xFF0B1118, EDGE_LIGHT = 0xFF41566B, INSET = 0xFF28364A, INSET_LIGHT = 0xFF34475C;
     static final int RED = 0xFFD8433B, DARK_RED = 0xFF9E2B26, TEXT = 0xFFF2F5F7, GREY = 0xFF9FB0C0, DARK = 0xFF5D6E80;
     static final int ACCENT = 0xFF4FD1C5, YELLOW = 0xFFF2C93A, GREEN = 0xFF6CCB5F, ALERT = 0xFFE8543A;
     static final String[] BASES = {"A", "T", "C", "G"};
     static final int[] BASE_COLOURS = {0xFF6CCB5F, 0xFFE8543A, 0xFF4A90D9, 0xFFF2C93A};
-    // Encres pour écrire sur le papier et le liège du tableau d'enquête.
+    // Inks for writing on the paper and cork of the investigation board.
     static final int INK = 0xFF3A2A1C, INK_LIGHT = 0xFF7D6248, INK_RED = 0xFFA8322A;
 
-    // Un fond d'écran : sa texture, sa taille, et le rectangle utile à l'intérieur (l'écran de l'appareil, le liège du tableau).
+    // A screen background: its texture, its size, and the usable rectangle inside (the device screen, the board's cork).
     record Backdrop(ResourceLocation texture, int l, int h, int ix, int iy, int il, int ih) {
         int x(int screenWidth) {
             return (screenWidth - l) / 2 + ix;
@@ -96,7 +96,7 @@ final class Draw {
         g.setColor(((colour >> 16) & 0xFF) / 255f, ((colour >> 8) & 0xFF) / 255f, (colour & 0xFF) / 255f, 1f);
     }
 
-    // Texture découpée en neuf cases : les coins gardent leur taille, les bords et le centre s'étirent.
+    // Nine-slice texture: corners keep their size, edges and centre stretch.
     static void nineSlice(GuiGraphics g, ResourceLocation texture, int x, int y, int l, int h, int tl, int th, int left, int top, int right, int bottom) {
         RenderSystem.enableBlend();
         int[] xs = {x, x + left, x + l - right}, ls = {left, l - left - right, right}, us = {0, left, tl - right}, ul = {left, tl - left - right, right};
@@ -108,20 +108,20 @@ final class Draw {
         }
     }
 
-    // Fond d'un écran, centré ; l'intérieur utile commence en (fond.x(largeur), fond.y(hauteur)).
+    // Centred screen background; the usable interior starts at (background.x(width), background.y(height)).
     static void background(GuiGraphics g, Backdrop background, int screenWidth, int screenHeight) {
         zone(background.x(screenWidth) + 2, background.x(screenWidth) + background.il() - 2);
         image(g, background.texture(), (screenWidth - background.l()) / 2, (screenHeight - background.h()) / 2, background.l(), background.h());
     }
 
-    // Plaque bleu nuit à liseré d'acier : annonces, instrument du kit, cartouches.
+    // Midnight-blue plate with a steel rim: announcements, kit instrument, title boxes.
     static void plate(GuiGraphics g, int x, int y, int l, int h) {
         nineSlice(g, PLATE, x, y, l, h, 128, 40, 8, 8, 8, 8);
     }
 
-    // ---------- Texte borné ----------
-    // Chaque cadre (fond d'écran, encart, carte) déclare la zone où l'on écrit ensuite. Un texte qui tiendrait en dehors
-    // n'est jamais coupé : il défile de lui-même, en aller-retour, dans la largeur qui lui reste.
+    // ---------- Bounded text ----------
+    // Each frame (background, inset, card) declares the zone that following text is written in. Text that would overflow
+    // it is never cut: it scrolls back and forth on its own within the remaining width.
     private static int zoneLeft = Integer.MIN_VALUE, zoneRight = Integer.MAX_VALUE;
 
     static void zone(int left, int right) {
@@ -134,7 +134,7 @@ final class Draw {
         zoneRight = Integer.MAX_VALUE;
     }
 
-    // Écrit un texte dans une largeur donnée ; s'il est trop long, il défile (une seconde de pause à chaque bout).
+    // Writes text within a given width; if too long, it scrolls (one-second pause at each end).
     static void scroll(GuiGraphics g, String text, int x, int y, int widthPx, int colour) {
         int l = textFont().width(text);
         if (l <= widthPx || widthPx < 12) {
@@ -150,7 +150,7 @@ final class Draw {
         g.disableScissor();
     }
 
-    // Écrit un texte à cet endroit ; s'il sort de la zone courante par la droite, il défile.
+    // Writes text here; if it runs past the right of the current zone, it scrolls.
     static void write(GuiGraphics g, String text, int x, int y, int colour, boolean shadow) {
         if (x >= zoneLeft && x < zoneRight) scroll(g, text, x, y, zoneRight - x, colour);
         else g.drawString(textFont(), text, x, y, colour, false);
@@ -178,7 +178,7 @@ final class Draw {
         nineSlice(g, INSET_TEXTURE, x, y, w, h, 88, 54, 5, 5, 5, 5);
     }
 
-    // Dessin de l'objet enfoui : enfoui_<marqueur>.png pour le premier, enfoui_<marqueur>_<n>.png pour les autres.
+    // Buried object picture: buried_<marker>.png for the first variant, buried_<marker>_<n>.png for the others.
     static ResourceLocation buriedIcon(String kind, int variant) {
         return texture("buried_" + kind + (variant > 0 && variant < Genetics.VARIANTS.getOrDefault(kind, 1) ? "_" + variant : ""));
     }
@@ -201,7 +201,7 @@ final class Draw {
         return ((c >> 16) & 0xFF) * 3 + ((c >> 8) & 0xFF) * 6 + (c & 0xFF) > 1500;
     }
 
-    // Puce de couleur avec un libellé : une « bande » du profil génétique.
+    // Labelled colour chip: one "band" of the genetic profile.
     static void chip(GuiGraphics g, int x, int y, int w, int h, int rgb, String label) {
         int c = opaque(rgb);
         g.fill(x, y, x + w, y + h, darken(c, 0.45));
@@ -210,7 +210,7 @@ final class Draw {
         if (label != null) scroll(g, label, x + 4, y + (h - 8) / 2, w - 7, light(c) ? EDGE : TEXT);
     }
 
-    // Une base (A, T, C, G) : une touche teintée à sa couleur ; -1 = case encore vide.
+    // A base (A, T, C, G): a key tinted in its colour; -1 = slot still empty.
     static void base(GuiGraphics g, int x, int y, int size, int b, boolean frame) {
         if (frame) g.fill(x - 1, y - 1, x + size + 1, y + size + 1, TEXT);
         tint(g, b < 0 ? 0xFF56677A : BASE_COLOURS[b]);
@@ -219,7 +219,7 @@ final class Draw {
         g.drawString(textFont(), b < 0 ? "?" : BASES[b], x + (size - 5) / 2, y + (size - 9) / 2, b < 0 ? 0xFFB4C0CC : EDGE, false);
     }
 
-    // Texte centré ; s'il déborde de la zone courante, il défile sur toute sa largeur.
+    // Centred text; if it overflows the current zone, it scrolls across the whole zone.
     static void centre(GuiGraphics g, String text, int cx, int y, int colour) {
         int l = textFont().width(text);
         boolean inside = cx >= zoneLeft && cx < zoneRight;
@@ -232,7 +232,7 @@ final class Draw {
         g.fill(px, py, px + size, py + size, colour);
     }
 
-    // Segment tracé point par point (pas de lignes lissées : on reste en pixels).
+    // Segment drawn point by point (no smoothed lines: stay pixelated).
     static void segment(GuiGraphics g, double x1, double y1, double x2, double y2, int size, int colour) {
         double length = Math.max(1, Math.hypot(x2 - x1, y2 - y1));
         for (double t = 0; t <= length; t += Math.max(1, size)) {
@@ -241,9 +241,9 @@ final class Draw {
     }
 
     static void circle(GuiGraphics g, double cx, double cy, double radius, int size, int colour) {
-        int stepSize = (int) Math.max(12, radius * 3);
-        for (int i = 0; i < stepSize; i++) {
-            double a = Math.PI * 2 * i / stepSize;
+        int steps = (int) Math.max(12, radius * 3);
+        for (int i = 0; i < steps; i++) {
+            double a = Math.PI * 2 * i / steps;
             point(g, cx + Math.cos(a) * radius, cy + Math.sin(a) * radius, size, colour);
         }
     }
@@ -263,7 +263,7 @@ final class Draw {
 
     private static ItemStack pokeBall;
 
-    // Petite Poké Ball (l'objet de Cobblemon, aux trois quarts de sa taille) : marque une espèce que le joueur possède déjà.
+    // Small Poké Ball (the Cobblemon item at three-quarter size): marks a species the player already owns.
     static void pokeBall(GuiGraphics g, int x, int y) {
         if (pokeBall == null) {
             pokeBall = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("cobblemon", "poke_ball")));
@@ -286,8 +286,8 @@ final class Draw {
         for (Component c : lines) w = Math.max(w, textFont().width(c));
         int x = Math.min(mx + 10, screenWidth - w - 10), y = my - 6;
         int h = lines.size() * 10 + 5;
-        // L'infobulle passe devant tout, y compris les objets dessinés en relief (portraits, Poké Ball), qui se trouvent
-        // entre 400 et 600 de profondeur sur le tableau.
+        // The tooltip goes in front of everything, including items rendered in 3D (portraits, Poké Ball), which sit
+        // between 400 and 600 depth on the board.
         g.flush();
         g.pose().pushPose();
         g.pose().translate(0, 0, 900);
@@ -304,24 +304,24 @@ final class Draw {
         return y;
     }
 
-    static String wind(double cap) {
-        return T.f("vents").split(",")[(int) Math.round((((cap % 360) + 360) % 360) / 22.5) % 16];
+    static String wind(double bearing) {
+        return T.f("vents").split(",")[(int) Math.round((((bearing % 360) + 360) % 360) / 22.5) % 16];
     }
 
-    // Cap boussole (0 = nord, 90 = est) du point (x, z) vu depuis (ox, oz).
-    static double cap(double ox, double oz, double x, double z) {
+    // Compass bearing (0 = north, 90 = east) of point (x, z) seen from (ox, oz).
+    static double bearing(double ox, double oz, double x, double z) {
         return (Math.toDegrees(Math.atan2(x - ox, -(z - oz))) + 360) % 360;
     }
 
-    static void sound1(float heightPx) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sounds.CLICK, heightPx, 0.8f));
+    static void click(float pitch) {
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sounds.CLICK, pitch, 0.8f));
     }
 
-    static void beep(net.minecraft.sounds.SoundEvent sound1, float heightPx, float volume) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound1, heightPx, volume));
+    static void beep(net.minecraft.sounds.SoundEvent sound, float pitch, float volume) {
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound, pitch, volume));
     }
 
-    static void note(float heightPx) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sounds.CHIME, heightPx, 0.6f));
+    static void note(float pitch) {
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sounds.CHIME, pitch, 0.6f));
     }
 }

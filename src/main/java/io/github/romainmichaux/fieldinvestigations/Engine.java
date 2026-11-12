@@ -27,12 +27,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
 
-// État partagé des enquêtes (réglages, dossiers, profils) et règles communes : étoiles, rang, paramètres par type d'enquête.
+// Shared investigation state (settings, case files, profiles) and common rules: stars, rank, per-type parameters.
 public final class Engine {
-    // Expérience requise pour chaque rang (0 = stagiaire ... 6 = légende). Chaque rang débloque une amélioration du kit :
-    //  1 radar affiné (les traces scintillent de plus loin), 2 fiole de secours (le premier prélèvement de chaque enquête
-    //  ne consomme pas de fiole), 3 scan rapide (2 s au lieu de 3), 4 sang-froid (un raté de plus pardonné par enquête),
-    //  5 oreille fine (relevés de cri plus précis), 6 réseau d'informateurs (attente entre deux enquêtes divisée par deux).
+    // XP required for each rank (0 = trainee ... 6 = legend). Each rank unlocks a kit upgrade:
+    //  1 sharper radar (traces sparkle from further away), 2 spare vial (the first sample of each case does not use up a
+    //  vial), 3 quick scan (2 s instead of 3), 4 composure (one more forgiven fault per case), 5 keen ear (more accurate cry
+    //  bearings), 6 informant network (cooldown between cases halved).
     static final int[] THRESHOLDS = {0, 60, 160, 320, 560, 900, 1400};
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -47,50 +47,50 @@ public final class Engine {
 
     static final Map<UUID, PokemonEntity> ENTITIES = new HashMap<>();
 
-    static final Map<UUID, Boolean> ANALYSES_LIST = new HashMap<>();
+    static final Map<UUID, Boolean> PENDING_ANALYSES = new HashMap<>();
 
-    static final Map<UUID, BlockPos> SAMPLINGS = new HashMap<>();
+    static final Map<UUID, BlockPos> PENDING_SAMPLINGS = new HashMap<>();
 
-    static final Map<UUID, Boolean> FILTERINGS = new HashMap<>();
+    static final Map<UUID, Boolean> PENDING_FILTERS = new HashMap<>();
 
-    // Avancée du scan de chaque joueur : [demi-secondes passées sur la cible, « ce n'est pas la cible » encore affiché].
+    // Scan progress per player: [half-seconds spent on the target, "not the target" message still showing].
     static final Map<UUID, int[]> SCANS = new HashMap<>();
 
     private Engine() {}
 
     static void load() {
-        Path caseFile = FabricLoader.getInstance().getConfigDir();
-        settings = read(caseFile.resolve("cobblemon_field_investigations.json"), Settings.class, new Settings());
-        write(caseFile.resolve("cobblemon_field_investigations.json"), settings);
+        Path configDir = FabricLoader.getInstance().getConfigDir();
+        settings = read(configDir.resolve("cobblemon_field_investigations.json"), Settings.class, new Settings());
+        write(configDir.resolve("cobblemon_field_investigations.json"), settings);
     }
 
-    // L'état appartient au monde, pas à l'instance : en solo, chaque partie a ses propres enquêtes et ses propres rangs.
-    // Jusqu'en 1.1.0 il était rangé dans config/ ; un serveur dédié n'a qu'un monde, il reprend donc ce fichier une fois.
-    // En solo, impossible de savoir à quel monde l'ancien fichier appartenait : chaque monde repart de zéro.
-    static void loadWorld(MinecraftServer server1) {
+    // State belongs to the world, not the instance: in singleplayer each save has its own cases and ranks.
+    // Up to 1.1.0 it lived in config/; a dedicated server has a single world, so it takes over that file once.
+    // In singleplayer there is no way to tell which world the old file belonged to: every world starts fresh.
+    static void loadWorld(MinecraftServer server) {
         state = new State();
-        stateFile = server1.getWorldPath(LevelResource.ROOT).resolve("cobblemon_field_investigations_state.json");
+        stateFile = server.getWorldPath(LevelResource.ROOT).resolve("cobblemon_field_investigations_state.json");
         Path old = FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_state.json");
-        if (!Files.exists(stateFile) && server1.isDedicatedServer() && Files.exists(old)) {
+        if (!Files.exists(stateFile) && server.isDedicatedServer() && Files.exists(old)) {
             try {
                 Files.copy(old, stateFile);
                 Files.move(old, old.resolveSibling("cobblemon_field_investigations_state.json.migrated"));
             } catch (Exception e) {
-                System.err.println("[Field Investigations] Reprise impossible de " + old + " : " + e);
+                System.err.println("[Field Investigations] Could not migrate " + old + ": " + e);
             }
         }
-        State read1 = read(stateFile, State.class, null);
-        if (read1 != null) {
-            state = read1;
+        State loaded = read(stateFile, State.class, null);
+        if (loaded != null) {
+            state = loaded;
             if (state.caseFiles == null) state.caseFiles = new HashMap<>();
             if (state.nextInvestigation == null) state.nextInvestigation = new HashMap<>();
             if (state.succeeded == null) state.succeeded = new HashMap<>();
             if (state.offers == null) state.offers = new HashMap<>();
             if (state.offersEnd == null) state.offersEnd = new HashMap<>();
             if (state.profiles == null) state.profiles = new HashMap<>();
-            for (Map.Entry<UUID, CaseFile> en : state.caseFiles.entrySet()) {
-                if (en.getValue().leader == null) en.getValue().leader = en.getKey();
-                if (en.getValue().team == null) en.getValue().team = new ArrayList<>();
+            for (Map.Entry<UUID, CaseFile> entry : state.caseFiles.entrySet()) {
+                if (entry.getValue().leader == null) entry.getValue().leader = entry.getKey();
+                if (entry.getValue().team == null) entry.getValue().team = new ArrayList<>();
             }
         }
     }
@@ -100,15 +100,15 @@ public final class Engine {
         state = new State();
         stateFile = null;
         ENTITIES.clear();
-        ANALYSES_LIST.clear();
-        SAMPLINGS.clear();
-        FILTERINGS.clear();
+        PENDING_ANALYSES.clear();
+        PENDING_SAMPLINGS.clear();
+        PENDING_FILTERS.clear();
         SCANS.clear();
         Team.INVITATIONS.clear();
         Team.INVITATION_EXPIRY.clear();
     }
 
-    // Le dossier sur lequel travaille ce joueur : le sien, ou celui de l'équipe qu'il a rejointe.
+    // The case file this player works on: their own, or that of the team they joined.
     static CaseFile caseFile(ServerPlayer player) {
         UUID id = player.getUUID();
         CaseFile d = state.caseFiles.get(id);
@@ -126,10 +126,10 @@ public final class Engine {
         return all;
     }
 
-    static List<ServerPlayer> online(CaseFile d, net.minecraft.server.MinecraftServer server1) {
+    static List<ServerPlayer> online(CaseFile d, net.minecraft.server.MinecraftServer server) {
         List<ServerPlayer> present = new ArrayList<>();
         for (UUID u : members(d)) {
-            ServerPlayer p = server1.getPlayerList().getPlayer(u);
+            ServerPlayer p = server.getPlayerList().getPlayer(u);
             if (p != null) present.add(p);
         }
         return present;
@@ -143,18 +143,18 @@ public final class Engine {
         return others;
     }
 
-    static String name(net.minecraft.server.MinecraftServer server1, UUID id) {
-        ServerPlayer p = server1.getPlayerList().getPlayer(id);
+    static String name(net.minecraft.server.MinecraftServer server, UUID id) {
+        ServerPlayer p = server.getPlayerList().getPlayer(id);
         if (p != null) return p.getGameProfile().getName();
-        var hidden = server1.getProfileCache();
-        return hidden == null ? "?" : hidden.get(id).map(com.mojang.authlib.GameProfile::getName).orElse("?");
+        var profileCache = server.getProfileCache();
+        return profileCache == null ? "?" : profileCache.get(id).map(com.mojang.authlib.GameProfile::getName).orElse("?");
     }
 
     static void resetScan(CaseFile d) {
         for (UUID u : members(d)) SCANS.remove(u);
     }
 
-    // Le joueur barre (ou rétablit) un suspect sur son tableau, d'après ce qu'il déduit des marqueurs analysés.
+    // The player crosses out (or restores) a suspect on their board, based on what they deduce from analysed markers.
     static void ruleOut(ServerPlayer player, String species) {
         CaseFile d = caseFile(player);
         if (d == null || !"SAMPLING".equals(d.phase) || !d.suspects.contains(species)) return;
@@ -164,10 +164,10 @@ public final class Engine {
         Messages.sync(player);
     }
 
-    // Qualité de l'enquête, de 1 à 5 étoiles. On part de 5 ; un raté de mini-jeu coûte une demi-étoile (le premier est
-    // donc gratuit), une fuite de la cible une étoile, un mauvais pronostic deux étoiles.
+    // Case quality, 1 to 5 stars. Starts at 5; a mini-game fault costs half a star (so the first one is free),
+    // the target fleeing one star, a wrong guess two stars.
     static int stars(CaseFile d, boolean withGuess) {
-        int halves = 10 - Math.max(0, d.faults - d.forgiven) - 2 * d.leaks;
+        int halves = 10 - Math.max(0, d.faults - d.forgiven) - 2 * d.flees;
         if (withGuess && d.guess != null && !d.species.equals(d.guess)) halves -= 4;
         return Math.max(1, Math.min(5, (halves + 1) / 2));
     }
@@ -176,12 +176,12 @@ public final class Engine {
         return stars(d, true);
     }
 
-    // IV parfaits accordés au Pokémon : aucun à 1 étoile, 4 au mieux à 5 étoiles.
+    // Perfect IVs given to the Pokémon: none at 1 star, up to 4 at 5 stars.
     static int perfectIvs(int stars) {
         return Math.max(0, Math.min(4, stars - 1));
     }
 
-    // Le profil d'un joueur. Ceux qui avaient déjà résolu des enquêtes avant l'arrivée des rangs partent avec 30 points par dossier.
+    // Players who had solved cases before ranks existed start with 30 XP per solved case.
     static Profile profile(UUID id) {
         Profile p = state.profiles.get(id);
         if (p == null) {
@@ -205,14 +205,14 @@ public final class Engine {
         return rank(profile(player.getUUID()).xp);
     }
 
-    // Vrai la première fois que ce joueur ouvre ce mini-jeu : l'écran lui en explique alors les règles avant de démarrer.
+    // True the first time this player opens this mini-game: the screen then explains its rules before starting.
     static boolean firstTime(ServerPlayer player, String game) {
-        boolean newOne = profile(player.getUUID()).gamesSeen.add(game);
-        if (newOne) save();
-        return newOne;
+        boolean isNew = profile(player.getUUID()).gamesSeen.add(game);
+        if (isNew) save();
+        return isNew;
     }
 
-    // Durée du scan, en demi-secondes : 6 d'ordinaire, 4 avec le scan rapide (rang 3).
+    // Scan duration in half-seconds: 6 normally, 4 with quick scan (rank 3).
     static int scanDuration(ServerPlayer player) {
         return rank(player) >= 3 ? 4 : 6;
     }
@@ -233,24 +233,24 @@ public final class Engine {
         return is(d, "altitude") ? (int) Math.round(settings.zoneRadius * 1.5) : settings.zoneRadius;
     }
 
-    // Délai avant que la cible change d'endroit pendant la traque (0 = jamais).
+    // When the target relocates during the hunt (0 = never).
     static long nextMove(CaseFile d) {
-        if (settings.minutesAvantDeplacement <= 0) return 0;
-        return System.currentTimeMillis() + settings.minutesAvantDeplacement * 60_000L / (is(d, "restless") ? 2 : 1);
+        if (settings.minutesBeforeTargetMoves <= 0) return 0;
+        return System.currentTimeMillis() + settings.minutesBeforeTargetMoves * 60_000L / (is(d, "restless") ? 2 : 1);
     }
 
-    // Une cible nocturne ne laisse rien voir ni entendre en plein jour.
-    static boolean asleep(CaseFile d, ServerLevel level1) {
-        return is(d, "nocturnal") && !level1.isNight();
+    // A nocturnal target cannot be seen or heard in daylight.
+    static boolean asleep(CaseFile d, ServerLevel level) {
+        return is(d, "nocturnal") && !level.isNight();
     }
 
-    // Débloque un progrès du mod (data/cobblemon_field_investigations/advancement/<nom>.json, critère « fait »).
-    static void progress1(ServerPlayer player, String name) {
+    // Grants one of the mod's advancements (data/cobblemon_field_investigations/advancement/<name>.json, criterion "done").
+    static void grantAdvancement(ServerPlayer player, String name) {
         try {
             var p = player.server.getAdvancements().get(ResourceLocation.fromNamespaceAndPath("cobblemon_field_investigations", name));
             if (p != null) player.getAdvancements().award(p, "done");
         } catch (Exception e) {
-            System.err.println("[Field Investigations] Progrès impossible à accorder : " + name + " : " + e);
+            System.err.println("[Field Investigations] Could not grant advancement " + name + ": " + e);
         }
     }
 
@@ -259,8 +259,8 @@ public final class Engine {
         save();
     }
 
-    // Ouvre un mini-jeu à blanc : rien n'est prélevé, analysé ni compté, quelle que soit l'issue.
-    static boolean tryIt(ServerPlayer player, String game, int variant) {
+    // Opens a mini-game as a dry run: nothing is sampled, analysed or counted, whatever the outcome.
+    static boolean tryGame(ServerPlayer player, String game, int variant) {
         boolean field = Genetics.FIELD_GAMES.contains(game);
         if (!field && !Genetics.LAB_GAMES.contains(game)) return false;
         String kind = "type1";
@@ -296,10 +296,10 @@ public final class Engine {
     static String reveal(ServerPlayer player) {
         CaseFile d = caseFile(player);
         if (d == null) return "No investigation in progress.";
-        StringBuilder sb = new StringBuilder("[test] " + d.species + (d.special == null ? "" : " [" + d.special + "]") + " lvl " + d.level2 + " · phase " + d.phase + " · stars " + stars(d) + " (faults " + d.faults
-                + ", flees " + d.leaks + ") · zone X " + Math.round(d.zoneX) + " Z " + Math.round(d.zoneZ) + " · lair X " + Math.round(d.lairX)
+        StringBuilder sb = new StringBuilder("[test] " + d.species + (d.special == null ? "" : " [" + d.special + "]") + " lvl " + d.level + " · phase " + d.phase + " · stars " + stars(d) + " (faults " + d.faults
+                + ", flees " + d.flees + ") · zone X " + Math.round(d.zoneX) + " Z " + Math.round(d.zoneZ) + " · lair X " + Math.round(d.lairX)
                 + " Z " + Math.round(d.lairZ) + " · traces:");
-        for (Trace t : d.traces) sb.append(" ").append(t.kind).append("(").append(Math.round(t.x)).append(", ").append(Math.round(t.z)).append(t.harvest ? ", ok)" : t.lost ? ", lost)" : t.buried ? (t.uncovered ? ", uncovered)" : ", buried)") : ")");
+        for (Trace t : d.traces) sb.append(" ").append(t.kind).append("(").append(Math.round(t.x)).append(", ").append(Math.round(t.z)).append(t.sampled ? ", ok)" : t.lost ? ", lost)" : t.buried ? (t.uncovered ? ", uncovered)" : ", buried)") : ")");
         return sb.toString();
     }
 
@@ -326,7 +326,7 @@ public final class Engine {
             T value = GSON.fromJson(r, type);
             return value == null ? fallback : value;
         } catch (Exception e) {
-            System.err.println("[Field Investigations] Lecture impossible de " + file + " : " + e);
+            System.err.println("[Field Investigations] Could not read " + file + ": " + e);
             return fallback;
         }
     }
@@ -335,7 +335,7 @@ public final class Engine {
         try (Writer w = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
             GSON.toJson(value, w);
         } catch (Exception e) {
-            System.err.println("[Field Investigations] Écriture impossible de " + file + " : " + e);
+            System.err.println("[Field Investigations] Could not write " + file + ": " + e);
         }
     }
 }

@@ -5,13 +5,13 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Relevé des griffures : suivre chaque entaille sans en sortir
+// Scratch tracing: follow each gouge without leaving it
 final class TracingGame extends MiniGame {
     static final ResourceLocation BARK = Draw.texture("bark");
     static final int N = 44;
     final double[][] px = new double[3][N], py = new double[3][N];
-    int line, progress, faults, flash;
-    boolean ongoing, waitRelease;
+    int scratch, progress, faults, flash;
+    boolean tracing, waitRelease;
 
     TracingGame(Random h) {
         for (int k = 0; k < 3; k++) {
@@ -30,7 +30,7 @@ final class TracingGame extends MiniGame {
     }
 
     void fault() {
-        ongoing = false;
+        tracing = false;
         waitRelease = true;
         progress = 0;
         flash = 8;
@@ -49,52 +49,52 @@ final class TracingGame extends MiniGame {
                 Draw.segment(g, bx + px[k][i] - 2, by + py[k][i] - 1, bx + px[k][i + 1] - 2, by + py[k][i + 1] - 1, 5, 0xFF1B120C);
             }
             for (int i = 0; i < N - 1; i++) {
-                boolean done = k < line || (k == line && i < progress);
+                boolean done = k < scratch || (k == scratch && i < progress);
                 Draw.segment(g, bx + px[k][i] - 1, by + py[k][i] - 1, bx + px[k][i + 1] - 1, by + py[k][i + 1] - 1, 3, done ? Draw.YELLOW : 0xFFE3C993);
             }
         }
-        if (line < 3 && !ongoing) {
+        if (scratch < 3 && !tracing) {
             boolean pulse = (System.currentTimeMillis() / 300) % 2 == 0;
-            g.fill(bx + (int) px[line][0] - 4, by + (int) py[line][0] - 4, bx + (int) px[line][0] + 4, by + (int) py[line][0] + 4, Draw.EDGE);
-            g.fill(bx + (int) px[line][0] - 3, by + (int) py[line][0] - 3, bx + (int) px[line][0] + 3, by + (int) py[line][0] + 3, pulse ? Draw.ACCENT : Draw.TEXT);
+            g.fill(bx + (int) px[scratch][0] - 4, by + (int) py[scratch][0] - 4, bx + (int) px[scratch][0] + 4, by + (int) py[scratch][0] + 4, Draw.EDGE);
+            g.fill(bx + (int) px[scratch][0] - 3, by + (int) py[scratch][0] - 3, bx + (int) px[scratch][0] + 3, by + (int) py[scratch][0] + 3, pulse ? Draw.ACCENT : Draw.TEXT);
         }
         int tx = ox + 172;
-        Draw.write(g, T.f("scratch") + Math.min(3, line + 1) + " / 3", tx, oy + 12, Draw.TEXT, false);
+        Draw.write(g, T.f("scratch") + Math.min(3, scratch + 1) + " / 3", tx, oy + 12, Draw.TEXT, false);
         Draw.write(g, T.f("slips") + faults + " / 3", tx, oy + 24, faults > 1 ? Draw.ALERT : Draw.GREY, false);
-        Draw.write(g, ongoing ? T.f("follow_the_groove") : waitRelease ? T.f("release_and_retry") : T.f("start_from_the_dot"), tx, oy + 44,
-                ongoing ? Draw.ACCENT : Draw.YELLOW, false);
+        Draw.write(g, tracing ? T.f("follow_the_groove") : waitRelease ? T.f("release_and_retry") : T.f("start_from_the_dot"), tx, oy + 44,
+                tracing ? Draw.ACCENT : Draw.YELLOW, false);
         Draw.paragraph(g, T.f("hold_the_click_from_top"), tx, oy + 64, 104, Draw.DARK);
     }
 
     void follow(double mx, double my) {
-        if (!press) {
-            ongoing = false;
+        if (!mouseDown) {
+            tracing = false;
             waitRelease = false;
             progress = 0;
             return;
         }
-        if (waitRelease || line >= 3) return;
-        if (!ongoing) {
-            if (Math.hypot(mx - px[line][0], my - py[line][0]) < 8) {
-                ongoing = true;
+        if (waitRelease || scratch >= 3) return;
+        if (!tracing) {
+            if (Math.hypot(mx - px[scratch][0], my - py[scratch][0]) < 8) {
+                tracing = true;
                 progress = 0;
-                Draw.sound1(1.3f);
+                Draw.click(1.3f);
             }
             return;
         }
-        while (progress < N - 1 && Math.hypot(mx - px[line][progress + 1], my - py[line][progress + 1]) < 8) {
+        while (progress < N - 1 && Math.hypot(mx - px[scratch][progress + 1], my - py[scratch][progress + 1]) < 8) {
             if (++progress % 5 == 0) Draw.beep(Sounds.RUB, 1.1f + progress * 0.012f, 0.5f);
         }
         if (progress >= N - 1) {
-            Draw.note(1f + line * 0.25f);
-            ongoing = false;
+            Draw.note(1f + scratch * 0.25f);
+            tracing = false;
             waitRelease = true;
             progress = 0;
-            if (++line >= 3) {
+            if (++scratch >= 3) {
                 perfect = faults == 0;
                 end(true);
             }
-        } else if (Math.hypot(mx - px[line][progress], my - py[line][progress]) > 13) {
+        } else if (Math.hypot(mx - px[scratch][progress], my - py[scratch][progress]) > 13) {
             fault();
         }
     }

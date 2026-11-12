@@ -10,29 +10,29 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-// Écran du kit de terrain : pendant les prélèvements, l'état du dossier et la direction de la zone ;
-// pendant la traque, la carte des relevés (les droites de cap, leur marge d'erreur et le recoupement).
-// Deux autres onglets donnent la carrière de l'enquêteur : le carnet (rang, expérience, améliorations du kit) et les
-// archives (dossiers classés, types d'enquête déjà résolus). Tout tient dans l'écran du boîtier (texture fond_kit).
+// Field kit screen: during sampling, the case status and the direction of the zone;
+// during tracking, the bearings map (bearing lines, their error margin and the cross-fix).
+// Other tabs show the investigator's career: the logbook (rank, experience, kit upgrades) and the
+// archives (closed cases, investigation kinds already solved). Everything fits in the device screen (texture bg_kit).
 public class KitScreen extends Screen {
-    private static final Draw.Backdrop F = Draw.KIT;
-    private static final int L = F.il(), MAP = 148;
+    private static final Draw.Backdrop BG = Draw.KIT;
+    private static final int L = BG.il(), MAP = 148;
     static final ResourceLocation BADGE = Draw.texture("badge");
     static final int[] RANK_COLOURS = {0xFFB08D6A, 0xFFE0A060, 0xFFE8EEF2, 0xFFF2C93A, 0xFF6CCB5F, 0xFF4FD1C5, 0xFFC79CFF};
     static final String[] TYPES = {"", "nocturnal", "skittish", "exceptional", "restless", "aquatic", "dig_site", "canopy", "altitude", "frost", "mist", "underground"};
-    // 0 = enquête en cours, 1 = carnet de l'enquêteur, 2 = archives, 3 = équipe.
+    // 0 = current case, 1 = investigator's logbook, 2 = archives, 3 = team.
     private int tab;
     private int scrolling;
-    // Onglet Équipe : texte tapé pour chercher un joueur, et position dans la liste des joueurs à inviter.
+    // Team tab: text typed to search for a player, and scroll position in the list of players to invite.
     private String searchText = "";
     private int inviteScroll;
 
-    // Les joueurs qu'on peut inviter, filtrés par la recherche (l'ordre vient du serveur : partenaires habituels d'abord).
+    // Players who can be invited, filtered by the search (the server sets the order: usual partners first).
     private java.util.List<CompoundTag> invitable() {
-        ListTag closeOnes = FieldInvestigationsClient.state.getList("close", Tag.TAG_COMPOUND);
+        ListTag nearby = FieldInvestigationsClient.state.getList("close", Tag.TAG_COMPOUND);
         java.util.List<CompoundTag> list = new java.util.ArrayList<>();
-        for (int i = 0; i < closeOnes.size(); i++) {
-            CompoundTag c = closeOnes.getCompound(i);
+        for (int i = 0; i < nearby.size(); i++) {
+            CompoundTag c = nearby.getCompound(i);
             if (searchText.isEmpty() || c.getString("name").toLowerCase().contains(searchText.toLowerCase())) list.add(c);
         }
         return list;
@@ -72,8 +72,8 @@ public class KitScreen extends Screen {
     public void render(GuiGraphics g, int mx, int my, float pt) {
         renderBackground(g, mx, my, pt);
         CompoundTag e = FieldInvestigationsClient.state;
-        int x = F.x(width), y = F.y(height);
-        Draw.background(g, F, width, height);
+        int x = BG.x(width), y = BG.y(height);
+        Draw.background(g, BG, width, height);
         boolean active = e.getBoolean("active") && minecraft != null && minecraft.player != null;
         String phase = e.getString("phase");
         String step = !active ? T.f("standby") : phase.equals("SAMPLING") ? T.f("sampling") : phase.equals("TRACKING") ? T.f("tracking")
@@ -124,7 +124,7 @@ public class KitScreen extends Screen {
             int colour = lost ? Draw.ALERT : pin ? Draw.GREEN : harvest ? Draw.YELLOW : buried && uncovered ? Draw.ACCENT : Draw.DARK;
             if (buried) Draw.image(g, Draw.buriedIcon(kind, t.getInt("variant")), x + 12, ly + 2, 16, 16);
             else Draw.image(g, Draw.traceIcon(kind, false), x + 8, ly - 2, 24, 24);
-            // La fiole : éteinte tant que la trace n'est pas prélevée, pleine ensuite, pastille verte une fois analysée.
+            // The vial: greyed out until the trace is sampled, full afterwards, green dot once analysed.
             if (lost || (!pin && !harvest)) Draw.tint(g, 0xFF46525E);
             Draw.image(g, Draw.VIAL, x + 172, ly, 10, 20);
             g.setColor(1f, 1f, 1f, 1f);
@@ -136,22 +136,22 @@ public class KitScreen extends Screen {
             Draw.write(g, lost ? T.f("clue_destroyed") : pin ? T.f("analysed_in_the_file") : harvest ? T.f("sampled_to_analyse")
                     : buried ? (uncovered ? T.f("uncovered_to_sample") : T.f("buried_brush_needed")) : T.f("to_sample_in_the_zone"), x + 36, ly + 11, colour, false);
         }
-        // Boussole vers la zone des traces (le haut du cadran est la direction du regard).
+        // Compass towards the trace zone (the top of the dial is where the player looks).
         int cx = x + 256, cy = y + 72;
         Draw.inset(g, x + 196, y + 18, 120, 148);
         Draw.write(g, T.f("trace_zone"), x + 202, y + 23, Draw.YELLOW, false);
         double zx = e.getDouble("zoneX"), zz = e.getDouble("zoneZ");
-        double cap = Draw.cap(jx, jz, zx, zz);
-        double relativeOne = Math.toRadians(cap - (minecraft.player.getYRot() + 180));
+        double bearing = Draw.bearing(jx, jz, zx, zz);
+        double relative = Math.toRadians(bearing - (minecraft.player.getYRot() + 180));
         Draw.image(g, Draw.DIAL, cx - 36, cy - 36, 72, 72);
-        Draw.segment(g, cx - 1, cy - 1, cx - 1 + Math.sin(relativeOne) * 22, cy - 1 - Math.cos(relativeOne) * 22, 2, Draw.ACCENT);
-        Draw.point(g, cx + Math.sin(relativeOne) * 22 - 2, cy - Math.cos(relativeOne) * 22 - 2, 4, Draw.YELLOW);
-        Draw.centre(g, Math.round(Math.hypot(zx - jx, zz - jz)) + T.f("blocks") + Draw.wind(cap), cx, y + 114, Draw.TEXT);
+        Draw.segment(g, cx - 1, cy - 1, cx - 1 + Math.sin(relative) * 22, cy - 1 - Math.cos(relative) * 22, 2, Draw.ACCENT);
+        Draw.point(g, cx + Math.sin(relative) * 22 - 2, cy - Math.cos(relative) * 22 - 2, 4, Draw.YELLOW);
+        Draw.centre(g, Math.round(Math.hypot(zx - jx, zz - jz)) + T.f("blocks") + Draw.wind(bearing), cx, y + 114, Draw.TEXT);
         Draw.centre(g, "X " + Math.round(zx) + "  Z " + Math.round(zz), cx, y + 125, Draw.GREY);
         Draw.button(g, x + 202, y + 140, 108, 22, T.f("case_file"), Draw.in(mx, my, x + 202, y + 140, 108, 22), true, Draw.ACCENT);
     }
 
-    // ---------- Carnet : rang, expérience, améliorations du kit ----------
+    // ---------- Logbook: rank, experience, kit upgrades ----------
 
     private void logbook(GuiGraphics g, CompoundTag c, int succeeded, int x, int y, int mx, int my) {
         int rank = Math.max(0, Math.min(6, c.getInt("rank"))), xp = c.getInt("xp"), threshold = c.getInt("threshold"), next = c.getInt("next");
@@ -193,17 +193,17 @@ public class KitScreen extends Screen {
         }
     }
 
-    // ---------- Archives : dossiers classés, types d'enquête déjà résolus ----------
+    // ---------- Archives: closed cases, investigation kinds already solved ----------
 
     private void archives(GuiGraphics g, CompoundTag c, int x, int y) {
-        ListTag records = c.getList("archives", Tag.TAG_COMPOUND);
+        ListTag pastCases = c.getList("archives", Tag.TAG_COMPOUND);
         Draw.inset(g, x + 4, y + 18, 196, 148);
         Draw.write(g, T.f("closed_cases"), x + 10, y + 23, Draw.YELLOW, false);
-        scrolling = Math.max(0, Math.min(Math.max(0, records.size() - 6), scrolling));
-        if (records.isEmpty()) Draw.paragraph(g, T.f("no_closed_case_yet_every"), x + 12, y + 44, 180, Draw.GREY);
+        scrolling = Math.max(0, Math.min(Math.max(0, pastCases.size() - 6), scrolling));
+        if (pastCases.isEmpty()) Draw.paragraph(g, T.f("no_closed_case_yet_every"), x + 12, y + 44, 180, Draw.GREY);
         java.text.SimpleDateFormat day = new java.text.SimpleDateFormat("dd/MM");
-        for (int i = 0; i < 6 && i + scrolling < records.size(); i++) {
-            CompoundTag f = records.getCompound(i + scrolling);
+        for (int i = 0; i < 6 && i + scrolling < pastCases.size(); i++) {
+            CompoundTag f = pastCases.getCompound(i + scrolling);
             int ly = y + 36 + i * 21;
             String special = f.getString("special");
             Draw.portrait(g, f.getString("species"), x + 9, ly + 1, 1f);
@@ -212,11 +212,11 @@ public class KitScreen extends Screen {
             Draw.write(g, stars, x + 194 - Draw.textFont().width(stars), ly, Draw.YELLOW, false);
             String type = BoardScreen.specialName(special);
             Draw.write(g, type, x + 29, ly + 10, BoardScreen.specialColour(special), false);
-            String rest1 = " · " + (f.getBoolean("capture") ? T.f("caught") : T.f("defeated")) + " · " + day.format(new java.util.Date(f.getLong("date")));
-            Draw.scroll(g, rest1, x + 29 + Draw.textFont().width(type), ly + 10, 164 - Draw.textFont().width(type), Draw.DARK);
+            String details = " · " + (f.getBoolean("capture") ? T.f("caught") : T.f("defeated")) + " · " + day.format(new java.util.Date(f.getLong("date")));
+            Draw.scroll(g, details, x + 29 + Draw.textFont().width(type), ly + 10, 164 - Draw.textFont().width(type), Draw.DARK);
         }
-        if (records.size() > 6) {
-            Draw.write(g, (scrolling + 1) + "-" + Math.min(records.size(), scrolling + 6) + " / " + records.size() + "  ▲▼", x + 118, y + 23, Draw.GREY, false);
+        if (pastCases.size() > 6) {
+            Draw.write(g, (scrolling + 1) + "-" + Math.min(pastCases.size(), scrolling + 6) + " / " + pastCases.size() + "  ▲▼", x + 118, y + 23, Draw.GREY, false);
         }
         Draw.inset(g, x + 204, y + 18, 112, 148);
         CompoundTag types = c.getCompound("types");
@@ -231,7 +231,7 @@ public class KitScreen extends Screen {
         }
     }
 
-    // ---------- Équipe : coéquipiers, invitations ----------
+    // ---------- Team: teammates, invitations ----------
 
     private void team(GuiGraphics g, CompoundTag e, int x, int y, int mx, int my) {
         ListTag members = e.getList("team", Tag.TAG_STRING);
@@ -288,7 +288,7 @@ public class KitScreen extends Screen {
         Draw.button(g, x + 166, y + 146, 144, 16, T.f("refresh"), Draw.in(mx, my, x + 166, y + 146, 144, 16), true, 0xFF7C8FA3);
     }
 
-    // La recherche se tape au clavier dès que l'onglet Équipe est ouvert.
+    // The search is typed on the keyboard as soon as the Team tab is open.
     @Override
     public boolean charTyped(char c, int mods) {
         if (tab == 3 && FieldInvestigationsClient.state.getBoolean("chef") && searchText.length() < 16 && (Character.isLetterOrDigit(c) || c == '_')) {
@@ -300,13 +300,13 @@ public class KitScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int pressedKey, int scan, int mods) {
-        if (tab == 3 && pressedKey == 259 && !searchText.isEmpty()) { // Retour arrière
+    public boolean keyPressed(int key, int scan, int mods) {
+        if (tab == 3 && key == 259 && !searchText.isEmpty()) { // Backspace
             searchText = searchText.substring(0, searchText.length() - 1);
             inviteScroll = 0;
             return true;
         }
-        return super.keyPressed(pressedKey, scan, mods);
+        return super.keyPressed(key, scan, mods);
     }
 
     private boolean clickTeam(double mx, double my, int x, int y) {
@@ -317,7 +317,7 @@ public class KitScreen extends Screen {
                 Packet p = Packet.from("answer");
                 p.data().putBoolean("accepted", yes);
                 FieldInvestigationsClient.send(p);
-                Draw.sound1(yes ? 1.3f : 0.7f);
+                Draw.click(yes ? 1.3f : 0.7f);
                 if (yes) tab = 0;
             }
             return true;
@@ -326,7 +326,7 @@ public class KitScreen extends Screen {
         if (!e.getBoolean("chef")) {
             if (Draw.in(mx, my, x + 12, y + 141, 136, 18)) {
                 FieldInvestigationsClient.send(Packet.from("abandon"));
-                Draw.sound1(0.7f);
+                Draw.click(0.7f);
             }
             return true;
         }
@@ -337,12 +337,12 @@ public class KitScreen extends Screen {
                 Packet p = Packet.from("invite");
                 p.data().putString("name", list.get(i + inviteScroll).getString("name"));
                 FieldInvestigationsClient.send(p);
-                Draw.sound1(1.2f);
+                Draw.click(1.2f);
                 return true;
             }
             if (Draw.in(mx, my, x + 166, y + 146, 144, 16)) {
                 FieldInvestigationsClient.send(Packet.from("team"));
-                Draw.sound1(1f);
+                Draw.click(1f);
             }
         }
         return true;
@@ -357,13 +357,13 @@ public class KitScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
-        int x = F.x(width), y = F.y(height);
+        int x = BG.x(width), y = BG.y(height);
         for (int i = 0; i < 4; i++) {
             int[] place = placeTab(x, i);
             if (Draw.in(mx, my, place[0] - 3, y, place[1] + 6, 14)) {
                 tab = i;
-                Draw.sound1(1.2f);
-                // L'onglet Équipe demande au serveur la liste à jour des joueurs proches.
+                Draw.click(1.2f);
+                // The Team tab asks the server for an up-to-date list of nearby players.
                 if (i == 3) FieldInvestigationsClient.send(Packet.from("team"));
                 return true;
             }
@@ -372,13 +372,13 @@ public class KitScreen extends Screen {
         if (tab != 0) return true;
         if (!FieldInvestigationsClient.state.getBoolean("active")) {
             if (Draw.in(mx, my, x + L / 2 - 80, y + 90, 160, 22) && minecraft != null) {
-                Draw.sound1(1f);
+                Draw.click(1f);
                 minecraft.setScreen(new BoardScreen());
             }
             return true;
         }
         if (FieldInvestigationsClient.state.getString("phase").equals("SAMPLING") && Draw.in(mx, my, x + 202, y + 140, 108, 22) && minecraft != null) {
-            Draw.sound1(1f);
+            Draw.click(1f);
             minecraft.setScreen(new BoardScreen());
         }
         return true;
@@ -386,9 +386,9 @@ public class KitScreen extends Screen {
 
     private void map(GuiGraphics g, CompoundTag e, int x, int y, double jx, double jz) {
         ListTag bearings = e.getList("bearings", Tag.TAG_COMPOUND);
-        boolean fix1 = e.getBoolean("fixValid");
-        double rx = e.getDouble("fixX"), rz = e.getDouble("fixZ"), inc = e.getDouble("fixUncertainty");
-        // Cadrage : tout ce qui compte doit tenir dans la carte.
+        boolean hasFix = e.getBoolean("fixValid");
+        double rx = e.getDouble("fixX"), rz = e.getDouble("fixZ"), uncertainty = e.getDouble("fixUncertainty");
+        // Framing: everything that matters must fit in the map.
         double minX = jx, maxX = jx, minZ = jz, maxZ = jz;
         for (int i = 0; i < bearings.size(); i++) {
             CompoundTag r = bearings.getCompound(i);
@@ -398,11 +398,11 @@ public class KitScreen extends Screen {
             minZ = Math.min(minZ, r.getDouble("z"));
             maxZ = Math.max(maxZ, r.getDouble("z"));
         }
-        if (fix1) {
-            minX = Math.min(minX, rx - inc);
-            maxX = Math.max(maxX, rx + inc);
-            minZ = Math.min(minZ, rz - inc);
-            maxZ = Math.max(maxZ, rz + inc);
+        if (hasFix) {
+            minX = Math.min(minX, rx - uncertainty);
+            maxX = Math.max(maxX, rx + uncertainty);
+            minZ = Math.min(minZ, rz - uncertainty);
+            maxZ = Math.max(maxZ, rz + uncertainty);
         }
         double mx0 = (minX + maxX) / 2, mz0 = (minZ + maxZ) / 2;
         double half = Math.max(80, Math.max(maxX - minX, maxZ - minZ) / 2 * 1.2);
@@ -434,9 +434,9 @@ public class KitScreen extends Screen {
             g.fill((int) px - 2, (int) py - 2, (int) px + 3, (int) py + 3, Draw.TEXT);
             Draw.write(g, String.valueOf(i + 1), (int) px + 4, (int) py - 9, Draw.TEXT, false);
         }
-        if (fix1) {
+        if (hasFix) {
             double px = ccx + (rx - mx0) * scale, py = ccy + (rz - mz0) * scale;
-            Draw.circle(g, px, py, inc * scale, 2, Draw.YELLOW);
+            Draw.circle(g, px, py, uncertainty * scale, 2, Draw.YELLOW);
             Draw.segment(g, px - 4, py, px + 4, py, 2, Draw.YELLOW);
             Draw.segment(g, px, py - 4, px, py + 4, 2, Draw.YELLOW);
         }
@@ -452,7 +452,7 @@ public class KitScreen extends Screen {
         Draw.write(g, phase.equals("TRACKING") ? T.f("bearings") + n + ")" : phase.equals("SPOTTING") ? T.f("target_in_sight")
                 : phase.equals("APPROACH") ? T.f("approach").toUpperCase() : T.f("flushed_out_2"), tx, oy + 6, Draw.YELLOW, false);
         int ly = oy + 20;
-        int and = e.getInt("stars");
+        int stars = e.getInt("stars");
         if (phase.equals("SPOTTING")) {
             ly = Draw.paragraph(g, T.f("the_target_is_in_sight"),
                     tx, ly, lw, Draw.TEXT) + 6;
@@ -460,20 +460,20 @@ public class KitScreen extends Screen {
             return;
         }
         if (phase.equals("APPROACH") || phase.equals("FLUSHED")) {
-            // Cible identifiée : son portrait, la qualité de l'enquête et ce qu'elle vaut.
+            // Target identified: its portrait, the investigation quality and what it is worth.
             Draw.portrait(g, e.getString("species"), tx + (lw - 48) / 2, ly, 3f);
             Draw.centre(g, Draw.speciesName(e.getString("species")), tx + lw / 2, ly + 54, Draw.TEXT);
-            Draw.centre(g, T.stars(and), tx + lw / 2, ly + 66, Draw.YELLOW);
-            Draw.centre(g, T.iv(and) + T.f("perfect_ivs_on_capture"), tx + lw / 2, ly + 78, Draw.ACCENT);
+            Draw.centre(g, T.stars(stars), tx + lw / 2, ly + 66, Draw.YELLOW);
+            Draw.centre(g, T.iv(stars) + T.f("perfect_ivs_on_capture"), tx + lw / 2, ly + 78, Draw.ACCENT);
             Draw.paragraph(g, phase.equals("FLUSHED") ? T.f("there_it_is_battle_it") : T.f("walk_don_t_run_a"),
                     tx, ly + 94, lw, Draw.GREY);
             return;
         }
-        if (fix1) {
+        if (hasFix) {
             Draw.write(g, T.f("fix"), tx, ly, Draw.ACCENT, false);
             Draw.write(g, "X " + Math.round(rx) + "  Z " + Math.round(rz), tx, ly + 11, Draw.TEXT, false);
-            Draw.write(g, "± " + Math.round(inc / 5) * 5 + T.f("blocks_2"), tx, ly + 22, Draw.YELLOW, false);
-            Draw.write(g, T.f("at") + Math.round(Math.hypot(rx - jx, rz - jz)) + T.f("blocks") + Draw.wind(Draw.cap(jx, jz, rx, rz)), tx, ly + 33, Draw.GREY, false);
+            Draw.write(g, "± " + Math.round(uncertainty / 5) * 5 + T.f("blocks_2"), tx, ly + 22, Draw.YELLOW, false);
+            Draw.write(g, T.f("at") + Math.round(Math.hypot(rx - jx, rz - jz)) + T.f("blocks") + Draw.wind(Draw.bearing(jx, jz, rx, rz)), tx, ly + 33, Draw.GREY, false);
             ly += 48;
         } else {
             ly = Draw.paragraph(g, T.c(e.getString("fixMessage")), tx, ly, lw, Draw.GREY) + 6;

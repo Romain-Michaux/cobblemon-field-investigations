@@ -10,8 +10,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 
-// Pendant le scan, l'interface habituelle (barre d'objets, vie, viseur, équipe Pokémon, discussion...) laisse toute
-// la place à la vue du scanner.
+// While scanning, the usual HUD (hotbar, health, crosshair, Pokémon party, chat...) gives way to the scanner view.
 @Mixin(value = Gui.class, priority = 2000)
 public class HudScanMixin {
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)

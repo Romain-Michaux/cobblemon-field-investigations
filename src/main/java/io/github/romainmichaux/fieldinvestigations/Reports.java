@@ -30,32 +30,32 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 
-// Ouverture d'une enquête : pistes proposées, type d'enquête, espèce cible et suspects.
+// Opening an investigation: offered leads, investigation kind, target species and suspects.
 final class Reports {
     private Reports() {}
 
     static final List<String> CATEGORIES = List.of("common", "uncommon", "rare", "ultra-rare");
 
-    // Enquêtes spéciales : chacune a sa règle et sa récompense (toutes donnent le butin « speciale », et « type_<nom> » s'il existe).
-    // Possibles partout :
-    //  - nocturne : traces, cris et cible seulement la nuit (chance de chromatique doublée) ;
-    //  - craintive : elle repère le joueur de bien plus loin (butin spécial doublé) ;
-    //  - exceptionnel : un résultat d'analyse de plus, suspects tous ressemblants (talent caché garanti) ;
-    //  - migratrice : elle se déplace deux fois plus souvent et sa tanière est plus loin (butin spécial doublé).
-    // Liées au biome de la zone de traces :
-    //  - aquatique (océan, rivière) : espèces d'eau, traces au fond de l'eau, cible dans l'eau ;
-    //  - fouille (désert, badlands, plage) : tous les restes sont enfouis ;
-    //  - cimes (forêt, jungle, taïga) : traces sur les troncs et au sommet des arbres ;
-    //  - altitude (montagne, collines) : traces sur les parois, zone de recherche bien plus vaste ;
-    //  - givre (biomes enneigés) : échantillons fragiles, une dose de moins ;
-    //  - brume (marais) : les cris portent mal, relevés moins précis.
-    // Le type « souterraine » (1.1.0) n'est plus proposé : chercher des traces dans les grottes profondes était trop pénible.
-    // Une enquête souterraine déjà ouverte se termine normalement ; les autres enquêtes ont désormais une trace en grotte.
+    // Special investigations: each has its own rule and reward (all give the "special" loot, plus "type_<name>" if it exists).
+    // Possible anywhere:
+    //  - nocturnal: traces, calls and target only at night (double shiny chance);
+    //  - skittish: it spots the player from much further away (double special loot);
+    //  - exceptional: one more analysis result, all suspects look alike (guaranteed hidden ability);
+    //  - restless: it moves twice as often and its lair is further away (double special loot).
+    // Tied to the biome of the trace zone:
+    //  - aquatic (ocean, river): water species, traces on the bottom, target in the water;
+    //  - dig_site (desert, badlands, beach): all remains are buried;
+    //  - canopy (forest, jungle, taiga): traces on trunks and tree tops;
+    //  - altitude (mountain, hills): traces on cliff faces, much larger search zone;
+    //  - frost (snowy biomes): fragile samples, one dose less;
+    //  - mist (swamp): calls carry poorly, less precise bearings.
+    // The "underground" kind (1.1.0) is no longer offered: searching deep caves for traces was too tedious.
+    // An underground investigation already open finishes normally; other investigations now have one trace in a cave.
     static final List<String> GENERIC_KINDS = List.of("nocturnal", "skittish", "exceptional", "restless");
 
-    // Type lié au biome : il s'applique si le biome porte l'une de ces étiquettes, ou si son nom contient l'un de ces mots
-    // (pour les biomes de mods qui ne sont pas étiquetés).
-    private record Habitat(String type, List<String> labels, List<String> words) {}
+    // Biome kind: applies if the biome has one of these tags, or if its name contains one of these words
+    // (for modded biomes that are not tagged).
+    private record Habitat(String type, List<String> tags, List<String> words) {}
 
     private static final List<Habitat> HABITATS = List.of(
             new Habitat("dig_site", List.of("c:is_desert", "minecraft:is_badlands", "minecraft:is_beach", "c:is_sandy"), List.of("desert", "badlands", "beach", "dune")),
@@ -69,8 +69,8 @@ final class Reports {
         List<String> types = new ArrayList<>();
         for (Habitat m : HABITATS) {
             boolean ok = false;
-            for (String e : m.labels) ok |= biome.is(TagKey.create(Registries.BIOME, ResourceLocation.parse(e)));
-            for (String word1 : m.words) ok |= name.contains(word1);
+            for (String e : m.tags) ok |= biome.is(TagKey.create(Registries.BIOME, ResourceLocation.parse(e)));
+            for (String word : m.words) ok |= name.contains(word);
             if (ok) types.add(m.type);
         }
         return types;
@@ -91,21 +91,21 @@ final class Reports {
             return;
         }
         if (leads(player) != null) {
-            Messages.sync(player); // des signalements l'attendent déjà sur son tableau
+            Messages.sync(player); // leads are already waiting on their board
             return;
         }
-        ServerLevel level1 = player.serverLevel();
+        ServerLevel level = player.serverLevel();
         PokedexManager pokedex = Cobblemon.playerDataManager.getPokedexData(player);
         int wanted = Math.max(1, Math.min(3, Engine.settings.leadCount));
         List<CaseFile> leads = new ArrayList<>();
-        Set<String> takes = new HashSet<>();
+        Set<String> taken = new HashSet<>();
         for (int i = 0; i < wanted; i++) {
-            // Le premier signalement est toujours ordinaire : il y a toujours une enquête classique au choix.
-            boolean special = i > 0 && Engine.RANDOM.nextDouble() < Engine.settings.chanceSpecialCase;
-            CaseFile d = report(player, level1, dim, pokedex, takes, special);
-            if (d == null && special) d = report(player, level1, dim, pokedex, takes, false);
+            // The first lead is always ordinary, so a classic investigation is always on offer.
+            boolean special = i > 0 && Engine.RANDOM.nextDouble() < Engine.settings.specialCaseChance;
+            CaseFile d = report(player, level, dim, pokedex, taken, special);
+            if (d == null && special) d = report(player, level, dim, pokedex, taken, false);
             if (d == null) break;
-            takes.add(d.species);
+            taken.add(d.species);
             leads.add(d);
         }
         if (leads.isEmpty()) {
@@ -118,20 +118,20 @@ final class Reports {
         }
         Collections.shuffle(leads, Engine.RANDOM);
         Engine.state.offers.put(id, leads);
-        Engine.state.offersEnd.put(id, System.currentTimeMillis() + Math.max(1, Engine.settings.minutesValiditePistes) * 60_000L);
+        Engine.state.offersEnd.put(id, System.currentTimeMillis() + Math.max(1, Engine.settings.leadValidityMinutes) * 60_000L);
         Engine.save();
         player.playNotifySound(SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1f, 1f);
         Messages.sync(player);
     }
 
-    // Signalements en attente de choix : ils tombent s'ils ont expiré ou si le joueur a changé de dimension.
+    // Leads awaiting a choice: dropped if they expired or the player changed dimension.
     static List<CaseFile> leads(ServerPlayer player) {
         UUID id = player.getUUID();
         List<CaseFile> leads = Engine.state.offers.get(id);
         if (leads == null) return null;
-        boolean validOnes = !leads.isEmpty() && Engine.state.offersEnd.getOrDefault(id, 0L) > System.currentTimeMillis();
-        for (CaseFile d : leads) validOnes &= d.level1 != null && d.level1.equals(Engine.dimension(player));
-        if (validOnes) return leads;
+        boolean valid = !leads.isEmpty() && Engine.state.offersEnd.getOrDefault(id, 0L) > System.currentTimeMillis();
+        for (CaseFile d : leads) valid &= d.dimension != null && d.dimension.equals(Engine.dimension(player));
+        if (valid) return leads;
         Engine.state.offers.remove(id);
         Engine.state.offersEnd.remove(id);
         Engine.save();
@@ -152,7 +152,7 @@ final class Reports {
         Engine.state.offers.remove(id);
         Engine.state.offersEnd.remove(id);
         d.leader = id;
-        d.forgiven = Engine.rank(player) >= 4 ? 1 : 0; // sang-froid
+        d.forgiven = Engine.rank(player) >= 4 ? 1 : 0; // rank 4 perk: one forgiven fault
         Engine.state.caseFiles.put(id, d);
         Engine.save();
         player.playNotifySound(SoundEvents.SPYGLASS_USE, SoundSource.PLAYERS, 1f, 0.8f);
@@ -160,59 +160,59 @@ final class Reports {
         Messages.sync(player);
     }
 
-    // Tire un signalement autour du joueur : une zone de traces, une tanière, une espèce du biome et ses suspects.
-    // Avec « specialVoulu », le type dépend de l'endroit tiré : aquatique si la zone tombe dans l'eau, sinon un type
-    // possible partout ou (trois fois plus souvent) un type propre au biome de la zone.
-    private static CaseFile report(ServerPlayer player, ServerLevel level1, String dim, PokedexManager pokedex, Set<String> takes, boolean wantedSpecial) {
+    // Rolls a lead around the player: a trace zone, a lair, a species of the biome and its suspects.
+    // With wantSpecial, the kind depends on the rolled spot: aquatic if the zone falls in water, otherwise a kind
+    // possible anywhere or (three times as often) a kind specific to the zone's biome.
+    private static CaseFile report(ServerPlayer player, ServerLevel level, String dim, PokedexManager pokedex, Set<String> taken, boolean wantSpecial) {
         for (int attempt = 0; attempt < 60; attempt++) {
             double a1 = Engine.RANDOM.nextDouble() * Math.PI * 2;
             double d1 = Engine.settings.zoneMinDistance + Engine.RANDOM.nextDouble() * (Engine.settings.zoneMaxDistance - Engine.settings.zoneMinDistance);
             double zx = player.getX() + Math.cos(a1) * d1, zz = player.getZ() + Math.sin(a1) * d1;
-            boolean water = aquatic(level1, zx, zz);
-            if (water && !wantedSpecial) continue;
+            boolean water = aquatic(level, zx, zz);
+            if (water && !wantSpecial) continue;
             String special = null;
             if (water) {
                 special = "aquatic";
-            } else if (wantedSpecial) {
+            } else if (wantSpecial) {
                 List<String> possible = new ArrayList<>(GENERIC_KINDS);
-                for (String t : biomeKinds(level1.getBiome(BlockPos.containing(zx, 100, zz)))) possible.addAll(List.of(t, t, t));
+                for (String t : biomeKinds(level.getBiome(BlockPos.containing(zx, 100, zz)))) possible.addAll(List.of(t, t, t));
                 special = possible.get(Engine.RANDOM.nextInt(possible.size()));
             }
             double a2 = Engine.RANDOM.nextDouble() * Math.PI * 2;
             double d2 = (Engine.settings.lairMinDistance + Engine.RANDOM.nextDouble() * (Engine.settings.lairMaxDistance - Engine.settings.lairMinDistance))
                     * ("restless".equals(special) ? 1.5 : 1);
             double tx = zx + Math.cos(a2) * d2, tz = zz + Math.sin(a2) * d2;
-            if (aquatic(level1, tx, tz) != water) continue; // la tanière est dans le même milieu que les traces
-            Holder<Biome> biome = level1.getBiome(BlockPos.containing(tx, 100, tz));
+            if (aquatic(level, tx, tz) != water) continue; // the lair is in the same medium as the traces
+            Holder<Biome> biome = level.getBiome(BlockPos.containing(tx, 100, tz));
             boolean cave = "underground".equals(special);
-            List<Candidate> basin = basin(biome, level1.dimension().location(), water, cave);
-            basin.removeIf(c -> takes.contains(c.species)); // jamais deux signalements pour la même espèce
+            List<Candidate> basin = basin(biome, level.dimension().location(), water, cave);
+            basin.removeIf(c -> taken.contains(c.species)); // never two leads for the same species
             if (basin.size() < 3) continue;
             double total = 0;
             double[] weight = new double[basin.size()];
             for (int i = 0; i < basin.size(); i++) {
                 Candidate c = basin.get(i);
-                weight[i] = Engine.settings.rarityWeights.getOrDefault(CATEGORIES.get(c.rank), 1.0) * (owns(pokedex, c.species) ? 1.0 : Engine.settings.bonusNewSpecies);
+                weight[i] = Engine.settings.rarityWeights.getOrDefault(CATEGORIES.get(c.rank), 1.0) * (owns(pokedex, c.species) ? 1.0 : Engine.settings.newSpeciesWeight);
                 total += weight[i];
             }
-            double draw1 = Engine.RANDOM.nextDouble() * total;
+            double roll = Engine.RANDOM.nextDouble() * total;
             Candidate target = basin.get(basin.size() - 1);
             for (int i = 0; i < basin.size(); i++) {
-                draw1 -= weight[i];
-                if (draw1 <= 0) {
+                roll -= weight[i];
+                if (roll <= 0) {
                     target = basin.get(i);
                     break;
                 }
             }
             CaseFile d = new CaseFile();
             d.id = Engine.RANDOM.nextLong();
-            d.level1 = dim;
+            d.dimension = dim;
             d.special = special;
             d.species = target.species;
             d.category = CATEGORIES.get(target.rank);
-            d.newB = !owns(pokedex, target.species);
+            d.newSpecies = !owns(pokedex, target.species);
             d.seed = Engine.RANDOM.nextLong();
-            d.level2 = target.levelMin + Engine.RANDOM.nextInt(Math.max(1, target.levelMax - target.levelMin + 1));
+            d.level = target.levelMin + Engine.RANDOM.nextInt(Math.max(1, target.levelMax - target.levelMin + 1));
             d.zoneX = zx;
             d.zoneZ = zz;
             d.lairX = tx;
@@ -230,19 +230,19 @@ final class Reports {
                 }
                 d.traces.add(t);
             }
-            // Un seul indice est enfoui par enquête (le brossage reste une exception), et ce qu'on déterre varie.
+            // Only one clue is buried per investigation (brushing stays an exception), and what is dug up varies.
             List<Trace> buriable = new ArrayList<>();
             for (Trace t : d.traces) {
                 if (Genetics.BURIED_NAMES.containsKey(t.kind)) buriable.add(t);
             }
             Collections.shuffle(buriable, Engine.RANDOM);
-            // Fouille : tout est enfoui. Sous l'eau : rien ne l'est (on ne brosse pas au fond d'un lac).
+            // Dig site: everything is buried. Underwater: nothing is (no brushing at the bottom of a lake).
             for (int i = 0; i < buriable.size(); i++) {
                 Trace t = buriable.get(i);
                 t.buried = !water && !cave && (i == 0 || "dig_site".equals(special));
                 t.variant = Engine.RANDOM.nextInt(Genetics.VARIANTS.getOrDefault(t.kind, 1));
             }
-            // Une trace non enfouie part dans une grotte (sauf sous l'eau, et en fouille où tout est enfoui).
+            // One unburied trace goes into a cave (except underwater, and on dig sites where everything is buried).
             List<Trace> onSurface = new ArrayList<>();
             for (Trace t : d.traces) {
                 if (!t.buried) onSurface.add(t);
@@ -254,8 +254,8 @@ final class Reports {
         return null;
     }
 
-    static boolean aquatic(ServerLevel level1, double x, double z) {
-        Holder<Biome> biome = level1.getBiome(BlockPos.containing(x, 100, z));
+    static boolean aquatic(ServerLevel level, double x, double z) {
+        Holder<Biome> biome = level.getBiome(BlockPos.containing(x, 100, z));
         String name = biome.unwrapKey().map(k -> k.location().getPath()).orElse("");
         return name.contains("ocean") || name.contains("river") || biome.is(net.minecraft.tags.BiomeTags.IS_OCEAN) || biome.is(net.minecraft.tags.BiomeTags.IS_RIVER);
     }
@@ -265,8 +265,8 @@ final class Reports {
         return s != null && pokedex.getHighestKnowledgeForSpecies(s.getResourceIdentifier()) == PokedexEntryProgress.OWNED;
     }
 
-    // Espèces de surface que Cobblemon fait apparaître dans ce biome (null = partout) : terrestres, ou vivant dans l'eau.
-    // « grotte » : seulement les espèces que Cobblemon fait apparaître sous terre (à l'abri du ciel, ou en profondeur).
+    // Surface species Cobblemon spawns in this biome (null = anywhere): land-based, or living in water.
+    // cave: only species Cobblemon spawns underground (out of sight of the sky, or deep down).
     private static List<Candidate> basin(Holder<Biome> biome, ResourceLocation dimension, boolean water, boolean cave) {
         Map<String, Candidate> result = new HashMap<>();
         for (SpawnDetail detail : CobblemonSpawnPools.WORLD_SPAWN_POOL.getDetails()) {
@@ -309,7 +309,7 @@ final class Reports {
         for (SpawningCondition<?> c : detail.getConditions()) {
             Set<RegistryLikeCondition<Biome>> biomes = c.getBiomes();
             if (biomes == null || biomes.isEmpty()) continue;
-            if (underground(c) != cave) continue; // les enquêtes de surface ignorent les apparitions souterraines, et inversement
+            if (underground(c) != cave) continue; // surface investigations ignore underground spawns, and vice versa
             List<ResourceLocation> dims = c.getDimensions();
             if (dims != null && !dims.isEmpty() && !dims.contains(dimension)) continue;
             for (RegistryLikeCondition<Biome> b : biomes) {
@@ -331,27 +331,27 @@ final class Reports {
         return true;
     }
 
-    // La cible + des leurres au profil proche (mais jamais identique : les 5 marqueurs désignent toujours une seule espèce).
-    // « serre » (enquête exceptionnelle) : tous les leurres sont pris parmi les profils les plus proches.
-    private static List<String> suspects(String target, List<Candidate> local, boolean clamp, boolean water, boolean cave) {
+    // The target + decoys with a close profile (never identical: the 5 markers always point to a single species).
+    // closeOnly (exceptional investigation): all decoys are taken from the closest profiles.
+    private static List<String> suspects(String target, List<Candidate> local, boolean closeOnly, boolean water, boolean cave) {
         Species s = PokemonSpecies.getByName(target);
         Set<String> nearby = new HashSet<>();
         for (Candidate c : local) nearby.add(c.species);
-        Map<String, Double> notes = new HashMap<>();
+        Map<String, Double> scores = new HashMap<>();
         for (Candidate c : basin(null, null, water, cave)) {
             if (c.species.equals(target)) continue;
             Species other = PokemonSpecies.getByName(c.species);
             int common = Genetics.common(s, other);
             if (common >= Genetics.MARKERS.size()) continue;
-            notes.put(c.species, common + (nearby.contains(c.species) ? 0.6 : 0) + Engine.RANDOM.nextDouble() * 1.2);
+            scores.put(c.species, common + (nearby.contains(c.species) ? 0.6 : 0) + Engine.RANDOM.nextDouble() * 1.2);
         }
-        List<String> tries = new ArrayList<>(notes.keySet());
-        tries.sort((a, b) -> Double.compare(notes.get(b), notes.get(a)));
-        int closeOnes = clamp ? Math.max(0, Engine.settings.suspectCount - 1) : Math.max(0, Engine.settings.suspectCount - 1) * 2 / 3;
-        List<String> list = new ArrayList<>(tries.subList(0, Math.min(closeOnes, tries.size())));
-        List<String> left1 = new ArrayList<>(tries.subList(list.size(), tries.size()));
-        Collections.shuffle(left1, Engine.RANDOM);
-        while (list.size() < Engine.settings.suspectCount - 1 && !left1.isEmpty()) list.add(left1.remove(0));
+        List<String> ranked = new ArrayList<>(scores.keySet());
+        ranked.sort((a, b) -> Double.compare(scores.get(b), scores.get(a)));
+        int closeCount = closeOnly ? Math.max(0, Engine.settings.suspectCount - 1) : Math.max(0, Engine.settings.suspectCount - 1) * 2 / 3;
+        List<String> list = new ArrayList<>(ranked.subList(0, Math.min(closeCount, ranked.size())));
+        List<String> rest = new ArrayList<>(ranked.subList(list.size(), ranked.size()));
+        Collections.shuffle(rest, Engine.RANDOM);
+        while (list.size() < Engine.settings.suspectCount - 1 && !rest.isEmpty()) list.add(rest.remove(0));
         list.add(target);
         Collections.shuffle(list, Engine.RANDOM);
         return list;

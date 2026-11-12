@@ -10,11 +10,10 @@ import com.cobblemon.mod.common.pokemon.Species;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
-// Profil génétique d'une espèce : 5 marqueurs tirés de ses vraies données (types, taille, groupe d'œuf, stat dominante).
-// Chaque marqueur a une valeur (une clé courte), un libellé et une couleur ; le client ne reçoit que les clés.
+// Genetic profile of a species: 5 markers taken from its real data (types, size, egg group, highest stat).
+// Each marker has a value (a short key), a label and a colour; the client only receives the keys.
 public final class Genetics {
     public static final List<String> MARKERS = List.of("type1", "type2", "size", "egg", "stat");
-    // Tous les noms sont des clés de traduction : l'anglais par défaut, le français fourni avec le mod.
     public static final Map<String, String> MARKER_NAMES = Map.of(
             "type1", "cobblemon_field_investigations.marker.type1", "type2", "cobblemon_field_investigations.marker.type2", "size", "cobblemon_field_investigations.marker.size",
             "egg", "cobblemon_field_investigations.marker.egg", "stat", "cobblemon_field_investigations.marker.stat");
@@ -23,10 +22,10 @@ public final class Genetics {
             "egg", "cobblemon_field_investigations.trace.egg", "stat", "cobblemon_field_investigations.trace.stat");
     public static final Map<String, String> BURIED_NAMES = Map.of(
             "size", "cobblemon_field_investigations.buried.size", "egg", "cobblemon_field_investigations.buried.egg", "stat", "cobblemon_field_investigations.buried.stat");
-// Ce qu'on déterre varie : nombre d'objets possibles pour chaque marqueur enfouissable (os ou dent ; coquilles,
-    // plume ou mue ; croc, griffe ou écaille).
+    // Number of possible dug-up objects per buriable marker (bone or tooth; shells, feather or shed skin; fang, claw or
+    // scale).
     public static final Map<String, Integer> VARIANTS = Map.of("size", 2, "egg", 3, "stat", 3);
-    // Mini-jeux d'analyse possibles pour chaque marqueur (tiré au sort à la création de l'échantillon).
+    // Possible analysis mini-games per marker (drawn when the sample is created).
     public static final Map<String, List<String>> ANALYSIS_GAMES = Map.of(
             "type1", List.of("sequencing", "gel", "chromatography"), "type2", List.of("pairing", "pcr", "microscope"),
             "size", List.of("centrifugation", "count", "bite"), "egg", List.of("fragments", "gel", "family_tree"),
@@ -34,13 +33,12 @@ public final class Genetics {
     public static final Map<String, List<String>> SAMPLING_GAMES = Map.of(
             "type1", List.of("crystals", "photo"), "type2", List.of("pipette", "swab"), "size", List.of("measure", "cast"),
             "egg", List.of("sorting", "tweezers"), "stat", List.of("trace", "photo"));
-    // Tous les mini-jeux, pour la commande d'essai /hunt game : prélèvements, puis analyses.
     public static final List<String> FIELD_GAMES = List.of("crystals", "pipette", "measure", "sorting", "trace", "brush", "sieving", "cast",
             "tweezers", "photo", "swab", "dive", "climb", "abseil", "lamp", "rockfall", "filter");
     public static final List<String> LAB_GAMES = List.of("sequencing", "pairing", "centrifugation", "fragments", "spectrum", "gel", "colorimetry",
             "pcr", "count", "microscope", "chromatography", "family_tree", "titration", "bite", "thaw");
 
-    // Noms anglais des mini-jeux pour la commande /hunt game (les identifiants internes restent ceux du code, en français).
+    // Mini-game names for the /hunt game command, which can differ from the internal game ids.
     public static final Map<String, String> COMMAND_NAMES = new java.util.LinkedHashMap<>();
     static {
         String[][] names = {{"crystals", "crystals"}, {"pipette", "pipette"}, {"measure", "measure"}, {"sorting", "sorting"}, {"tracing", "trace"},
@@ -69,7 +67,7 @@ public final class Genetics {
         return variant > 0 && variant < VARIANTS.getOrDefault(kind, 1) ? key + "_" + variant : key;
     }
 
-    // Numéro de bloc (propriété « genre » de la trace) de l'objet dégagé du sol.
+    // Trace block "kind" property value for the object dug out of the ground.
     public static int buriedBlock(String kind, int variant) {
         int[] blocks = switch (kind) {
             case "size" -> new int[] {5, 8};
@@ -79,8 +77,8 @@ public final class Genetics {
         return blocks[Math.max(0, Math.min(blocks.length - 1, variant))];
     }
 
-    // Le geste de prélèvement dépend de ce qu'on prélève, et parfois du type d'enquête : en apnée pour une enquête
-    // aquatique, en grimpant dans les cimes, en rappel en altitude, à la lampe UV de nuit. Le tirage est fixe pour une trace.
+    // The sampling gesture depends on what is sampled, and sometimes on the case type: free-diving for an aquatic case,
+    // climbing in the canopy, abseiling at altitude, UV lamp at night. The draw is fixed for a given trace.
     public static String samplingGame(String kind, boolean buried, boolean cave, String special, java.util.Random h) {
         if (buried) return h.nextBoolean() ? "brush" : "sieving";
         if (cave && h.nextInt(3) != 0) return "rockfall";
@@ -153,7 +151,7 @@ public final class Genetics {
             case "type2":
                 return v.equals("none") ? Component.translatable("cobblemon_field_investigations.none") : Component.translatable("cobblemon.type." + v);
             case "size":
-                return Component.translatable("cobblemon_field_investigations.size." + whole(v, 5));
+                return Component.translatable("cobblemon_field_investigations.size." + clampedIndex(v, 5));
             case "egg":
                 return Component.translatable("cobblemon_field_investigations.egg." + EGGS.get(Math.max(0, EGGS.indexOf(v))).toLowerCase());
             default:
@@ -167,7 +165,7 @@ public final class Genetics {
             case "type2":
                 return TYPE_COLOURS.getOrDefault(v, 0xB8B8A0);
             case "size":
-                return SIZE_COLOURS[whole(v, 5)];
+                return SIZE_COLOURS[clampedIndex(v, 5)];
             case "egg":
                 return EGG_COLOURS[Math.max(0, EGGS.indexOf(v))];
             default:
@@ -175,9 +173,9 @@ public final class Genetics {
         }
     }
 
-    private static int whole(String v, int clampTo) {
+    private static int clampedIndex(String v, int size) {
         try {
-            return Math.max(0, Math.min(clampTo - 1, Integer.parseInt(v)));
+            return Math.max(0, Math.min(size - 1, Integer.parseInt(v)));
         } catch (NumberFormatException e) {
             return 0;
         }

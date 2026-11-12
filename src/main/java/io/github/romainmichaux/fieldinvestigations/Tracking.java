@@ -16,7 +16,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 
-// Phase de traque : relevés de cri au kit, recoupement, déplacements de la cible.
+// Tracking phase: call bearings taken with the kit, cross-fixing, target movements.
 final class Tracking {
     private Tracking() {}
 
@@ -26,13 +26,13 @@ final class Tracking {
         CaseFile d = Engine.caseFile(player);
         if (d == null || !"SAMPLING".equals(d.phase) || d.pins.size() < Engine.required(d)) return;
         Species target = PokemonSpecies.getByName(d.species), choice = PokemonSpecies.getByName(guess);
-        // Le joueur peut désigner n'importe quel suspect qu'il n'a pas barré, même si les analyses le contredisent :
-        // se tromper lui coûtera des étoiles.
+        // The player may name any suspect they have not crossed out, even if the analyses contradict it:
+        // being wrong will cost them stars.
         if (target == null || choice == null || !d.suspects.contains(guess) || (d.ruledOut != null && d.ruledOut.contains(guess))) return;
         d.guess = guess;
         d.phase = "TRACKING";
         d.nextMove = Engine.nextMove(d);
-        if (d.level1.equals(Engine.dimension(player))) Traces.removeTraces(player.serverLevel(), d);
+        if (d.dimension.equals(Engine.dimension(player))) Traces.removeTraces(player.serverLevel(), d);
         Engine.save();
         player.playNotifySound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.6f, 1.3f);
         Messages.announce(player, "kit_calibrated", 0x4FD1C5);
@@ -57,14 +57,14 @@ final class Tracking {
             Messages.open(player, "board");
             return;
         }
-        if ("TRACKING".equals(d.phase) && !crouching && d.level1.equals(Engine.dimension(player))) bearing(player, d);
+        if ("TRACKING".equals(d.phase) && !crouching && d.dimension.equals(Engine.dimension(player))) bearing(player, d);
         else Messages.open(player, "kit");
     }
 
-    // La cible est apparue mais n'est pas encore identifiée : le kit sert alors de scanner (clic droit maintenu).
+    // The target has appeared but is not identified yet: the kit then works as a scanner (hold right click).
     public static boolean inSpotting(ServerPlayer player) {
         CaseFile d = Engine.caseFile(player);
-        return d != null && "SPOTTING".equals(d.phase) && d.level1.equals(Engine.dimension(player));
+        return d != null && "SPOTTING".equals(d.phase) && d.dimension.equals(Engine.dimension(player));
     }
 
     private static void bearing(ServerPlayer player, CaseFile d) {
@@ -75,8 +75,8 @@ final class Tracking {
             return;
         }
         if (Engine.is(d, "mist")) {
-            // Dans la brume, il faut d'abord isoler le cri du bruit : le relevé se fait à l'issue du mini-jeu.
-            Engine.FILTERINGS.put(player.getUUID(), Boolean.TRUE);
+            // In mist, the call must first be isolated from the noise: the bearing is taken after the mini-game.
+            Engine.PENDING_FILTERS.put(player.getUUID(), Boolean.TRUE);
             Packet p = Packet.from("open");
             p.data().putString("screen", "filter");
             p.data().putBoolean("first", Engine.firstTime(player, "filter"));
@@ -87,12 +87,12 @@ final class Tracking {
         takeBearing(player, d, 1);
     }
 
-    // Résultat du filtrage du cri : réussi, le relevé est aussi précis qu'ailleurs ; raté, il est nettement plus flou.
-    static void filterResult(ServerPlayer player, boolean succes) {
-        if (Engine.FILTERINGS.remove(player.getUUID()) == null) return;
+    // Call filtering result: on success the bearing is as precise as elsewhere; on failure it is much blurrier.
+    static void filterResult(ServerPlayer player, boolean success) {
+        if (Engine.PENDING_FILTERS.remove(player.getUUID()) == null) return;
         CaseFile d = Engine.caseFile(player);
-        if (d == null || !"TRACKING".equals(d.phase) || !d.level1.equals(Engine.dimension(player))) return;
-        takeBearing(player, d, succes ? 1 : 1.8);
+        if (d == null || !"TRACKING".equals(d.phase) || !d.dimension.equals(Engine.dimension(player))) return;
+        takeBearing(player, d, success ? 1 : 1.8);
     }
 
     private static void takeBearing(ServerPlayer player, CaseFile d, double blur) {
@@ -103,50 +103,50 @@ final class Tracking {
             return;
         }
         d.nextBearing = now + Engine.settings.secondsBetweenBearings * 1000L;
-        player.getCooldowns().addCooldown(PacketContent.KIT, Engine.settings.secondsBetweenBearings * 20);
+        player.getCooldowns().addCooldown(ModContent.KIT, Engine.settings.secondsBetweenBearings * 20);
         double dx = d.lairX - player.getX(), dz = d.lairZ - player.getZ();
         double dist = Math.sqrt(dx * dx + dz * dz);
         double real = Math.toDegrees(Math.atan2(dx, -dz));
         double error = Math.max(Engine.settings.bearingErrorMinDegrees, Math.min(Engine.settings.bearingErrorMaxDegrees, dist / 22)) * blur * (Engine.rank(player) >= 5 ? 0.75 : 1);
-        // Le bruit dépend de l'endroit (et pas du moment) : refaire le relevé au même endroit ne l'améliore pas.
-        Random noise = new Random(d.seed ^ (((long) player.getBlockX() >> 3) * 73428767L) ^ (((long) player.getBlockZ() >> 3) * 912931L) ^ d.leaks);
+        // Noise depends on the spot (not the time): retaking a bearing at the same spot does not improve it.
+        Random noise = new Random(d.seed ^ (((long) player.getBlockX() >> 3) * 73428767L) ^ (((long) player.getBlockZ() >> 3) * 912931L) ^ d.flees);
         Bearing r = new Bearing();
         r.x = player.getX();
         r.z = player.getZ();
-        r.cap = ((real + (noise.nextDouble() * 2 - 1) * error) % 360 + 360) % 360;
+        r.heading = ((real + (noise.nextDouble() * 2 - 1) * error) % 360 + 360) % 360;
         r.error = error;
         d.bearings.add(r);
         Engine.save();
 
-        double rad = Math.toRadians(r.cap);
+        double rad = Math.toRadians(r.heading);
         double ux = Math.sin(rad), uz = -Math.cos(rad);
         float volume = (float) Math.max(0.25, Math.min(1.0, 1.25 - dist / 320));
         SoundEvent cry = SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath("cobblemon", "pokemon." + d.species + ".cry"));
         player.connection.send(new ClientboundSoundPacket(Holder.direct(cry), SoundSource.NEUTRAL,
                 player.getX() + ux * 14, player.getEyeY(), player.getZ() + uz * 14, volume * 2.5f, 1f, Engine.RANDOM.nextLong()));
         Packet p = Packet.from("bearing");
-        p.data().putDouble("cap", r.cap);
+        p.data().putDouble("cap", r.heading);
         p.data().putDouble("error", error);
         p.data().putInt("force", dist > 260 ? 0 : dist > 170 ? 1 : dist > 100 ? 2 : 3);
         Messages.send(player, p);
         Messages.sync(player);
     }
 
-    // Recoupement des relevés valides (moindres carrés pondérés) : position estimée et incertitude.
+    // Cross-fix of the valid bearings (weighted least squares): estimated position and uncertainty.
     static CrossFix crossFix(CaseFile d) {
-        List<Bearing> validOnes = new ArrayList<>();
+        List<Bearing> valid = new ArrayList<>();
         for (Bearing r : d.bearings) {
-            if (!r.expired) validOnes.add(r);
+            if (!r.expired) valid.add(r);
         }
-        if (validOnes.size() < 2) return new CrossFix(false, 0, 0, 0, "cobblemon_field_investigations.fix.two");
+        if (valid.size() < 2) return new CrossFix(false, 0, 0, 0, "cobblemon_field_investigations.fix.two");
         double ex = 0, ez = 0, uncertainty = 0;
-        for (int passedOne = 0; passedOne < 2; passedOne++) {
+        for (int pass = 0; pass < 2; pass++) {
             double a11 = 0, a12 = 0, a22 = 0, b1 = 0, b2 = 0;
-            for (Bearing r : validOnes) {
-                double rad = Math.toRadians(r.cap);
+            for (Bearing r : valid) {
+                double rad = Math.toRadians(r.heading);
                 double nx = Math.cos(rad), nz = Math.sin(rad);
                 double w = 1;
-                if (passedOne == 1) {
+                if (pass == 1) {
                     double sigma = Math.max(8, Math.hypot(ex - r.x, ez - r.z) * Math.toRadians(r.error) * 0.6);
                     w = 1 / (sigma * sigma);
                 }
@@ -158,29 +158,29 @@ final class Tracking {
                 b2 += w * nz * np;
             }
             double det = a11 * a22 - a12 * a12;
-            if (passedOne == 0 && det < 0.03) return new CrossFix(false, 0, 0, 0, "cobblemon_field_investigations.fix.aligned");
+            if (pass == 0 && det < 0.03) return new CrossFix(false, 0, 0, 0, "cobblemon_field_investigations.fix.aligned");
             if (Math.abs(det) < 1e-12) return new CrossFix(false, 0, 0, 0, "cobblemon_field_investigations.fix.impossible");
             ex = (a22 * b1 - a12 * b2) / det;
             ez = (a11 * b2 - a12 * b1) / det;
-            if (passedOne == 1) uncertainty = 2.5 * Math.sqrt((a11 + a22) / det);
+            if (pass == 1) uncertainty = 2.5 * Math.sqrt((a11 + a22) / det);
         }
         int ahead = 0;
-        for (Bearing r : validOnes) {
-            double rad = Math.toRadians(r.cap);
+        for (Bearing r : valid) {
+            double rad = Math.toRadians(r.heading);
             if ((ex - r.x) * Math.sin(rad) - (ez - r.z) * Math.cos(rad) > 0) ahead++;
         }
-        if (ahead * 2 <= validOnes.size()) return new CrossFix(false, 0, 0, 0, "cobblemon_field_investigations.fix.contradict");
+        if (ahead * 2 <= valid.size()) return new CrossFix(false, 0, 0, 0, "cobblemon_field_investigations.fix.contradict");
         return new CrossFix(true, ex, ez, Math.max(10, uncertainty), "cobblemon_field_investigations.fix.ok");
     }
 
-    // La cible change d'endroit, en restant dans son milieu : une cible aquatique reste dans l'eau, les autres à terre.
-    static void move(CaseFile d, ServerLevel level1, double min, double max) {
+    // The target relocates while staying in its medium: an aquatic target stays in water, others on land.
+    static void move(CaseFile d, ServerLevel level, double min, double max) {
         double x = d.lairX, z = d.lairZ;
         for (int attempt = 0; attempt < 16; attempt++) {
             double a = Engine.RANDOM.nextDouble() * Math.PI * 2, dist = min + Engine.RANDOM.nextDouble() * (max - min);
             x = d.lairX + Math.cos(a) * dist;
             z = d.lairZ + Math.sin(a) * dist;
-            if (Reports.aquatic(level1, x, z) == Engine.is(d, "aquatic")) break;
+            if (Reports.aquatic(level, x, z) == Engine.is(d, "aquatic")) break;
         }
         d.lairX = x;
         d.lairZ = z;

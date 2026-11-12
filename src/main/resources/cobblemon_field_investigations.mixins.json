@@ -2,10 +2,13 @@
   "required": true,
   "package": "io.github.romainmichaux.fieldinvestigations.mixin",
   "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LegacyIdsMixin"
+  ],
   "client": [
     "ZoomScanMixin",
     "HudScanMixin",
-    "MainScanMixin"
+    "HandScanMixin"
   ],
   "injectors": {
     "defaultRequire": 1

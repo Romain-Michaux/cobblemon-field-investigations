@@ -4,13 +4,13 @@ import java.util.Random;
 
 import net.minecraft.client.gui.GuiGraphics;
 
-// Chromatographie : arrêter chaque bandelette quand ses trois bandes sont bien séparées
+// Chromatography: stop each strip once its three bands are clearly separated.
 final class ChromatographyGame extends MiniGame {
     static final int N = 3, TOP = 96, GAP = 13;
     static final int[][] TINTS = {{0xFFE8543A, 0xFFF2C93A, 0xFF4A90D9}, {0xFF9B5FC0, 0xFF5DBB5D, 0xFFE9A15B}, {0xFF4FC1C5, 0xFFEE6A9A, 0xFFB8B8A0}};
     final double[] front = new double[N], speed = new double[N];
     final double[][] ratio = new double[N][3];
-    // 0 = en cours, 1 = arrêtée à temps, 2 = ratée.
+    // 0 = running, 1 = stopped in time, 2 = failed.
     final int[] state = new int[N];
     int faults, waiting = 24, tic, flash;
 
@@ -43,17 +43,17 @@ final class ChromatographyGame extends MiniGame {
             return;
         }
         tic++;
-        boolean still = false;
+        boolean running = false;
         double max = 0;
         for (int i = 0; i < N; i++) {
             if (state[i] != 0) continue;
             front[i] += speed[i];
             max = Math.max(max, front[i]);
-            if (front[i] >= TOP) missed(i); // le solvant a atteint le haut : la bandelette est perdue
-            else still = true;
+            if (front[i] >= TOP) missed(i); // the solvent reached the top: the strip is lost
+            else running = true;
         }
-        if (still && tic % 8 == 0) Draw.beep(Sounds.TICK, (float) (0.7 + max / TOP), 0.35f);
-        if (!still && !finished) {
+        if (running && tic % 8 == 0) Draw.beep(Sounds.TICK, (float) (0.7 + max / TOP), 0.35f);
+        if (!running && !finished) {
             perfect = faults == 0;
             end(faults <= 1);
         }
@@ -72,7 +72,7 @@ final class ChromatographyGame extends MiniGame {
                 state[i] = 1;
                 Draw.note(1.2f + i * 0.15f);
             } else {
-                missed(i); // arrêtée trop tôt : les bandes se chevauchent encore
+                missed(i); // stopped too early: the bands still overlap
             }
             return;
         }
@@ -88,7 +88,7 @@ final class ChromatographyGame extends MiniGame {
             boolean hover = state[i] == 0 && waiting == 0 && Draw.in(mx, my, x, top, 30, TOP);
             g.fill(x - 1, top - 1, x + 31, bottom + 1, state[i] == 1 ? Draw.GREEN : state[i] == 2 ? Draw.ALERT : hover ? Draw.YELLOW : Draw.EDGE);
             g.fill(x, top, x + 30, bottom, 0xFFF1EBDD);
-            g.fill(x, bottom - f, x + 30, bottom, 0xFFD8E2E8); // papier mouillé par le solvant
+            g.fill(x, bottom - f, x + 30, bottom, 0xFFD8E2E8); // paper wetted by the solvent
             g.fill(x, bottom - f, x + 30, bottom - f + 1, 0xFF8FB0C8);
             for (int k = 0; k < 3; k++) {
                 int y = bottom - (int) (ratio[i][k] * front[i]);

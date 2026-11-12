@@ -4,12 +4,12 @@ import java.util.Random;
 
 import net.minecraft.client.gui.GuiGraphics;
 
-// Moulage : couler le plâtre dans chaque alvéole de la mâchoire, à ras bord, sans déborder
+// Casting: pour plaster into each socket of the jaw, right up to the brim, without spilling over.
 final class CastGame extends MiniGame {
     static final int N = 5, DURATION = 560, BLOCK_TOP = 24, STEP = 30;
-    // Chaque alvéole a sa largeur et sa profondeur (une canine est étroite et profonde, une molaire large et courte).
+    // Each socket has its own width and depth (a canine is narrow and deep, a molar wide and shallow).
     final int[] widthPx = new int[N], target = new int[N];
-    final double[] level2 = new double[N];
+    final double[] fillLevel = new double[N];
     int time = DURATION, faults, flash, tic;
     double cx;
 
@@ -32,11 +32,11 @@ final class CastGame extends MiniGame {
     }
 
     boolean full(int i) {
-        return level2[i] >= target[i] - 6;
+        return fillLevel[i] >= target[i] - 6;
     }
 
-    // Largeur de l'alvéole à cette hauteur au-dessus du fond : la racine est plus étroite que la couronne.
-    int withdrawal(int i, int heightPx) {
+    // Inset of the socket wall at this height above the bottom: the root is narrower than the crown.
+    int inset(int i, int heightPx) {
         return heightPx < target[i] * 0.4 ? 4 : heightPx < target[i] * 0.55 ? 2 : 0;
     }
 
@@ -47,22 +47,22 @@ final class CastGame extends MiniGame {
             end(false);
             return;
         }
-        press1(time, DURATION);
+        hurryTicks(time, DURATION);
         tic++;
-        int i = press ? column(cx) : -1;
+        int i = mouseDown ? column(cx) : -1;
         if (i >= 0) {
-            level2[i] += 1.1;
-            if (tic % 5 == 0) Draw.beep(Sounds.PLASTER, (float) (0.6 + level2[i] / target[i]), 0.5f);
-            if (level2[i] > target[i] + 1.5) {
-                // Débordement : il faut gratter et recommencer cette alvéole presque à zéro.
-                level2[i] = target[i] * 0.3;
+            fillLevel[i] += 1.1;
+            if (tic % 5 == 0) Draw.beep(Sounds.PLASTER, (float) (0.6 + fillLevel[i] / target[i]), 0.5f);
+            if (fillLevel[i] > target[i] + 1.5) {
+                // Overflow: the socket is scraped and has to be refilled almost from scratch.
+                fillLevel[i] = target[i] * 0.3;
                 flash = 8;
                 Draw.beep(Sounds.OVERFLOW, 1f, 0.9f);
                 if (++faults >= 3) end(false);
             }
         }
-        // Le moulage n'est validé qu'une fois le bec relevé : c'est au joueur de s'arrêter à temps.
-        boolean all = !press;
+        // The cast only counts once the spout is lifted: stopping in time is up to the player.
+        boolean all = !mouseDown;
         for (int k = 0; k < N; k++) all &= full(k);
         if (all && !finished) {
             perfect = faults == 0;
@@ -82,12 +82,12 @@ final class CastGame extends MiniGame {
         g.fill(bx, by + H - 10, bx + L, by + H, 0xFF8F564E);
         int hover = finished ? -1 : column(mx);
         for (int i = 0; i < N; i++) {
-            int x = left(i), background = top + target[i];
+            int x = left(i), bottom = top + target[i];
             for (int k = 0; k < target[i]; k++) {
-                int r = withdrawal(i, k), y = background - 1 - k;
-                g.fill(x + r, y, x + widthPx[i] - r, y + 1, k < level2[i] ? (k >= (int) level2[i] - 1 ? 0xFFFFFFFF : 0xFFE9E4D8) : 0xFF3A1A1E);
+                int r = inset(i, k), y = bottom - 1 - k;
+                g.fill(x + r, y, x + widthPx[i] - r, y + 1, k < fillLevel[i] ? (k >= (int) fillLevel[i] - 1 ? 0xFFFFFFFF : 0xFFE9E4D8) : 0xFF3A1A1E);
             }
-            // La bonne hauteur : les six derniers pixels sous le bord.
+            // The right height: the last six pixels below the rim.
             g.fill(x, top, x + 2, top + 6, Draw.GREEN);
             g.fill(x + widthPx[i] - 2, top, x + widthPx[i], top + 6, Draw.GREEN);
             if (i == hover) g.fill(x, top - 2, x + widthPx[i], top - 1, Draw.YELLOW);
@@ -95,11 +95,11 @@ final class CastGame extends MiniGame {
         }
         if (!finished && Draw.in(mx, my, bx, by, L, H)) {
             g.fill(mx - 3, by + 1, mx + 3, by + 9, 0xFF9FB0C0);
-            if (press && hover >= 0) g.fill(mx - 1, by + 9, mx + 1, top + target[hover] - (int) level2[hover], 0xFFF4F0E6);
+            if (mouseDown && hover >= 0) g.fill(mx - 1, by + 9, mx + 1, top + target[hover] - (int) fillLevel[hover], 0xFFF4F0E6);
         }
-        int tx = ox + 172, doneOnes = 0;
-        for (int i = 0; i < N; i++) doneOnes += full(i) ? 1 : 0;
-        text(g, T.f("sockets") + doneOnes + " / " + N, tx, oy + 10, Draw.TEXT);
+        int tx = ox + 172, filled = 0;
+        for (int i = 0; i < N; i++) filled += full(i) ? 1 : 0;
+        text(g, T.f("sockets") + filled + " / " + N, tx, oy + 10, Draw.TEXT);
         text(g, T.f("spilled") + faults + " / 3", tx, oy + 22, faults > 1 ? Draw.ALERT : Draw.GREY);
         Draw.paragraph(g, T.f("fill_up_to_the_green"), tx, oy + 40, 104, Draw.DARK);
         timeGauge(g, tx, oy + 104, 100, time / (double) DURATION);

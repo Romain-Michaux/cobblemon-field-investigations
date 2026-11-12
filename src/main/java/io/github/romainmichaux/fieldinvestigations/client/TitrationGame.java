@@ -5,36 +5,36 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Dosage : ajouter le réactif jusqu'au virage, sans le dépasser
+// Titration: add reagent up to the endpoint, without overshooting it
 final class TitrationGame extends MiniGame {
-    static final ResourceLocation BURETTE = Draw.texture("burette"), VIAL = Draw.texture("erlenmeyer"), LIQUID = Draw.texture("erlenmeyer_liquid");
+    static final ResourceLocation BURETTE = Draw.texture("burette"), FLASK = Draw.texture("erlenmeyer"), LIQUID = Draw.texture("erlenmeyer_liquid");
     final Random h;
-    int turn, drops, waiting, round, faults, time, duration, pause, flash;
-    boolean turns;
+    int endpoint, drops, dropFalling, round, faults, time, duration, pause, flash;
+    boolean turned;
     String message = "";
 
     TitrationGame(Random h) {
         this.h = h;
-        newB();
+        newRound();
     }
 
-    void newB() {
-        turn = 16 + h.nextInt(17);
+    void newRound() {
+        endpoint = 16 + h.nextInt(17);
         drops = 0;
-        turns = false;
+        turned = false;
         duration = time = 230 - round * 15;
     }
 
     @Override
     void tick() {
         if (flash > 0) flash--;
-        if (waiting > 0) waiting--;
+        if (dropFalling > 0) dropFalling--;
         if (pause > 0) {
-            if (--pause == 0 && !finished) newB();
+            if (--pause == 0 && !finished) newRound();
             return;
         }
         if (--time <= 0) fault(T.f("too_slow"));
-        else press1(time, duration);
+        else hurryTicks(time, duration);
     }
 
     void fault(String reason) {
@@ -45,14 +45,14 @@ final class TitrationGame extends MiniGame {
         else pause = 34;
     }
 
-    void verser(int n) {
+    void pour(int n) {
         drops += n;
-        waiting = 6;
-        // Plus on approche du virage, plus la goutte sonne aigu.
-        Draw.beep(Sounds.DROP, (float) (0.6 + 1.2 * Math.max(0, 1 - (turn - drops) / 30.0)), 0.5f);
-        if (drops < turn) return;
-        turns = true;
-        if (drops - turn <= 1) {
+        dropFalling = 6;
+        // The closer to the endpoint, the higher the drop sounds.
+        Draw.beep(Sounds.DROP, (float) (0.6 + 1.2 * Math.max(0, 1 - (endpoint - drops) / 30.0)), 0.5f);
+        if (drops < endpoint) return;
+        turned = true;
+        if (drops - endpoint <= 1) {
             message = T.f("clean_endpoint");
             Draw.note(1f + round * 0.25f);
             if (++round >= 3) {
@@ -68,10 +68,10 @@ final class TitrationGame extends MiniGame {
 
     @Override
     void click(double mx, double my) {
-        if (pause > 0 || waiting > 0) return;
+        if (pause > 0 || dropFalling > 0) return;
         int tx = ox + 172;
-        if (Draw.in(mx, my, tx, oy + 60, 50, 20)) verser(1);
-        else if (Draw.in(mx, my, tx + 54, oy + 60, 50, 20)) verser(3);
+        if (Draw.in(mx, my, tx, oy + 60, 50, 20)) pour(1);
+        else if (Draw.in(mx, my, tx + 54, oy + 60, 50, 20)) pour(3);
     }
 
     @Override
@@ -80,10 +80,10 @@ final class TitrationGame extends MiniGame {
         frame(g, ax, ay, flash > 0);
         g.fill(ax, ay, ax + L, ay + H, 0xFF1D2733);
         Draw.image(g, BURETTE, ax + 40, ay + 2, 32, 96);
-        if (waiting > 0) g.fill(ax + 55, ay + 96 + (6 - waiting), ax + 57, ay + 100 + (6 - waiting), 0xFFD0407A);
-        // Le liquide rosit à l'approche du virage, puis vire franchement.
-        int tint = turns ? 0xFFD0407A : mix(0xFFE8EEF2, 0xFFF6C4D6, (drops - (turn - 5)) / 5.0);
-        Draw.image(g, VIAL, ax + 84, ay + 46, 48, 64);
+        if (dropFalling > 0) g.fill(ax + 55, ay + 96 + (6 - dropFalling), ax + 57, ay + 100 + (6 - dropFalling), 0xFFD0407A);
+        // The liquid turns pink as the endpoint nears, then changes colour sharply.
+        int tint = turned ? 0xFFD0407A : mix(0xFFE8EEF2, 0xFFF6C4D6, (drops - (endpoint - 5)) / 5.0);
+        Draw.image(g, FLASK, ax + 84, ay + 46, 48, 64);
         Draw.tint(g, tint);
         Draw.image(g, LIQUID, ax + 84, ay + 46, 48, 64);
         g.setColor(1f, 1f, 1f, 1f);
@@ -92,9 +92,9 @@ final class TitrationGame extends MiniGame {
         text(g, T.f("mistakes") + faults + " / 2", tx, oy + 20, faults > 0 ? Draw.ALERT : Draw.GREY);
         text(g, T.f("drops_2") + drops, tx, oy + 34, Draw.YELLOW);
         text(g, pause > 0 || finished ? message : "", tx, oy + 46, message.equals(T.f("clean_endpoint")) ? Draw.GREEN : Draw.ALERT);
-        boolean free = pause == 0 && waiting == 0 && !finished;
-        Draw.button(g, tx, oy + 60, 50, 20, T.f("drop"), free && Draw.in(mx, my, tx, oy + 60, 50, 20), free, Draw.ACCENT);
-        Draw.button(g, tx + 54, oy + 60, 50, 20, T.f("squirt_3"), free && Draw.in(mx, my, tx + 54, oy + 60, 50, 20), free, 0xFFE9A15B);
+        boolean enabled = pause == 0 && dropFalling == 0 && !finished;
+        Draw.button(g, tx, oy + 60, 50, 20, T.f("drop"), enabled && Draw.in(mx, my, tx, oy + 60, 50, 20), enabled, Draw.ACCENT);
+        Draw.button(g, tx + 54, oy + 60, 50, 20, T.f("squirt_3"), enabled && Draw.in(mx, my, tx + 54, oy + 60, 50, 20), enabled, 0xFFE9A15B);
         timeGauge(g, tx, oy + 104, 100, pause > 0 ? 0 : time / (double) duration);
     }
 

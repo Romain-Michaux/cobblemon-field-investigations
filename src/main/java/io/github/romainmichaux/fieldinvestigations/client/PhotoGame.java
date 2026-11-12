@@ -5,27 +5,27 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Photo de terrain : cadrer un Pokémon du coin qui passe, et déclencher quand l'image est nette
+// Field photo: frame a passing local Pokémon and release the shutter when the image is sharp.
 final class PhotoGame extends MiniGame {
     static final ResourceLocation BACKGROUND = Draw.texture("undergrowth");
-    static final String[] DEFAULT_VALUE = {"rattata", "pidgey", "oddish", "zubat", "eevee", "pikachu"};
+    static final String[] FALLBACK_SPECIES = {"rattata", "pidgey", "oddish", "zubat", "eevee", "pikachu"};
     static final int DURATION = 560;
     final String species;
     final double p1, p2, p3;
-    int time = DURATION, faults, flash, lightning, takes, tic;
+    int time = DURATION, faults, flash, flashBurst, shots, tic;
     String message = "";
 
     PhotoGame(Random h) {
-        // Le sujet est l'un des suspects de l'enquête, pris au hasard (sans rapport avec la cible).
+        // The subject is a random suspect of the investigation (unrelated to the actual target).
         net.minecraft.nbt.ListTag suspects = FieldInvestigationsClient.state.getList("suspects", net.minecraft.nbt.Tag.TAG_COMPOUND);
-        species = suspects.isEmpty() ? DEFAULT_VALUE[h.nextInt(DEFAULT_VALUE.length)] : suspects.getCompound(h.nextInt(suspects.size())).getString("species");
+        species = suspects.isEmpty() ? FALLBACK_SPECIES[h.nextInt(FALLBACK_SPECIES.length)] : suspects.getCompound(h.nextInt(suspects.size())).getString("species");
         p1 = h.nextDouble() * 6;
         p2 = h.nextDouble() * 6;
         p3 = h.nextDouble() * 6;
     }
 
     double speed() {
-        return 1 + takes * 0.35;
+        return 1 + shots * 0.35;
     }
 
     double sx() {
@@ -36,7 +36,7 @@ final class PhotoGame extends MiniGame {
         return 58 + 22 * Math.sin(tic * 0.033 * speed() + p2);
     }
 
-    // Flou en pixels : la mise au point « pompe » toute seule, il faut déclencher au bon moment.
+    // Blur in pixels: the focus hunts back and forth on its own, so timing the shot matters.
     double blur() {
         return 2.5 * (1 + Math.sin(tic * 0.085 * speed() + p3));
     }
@@ -44,12 +44,12 @@ final class PhotoGame extends MiniGame {
     @Override
     void tick() {
         if (flash > 0) flash--;
-        if (lightning > 0) lightning--;
+        if (flashBurst > 0) flashBurst--;
         if (--time <= 0) {
             end(false);
             return;
         }
-        press1(time, DURATION);
+        hurryTicks(time, DURATION);
         tic++;
     }
 
@@ -58,18 +58,18 @@ final class PhotoGame extends MiniGame {
         int bx = ox + 4, by = oy + 3;
         if (!Draw.in(mx, my, bx, by, L, H)) return;
         Draw.beep(Sounds.SHUTTER, 1.6f, 0.7f);
-        boolean frame = Math.abs(mx - bx - sx()) < 13 && Math.abs(my - by - sy()) < 13, net = blur() < 1.3;
-        if (frame && net) {
-            lightning = 4;
+        boolean framed = Math.abs(mx - bx - sx()) < 13 && Math.abs(my - by - sy()) < 13, sharp = blur() < 1.3;
+        if (framed && sharp) {
+            flashBurst = 4;
             message = T.f("sharp_photo");
-            Draw.note(1f + takes * 0.25f);
-            if (++takes >= 3) {
+            Draw.note(1f + shots * 0.25f);
+            if (++shots >= 3) {
                 perfect = faults == 0;
                 end(true);
             }
         } else {
             flash = 8;
-            message = frame ? T.f("blurry_photo") : T.f("badly_framed");
+            message = framed ? T.f("blurry_photo") : T.f("badly_framed");
             Draw.note(0.5f);
             if (++faults >= 3) end(false);
         }
@@ -81,7 +81,7 @@ final class PhotoGame extends MiniGame {
         frame(g, bx, by, flash > 0);
         Draw.image(g, BACKGROUND, bx, by, L, H);
         int x = bx + (int) sx() - 24, y = by + (int) sy() - 24, f = (int) Math.round(blur());
-        // Image floue : le sujet se dédouble, d'autant plus que la mise au point est loin.
+        // Blurry image: the subject doubles, further apart the further off the focus is.
         if (f >= 1) {
             Draw.portrait(g, species, Math.max(bx, x - f * 2), y, 3f);
             Draw.portrait(g, species, Math.min(bx + L - 48, x + f * 2), y, 3f);
@@ -105,10 +105,10 @@ final class PhotoGame extends MiniGame {
             }
             g.fill(mx - 1, my - 1, mx + 1, my + 1, c);
         }
-        if (lightning > 0) g.fill(bx, by, bx + L, by + H, 0xA0FFFFFF);
+        if (flashBurst > 0) g.fill(bx, by, bx + L, by + H, 0xA0FFFFFF);
         g.pose().popPose();
         int tx = ox + 172;
-        text(g, T.f("photos") + takes + " / 3", tx, oy + 10, Draw.TEXT);
+        text(g, T.f("photos") + shots + " / 3", tx, oy + 10, Draw.TEXT);
         text(g, T.f("failed_2") + faults + " / 3", tx, oy + 22, faults > 1 ? Draw.ALERT : Draw.GREY);
         text(g, T.f("sharpness"), tx, oy + 40, Draw.YELLOW);
         gauge(g, tx, oy + 51, 100, 1 - blur() / 5.0, blur() < 1.3 ? Draw.GREEN : Draw.DARK);

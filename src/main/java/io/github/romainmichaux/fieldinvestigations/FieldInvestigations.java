@@ -21,14 +21,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
-// Point d'entrée du mod : contenu, paquets, commandes /hunt, événements Cobblemon.
 public class FieldInvestigations implements ModInitializer {
     private int counter = 0;
 
     @Override
     public void onInitialize() {
         Engine.load();
-        PacketContent.register();
+        ModContent.register();
 
         PayloadTypeRegistry.playS2C().register(Packet.TYPE, Packet.CODEC);
         PayloadTypeRegistry.playC2S().register(Packet.TYPE, Packet.CODEC);
@@ -52,12 +51,12 @@ public class FieldInvestigations implements ModInitializer {
                         default -> {}
                     }
                 } catch (Exception e) {
-                    System.err.println("[Field Investigations] Erreur sur l'action " + packet.kind() + " : " + e);
+                    System.err.println("[Field Investigations] Error handling action " + packet.kind() + ": " + e);
                     e.printStackTrace();
                 }
             });
         });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server1) -> server1.execute(() -> Messages.sync(handler.player)));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.execute(() -> Messages.sync(handler.player)));
 
         ServerLifecycleEvents.SERVER_STARTING.register(Engine::loadWorld);
         ServerLifecycleEvents.SERVER_STOPPED.register(s -> Engine.stop());
@@ -68,7 +67,7 @@ public class FieldInvestigations implements ModInitializer {
                 try {
                     Pursuit.follow(player);
                 } catch (Exception e) {
-                    System.err.println("[Field Investigations] Erreur de suivi : " + e);
+                    System.err.println("[Field Investigations] Tracking update error: " + e);
                     e.printStackTrace();
                 }
             }
@@ -81,10 +80,10 @@ public class FieldInvestigations implements ModInitializer {
                     return 1;
                 }))
                 .then(Commands.literal("gear").requires(src -> src.hasPermission(2)).executes(ctx -> {
-                    ServerPlayer j = ctx.getSource().getPlayerOrException();
-                    j.getInventory().placeItemBackInInventory(new ItemStack(PacketContent.KIT));
-                    j.getInventory().placeItemBackInInventory(new ItemStack(PacketContent.VIAL, 8));
-                    j.getInventory().placeItemBackInInventory(new ItemStack(net.minecraft.world.item.Items.BRUSH));
+                    ServerPlayer player = ctx.getSource().getPlayerOrException();
+                    player.getInventory().placeItemBackInInventory(new ItemStack(ModContent.KIT));
+                    player.getInventory().placeItemBackInInventory(new ItemStack(ModContent.VIAL, 8));
+                    player.getInventory().placeItemBackInInventory(new ItemStack(net.minecraft.world.item.Items.BRUSH));
                     return 1;
                 }))
                 .then(Commands.literal("game").requires(src -> src.hasPermission(2))
@@ -99,8 +98,8 @@ public class FieldInvestigations implements ModInitializer {
                                 })
                                 .executes(ctx -> {
                                     String id = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "id");
-                                    // Le nom anglais est attendu ; l'identifiant interne reste accepté.
-                                    if (Engine.tryIt(ctx.getSource().getPlayerOrException(), Genetics.COMMAND_NAMES.getOrDefault(id, id), -1)) return 1;
+                                    // The command name is expected; the internal game id is accepted too.
+                                    if (Engine.tryGame(ctx.getSource().getPlayerOrException(), Genetics.COMMAND_NAMES.getOrDefault(id, id), -1)) return 1;
                                     ctx.getSource().sendFailure(Component.literal("Unknown mini-game: " + id + " (run /hunt game for the list)"));
                                     return 0;
                                 })))

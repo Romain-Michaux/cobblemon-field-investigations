@@ -13,12 +13,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 
-// Outil de vérification visuelle, inactif en temps normal : si le fichier config/cobblemon_field_investigations_demo existe,
-// le client ouvre chaque écran avec de fausses données dès l'entrée dans un monde, enregistre
-// screenshots/demo_*.png puis quitte le jeu.
+// Visual check tool, inactive normally: if the file config/cobblemon_field_investigations_demo exists, the client opens
+// every screen with fake data as soon as it joins a world, saves screenshots/demo_*.png, then quits the game.
 final class Demo {
     static boolean active, scan;
-    // Position de souris simulée pour une étape de la démo (null = la vraie souris).
+    // Simulated mouse position for a demo step (null = the real mouse).
     static int[] mouse;
     private static final List<String> NAMES = new ArrayList<>();
     private static final List<Runnable> STEPS = new ArrayList<>();
@@ -30,15 +29,15 @@ final class Demo {
         if (!Files.exists(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo"))) return;
         active = true;
         Minecraft mc = Minecraft.getInstance();
-        // Essai d'endurance du son : si le fichier contient « ambiance », un seul écran, le séquenceur, reste ouvert deux
-        // minutes, rouvert toutes les deux secondes sur un autre jeu pendant que des sons d'interface sont joués, puis le jeu se ferme.
+        // Sound endurance test: if the file contains "ambiance", a single screen (the sequencer) stays open for two minutes,
+        // reopened every two seconds on another game while UI sounds play, then the game closes.
         try {
             if (Files.readString(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo")).contains("ambiance")) {
                 stepDuration = 2400;
                 step("sound_endurance", () -> mc.setScreen(new AnalysisScreen("stat", "colorimetry", 42L, 2, false, false, false, 0)));
                 ClientTickEvents.END_CLIENT_TICK.register(Demo::tick);
                 ClientTickEvents.END_CLIENT_TICK.register(c -> {
-                    if (step == 0 && since % 7 == 0) Draw.sound1(0.9f + (since % 5) * 0.12f);
+                    if (step == 0 && since % 7 == 0) Draw.click(0.9f + (since % 5) * 0.12f);
                     if (step == 0 && since % 31 == 0) Draw.note(0.5f + (since % 4) * 0.25f);
                     if (step == 0 && since % 40 == 20) c.setScreen(null);
                     if (step == 0 && since % 40 == 0 && since > 0) {
@@ -49,7 +48,7 @@ final class Demo {
                 return;
             }
         } catch (Exception e) {
-            // fichier illisible : démo ordinaire
+            // unreadable file: regular demo
         }
         step("board_empty", () -> {
             CompoundTag t = new CompoundTag();
@@ -61,11 +60,11 @@ final class Demo {
             CompoundTag t = new CompoundTag();
             t.putInt("passed", 3);
             ListTag leads = new ListTag();
-            String[] specialOnes = {"", "underground", "dig_site"};
+            String[] specials = {"", "underground", "dig_site"};
             for (int i = 0; i < 3; i++) {
                 CompoundTag c = new CompoundTag();
                 c.putInt("rank", i);
-                c.putString("special", specialOnes[i]);
+                c.putString("special", specials[i]);
                 c.putBoolean("new", i != 0);
                 c.putDouble("zoneX", mc.player.getX() + 110 - i * 90);
                 c.putDouble("zoneZ", mc.player.getZ() - 60 + i * 70);
@@ -84,7 +83,7 @@ final class Demo {
         step("board_tooltip", () -> {
             FieldInvestigationsClient.state = state("SAMPLING", 3);
             mc.setScreen(new BoardScreen());
-            // La souris est simulée sur un suspect entouré de Poké Ball : l'infobulle doit passer devant elles.
+            // Mouse simulated over a suspect surrounded by Poké Balls: the tooltip must render in front of them.
             mouse = new int[] {(mc.getWindow().getGuiScaledWidth() - 336) / 2 + 134 + 50 + 20, (mc.getWindow().getGuiScaledHeight() - 189) / 2 + 24};
         });
         step("board_hunt", () -> {
@@ -104,7 +103,7 @@ final class Demo {
                 {"type1", "lamp"}, {"type2", "rockfall"}, {"", "filter"}};
         for (String[] a : samplings) {
             boolean buried = a[1].equals("brush") || a[1].equals("sieving");
-            // Les dégagements montrent les objets de base ; le tamisage, un objet ajouté en 1.1 (la plume).
+            // The digs show the base objects; sieving shows an object added in 1.1 (the feather).
             step("sampling_" + a[1] + (buried ? "_" + a[0] : ""), () -> mc.setScreen(new AnalysisScreen(a[0], a[1], 7L, 0, false, buried, true,
                     a[1].equals("sieving") ? 1 : 0)));
         }
@@ -134,18 +133,18 @@ final class Demo {
         });
         step("kit_team", () -> {
             CompoundTag t = state("SAMPLING", 2);
-            ListTag members = new ListTag(), closeOnes = new ListTag();
+            ListTag members = new ListTag(), nearby = new ListTag();
             members.add(StringTag.valueOf("Romain"));
             members.add(StringTag.valueOf("Camille"));
-            String[][] freeOnes = {{"Sacha", "7"}, {"Alex", "3"}, {"Billie", "0"}, {"Charlie", "0"}, {"Dominique", "0"}, {"Eden", "0"}, {"Noa", "0"}};
-            for (String[] l : freeOnes) {
+            String[][] nearbyPlayers = {{"Sacha", "7"}, {"Alex", "3"}, {"Billie", "0"}, {"Charlie", "0"}, {"Dominique", "0"}, {"Eden", "0"}, {"Noa", "0"}};
+            for (String[] l : nearbyPlayers) {
                 CompoundTag c = new CompoundTag();
                 c.putString("name", l[0]);
                 c.putInt("together", Integer.parseInt(l[1]));
-                closeOnes.add(c);
+                nearby.add(c);
             }
             t.put("team", members);
-            t.put("close", closeOnes);
+            t.put("close", nearby);
             t.putBoolean("chef", true);
             t.putInt("teamMax", 4);
             FieldInvestigationsClient.state = t;
@@ -170,7 +169,7 @@ final class Demo {
         ClientTickEvents.END_CLIENT_TICK.register(Demo::tick);
     }
 
-    // Textes trop longs pour leur cadre, relevés pendant la démo (ils défilent en jeu) : écran -> textes et pixels en trop.
+    // Texts too long for their frame, collected during the demo (they scroll in game): screen + text -> excess pixels.
     private static final java.util.Map<String, Integer> OVERFLOWS = new java.util.LinkedHashMap<>();
 
     static void overflow(String text, int pixels) {
@@ -210,7 +209,7 @@ final class Demo {
                     OVERFLOWS.forEach((key, px) -> sb.append(key).append("\t+").append(px).append(" px\n"));
                     Files.writeString(mc.gameDirectory.toPath().resolve("screenshots").resolve("demo_overflows.txt"), sb.toString());
                 } catch (Exception e) {
-                    // ce relevé n'est qu'une aide à la mise au point
+                    // this report is only a debugging aid
                 }
                 mc.stop();
                 return;
@@ -251,7 +250,7 @@ final class Demo {
             traces.add(c);
         }
         t.put("traces", traces);
-        String[][] records = {
+        String[][] suspectRows = {
                 {"mankey", "fighting", "none", "1", "FIELD", "attack"}, {"growlithe", "fire", "none", "1", "FIELD", "attack"},
                 {"rattata", "normal", "none", "0", "FIELD", "speed"}, {"pikachu", "electric", "none", "1", "FIELD", "speed"},
                 {"sandshrew", "ground", "none", "1", "FIELD", "defence"}, {"ponyta", "fire", "none", "2", "FIELD", "speed"},
@@ -259,17 +258,17 @@ final class Demo {
                 {"vulpix", "fire", "none", "1", "FIELD", "speed"}, {"charmander", "fire", "none", "1", "MONSTER", "speed"},
                 {"geodude", "rock", "ground", "1", "MINERAL", "defence"}, {"oddish", "grass", "poison", "1", "GRASS", "special_attack"}};
         ListTag suspects = new ListTag();
-        for (String[] f : records) {
+        for (String[] f : suspectRows) {
             CompoundTag c = new CompoundTag();
             c.putString("species", f[0]);
             ListTag values = new ListTag();
-            boolean ruledOut1 = false;
+            boolean ruledOut = false;
             for (int m = 0; m < 5; m++) {
                 values.add(StringTag.valueOf(f[m + 1]));
-                if (m < pins && !f[m + 1].equals(target[m])) ruledOut1 = true;
+                if (m < pins && !f[m + 1].equals(target[m])) ruledOut = true;
             }
             c.put("values", values);
-            c.putBoolean("ruled_out", ruledOut1);
+            c.putBoolean("ruled_out", ruledOut);
             c.putBoolean("owned", f[0].equals("charmander") || f[0].equals("pikachu") || f[0].equals("growlithe"));
             suspects.add(c);
         }
@@ -307,13 +306,13 @@ final class Demo {
         types.putInt("canopy", 1);
         career.put("types", types);
         ListTag archives = new ListTag();
-        String[][] caseFiles = {{"vulpix", "", "5"}, {"magikarp", "aquatic", "4"}, {"zubat", "nocturnal", "3"}, {"oddish", "", "5"},
+        String[][] pastCases = {{"vulpix", "", "5"}, {"magikarp", "aquatic", "4"}, {"zubat", "nocturnal", "3"}, {"oddish", "", "5"},
                 {"pikachu", "canopy", "2"}, {"geodude", "", "4"}, {"eevee", "", "3"}};
-        for (int i = 0; i < caseFiles.length; i++) {
+        for (int i = 0; i < pastCases.length; i++) {
             CompoundTag c = new CompoundTag();
-            c.putString("species", caseFiles[i][0]);
-            c.putString("special", caseFiles[i][1]);
-            c.putInt("stars", Integer.parseInt(caseFiles[i][2]));
+            c.putString("species", pastCases[i][0]);
+            c.putString("special", pastCases[i][1]);
+            c.putInt("stars", Integer.parseInt(pastCases[i][2]));
             c.putBoolean("capture", i % 3 != 2);
             c.putLong("date", System.currentTimeMillis() - i * 86_400_000L);
             archives.add(c);

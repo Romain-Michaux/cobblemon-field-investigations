@@ -16,24 +16,24 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
-// Prélèvement d'une trace et analyse d'un échantillon (lancement du mini-jeu, puis son résultat).
+// Sampling a trace and analysing a sample (opening the mini-game, then handling its result).
 final class Samples {
     private Samples() {}
 
     public static void analyse(ServerPlayer player) {
         CaseFile d = Engine.caseFile(player);
         ItemStack stack = player.getMainHandItem();
-        if (!stack.is(PacketContent.SAMPLE)) return;
-        if (!player.getInventory().contains(new ItemStack(PacketContent.KIT))) {
+        if (!stack.is(ModContent.SAMPLE)) return;
+        if (!player.getInventory().contains(new ItemStack(ModContent.KIT))) {
             Messages.announce(player, "sample_needs_kit", 0xF2C93A);
             return;
         }
-        CompoundTag data = PacketContent.data(stack);
+        CompoundTag data = ModContent.data(stack);
         if (d == null || d.id != data.getLong("investigation") || data.getBoolean("analyse")) {
             Messages.announce(player, "too_old", 0xE8543A);
             return;
         }
-        Engine.ANALYSES_LIST.put(player.getUUID(), Boolean.TRUE);
+        Engine.PENDING_ANALYSES.put(player.getUUID(), Boolean.TRUE);
         Packet p = Packet.from("open");
         p.data().putString("screen", "analyse");
         p.data().putString("kind", data.getString("kind"));
@@ -47,23 +47,23 @@ final class Samples {
         Messages.send(player, p);
     }
 
-    static void analysisResult(ServerPlayer player, boolean succes) {
-        if (Engine.ANALYSES_LIST.remove(player.getUUID()) == null) return;
+    static void analysisResult(ServerPlayer player, boolean success) {
+        if (Engine.PENDING_ANALYSES.remove(player.getUUID()) == null) return;
         CaseFile d = Engine.caseFile(player);
         ItemStack stack = player.getMainHandItem();
-        if (d == null || !stack.is(PacketContent.SAMPLE)) return;
-        CompoundTag data = PacketContent.data(stack);
+        if (d == null || !stack.is(ModContent.SAMPLE)) return;
+        CompoundTag data = ModContent.data(stack);
         if (data.getBoolean("analyse") || data.getLong("investigation") != d.id) return;
         String kind = data.getString("kind");
         Species target = PokemonSpecies.getByName(d.species);
-        if (succes && target != null) {
+        if (success && target != null) {
             stack.shrink(1);
             if (!d.pins.contains(kind)) d.pins.add(kind);
             Engine.save();
             player.playNotifySound(SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.5f, 1.6f);
             Messages.announce(player, "analysis_done", 0x6CCB5F, Component.translatable(Genetics.MARKER_NAMES.get(kind)),
                     Genetics.label(kind, Genetics.value(kind, target)), d.pins.size(), Engine.required(d));
-            Engine.progress1(player, "first_analysis");
+            Engine.grantAdvancement(player, "first_analysis");
             Messages.sync(player);
             return;
         }
@@ -84,36 +84,36 @@ final class Samples {
 
     public static void takeSample(ServerPlayer player, BlockPos pos) {
         CaseFile d = Engine.caseFile(player);
-        ServerLevel level1 = player.serverLevel();
+        ServerLevel level = player.serverLevel();
         Trace trace = null;
         if (d != null && "SAMPLING".equals(d.phase)) {
             for (Trace t : d.traces) {
-                if (t.placedOne && !t.harvest && t.px == pos.getX() && t.py == pos.getY() && t.pz == pos.getZ()) trace = t;
+                if (t.placed && !t.sampled && t.px == pos.getX() && t.py == pos.getY() && t.pz == pos.getZ()) trace = t;
             }
         }
         if (trace == null) {
-            boolean hasSomeone = false;
+            boolean someoneElses = false;
             for (CaseFile other : Engine.state.caseFiles.values()) {
-                for (Trace t : other.traces) hasSomeone |= t.placedOne && !t.harvest && t.px == pos.getX() && t.py == pos.getY() && t.pz == pos.getZ();
+                for (Trace t : other.traces) someoneElses |= t.placed && !t.sampled && t.px == pos.getX() && t.py == pos.getY() && t.pz == pos.getZ();
             }
-            if (hasSomeone) {
+            if (someoneElses) {
                 Messages.announce(player, "other_trace", 0xF2C93A);
             } else {
-                level1.removeBlock(pos, false);
+                level.removeBlock(pos, false);
                 Messages.announce(player, "old_trace", 0x9AA0A6);
             }
             return;
         }
-        if (Engine.asleep(d, level1)) {
+        if (Engine.asleep(d, level)) {
             Messages.announce(player, "nocturnal_trace", 0xF2C93A);
             return;
         }
-        boolean spare = Engine.rank(player) >= 2 && !d.vialGiven;
-        if (player.getInventory().findSlotMatchingItem(new ItemStack(PacketContent.VIAL)) < 0 && !player.isCreative() && !spare) {
+        boolean spare = Engine.rank(player) >= 2 && !d.spareVialUsed;
+        if (player.getInventory().findSlotMatchingItem(new ItemStack(ModContent.VIAL)) < 0 && !player.isCreative() && !spare) {
             Messages.announce(player, "vial_required", 0xE8543A);
             return;
         }
-        Engine.SAMPLINGS.put(player.getUUID(), pos.immutable());
+        Engine.PENDING_SAMPLINGS.put(player.getUUID(), pos.immutable());
         Packet p = Packet.from("open");
         p.data().putString("screen", "sampling");
         p.data().putString("kind", trace.kind);
@@ -126,26 +126,26 @@ final class Samples {
         Messages.send(player, p);
     }
 
-    // Résultat du mini-jeu de prélèvement : réussi = échantillon complet (une dose de plus si sans faute), raté = une seule dose.
-    static void samplingResult(ServerPlayer player, boolean succes, boolean perfect) {
-        BlockPos pos = Engine.SAMPLINGS.remove(player.getUUID());
+    // Sampling mini-game result: success = full sample (one extra dose if flawless), failure = a single dose.
+    static void samplingResult(ServerPlayer player, boolean success, boolean perfect) {
+        BlockPos pos = Engine.PENDING_SAMPLINGS.remove(player.getUUID());
         CaseFile d = Engine.caseFile(player);
         if (pos == null || d == null || !"SAMPLING".equals(d.phase)) return;
-        ServerLevel level1 = player.serverLevel();
+        ServerLevel level = player.serverLevel();
         Trace trace = null;
         for (Trace t : d.traces) {
-            if (t.placedOne && !t.harvest && t.px == pos.getX() && t.py == pos.getY() && t.pz == pos.getZ()) trace = t;
+            if (t.placed && !t.sampled && t.px == pos.getX() && t.py == pos.getY() && t.pz == pos.getZ()) trace = t;
         }
         if (trace == null || player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) > 100) return;
-        int vial = player.getInventory().findSlotMatchingItem(new ItemStack(PacketContent.VIAL));
-        // Fiole de secours (rang 2) : le premier prélèvement de l'enquête n'en consomme pas.
-        boolean spare = Engine.rank(player) >= 2 && !d.vialGiven;
+        int vial = player.getInventory().findSlotMatchingItem(new ItemStack(ModContent.VIAL));
+        // Spare vial (rank 2): the investigation's first sample does not use one up.
+        boolean spare = Engine.rank(player) >= 2 && !d.spareVialUsed;
         if (vial < 0 && !player.isCreative() && !spare) return;
-        if (spare) d.vialGiven = true;
+        if (spare) d.spareVialUsed = true;
         else if (vial >= 0 && !player.isCreative()) player.getInventory().getItem(vial).shrink(1);
-        int doses = succes ? Engine.settings.dosesPerSample + (perfect ? 1 : 0) : 1;
-        if (Engine.is(d, "frost")) doses = Math.max(1, doses - 1); // échantillon gelé, fragile
-        ItemStack sample = new ItemStack(PacketContent.SAMPLE);
+        int doses = success ? Engine.settings.dosesPerSample + (perfect ? 1 : 0) : 1;
+        if (Engine.is(d, "frost")) doses = Math.max(1, doses - 1); // frozen, fragile sample
+        ItemStack sample = new ItemStack(ModContent.SAMPLE);
         CompoundTag data = new CompoundTag();
         data.putLong("investigation", d.id);
         data.putString("kind", trace.kind);
@@ -153,21 +153,21 @@ final class Samples {
         data.putBoolean("buried", trace.buried);
         data.putInt("variant", trace.variant);
         List<String> games = Genetics.ANALYSIS_GAMES.getOrDefault(trace.kind, List.of("sequencing"));
-        // Piste gelée : une fois sur deux, l'échantillon doit d'abord être dégelé.
+        // Frost investigation: half the time the sample must be thawed first.
         data.putString("game", Engine.is(d, "frost") && Engine.RANDOM.nextBoolean() ? "thaw" : games.get(Engine.RANDOM.nextInt(games.size())));
         sample.set(DataComponents.CUSTOM_DATA, CustomData.of(data));
         player.getInventory().placeItemBackInInventory(sample);
-        trace.harvest = true;
-        if (!succes) d.faults++;
-        level1.removeBlock(pos, false);
-        if (trace.buried) Traces.reboucher(level1, trace);
+        trace.sampled = true;
+        if (!success) d.faults++;
+        level.removeBlock(pos, false);
+        if (trace.buried) Traces.restoreGround(level, trace);
         Engine.save();
         player.playNotifySound(SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 1f, 1.1f);
-        Engine.progress1(player, "first_sample");
-        long left1 = d.traces.stream().filter(t -> !t.over()).count();
-        Messages.announce(player, Messages.tr("announce." + (succes ? (perfect ? "sample_perfect" : "sample_ok") : "sample_damaged") + ".title"),
+        Engine.grantAdvancement(player, "first_sample");
+        long left = d.traces.stream().filter(t -> !t.over()).count();
+        Messages.announce(player, Messages.tr("announce." + (success ? (perfect ? "sample_perfect" : "sample_ok") : "sample_damaged") + ".title"),
                 Messages.tr("announce.sampling.text", Component.translatable(Genetics.traceName(trace.kind, trace.buried, trace.variant)), doses,
-                        left1 > 0 ? Messages.tr("announce.sampling.left", left1) : Messages.tr("announce.sampling.finished")), succes ? 0x6CCB5F : 0xF2C93A);
+                        left > 0 ? Messages.tr("announce.sampling.left", left) : Messages.tr("announce.sampling.finished")), success ? 0x6CCB5F : 0xF2C93A);
         Messages.sync(player);
     }
 }

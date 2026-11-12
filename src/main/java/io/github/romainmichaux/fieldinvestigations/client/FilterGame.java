@@ -4,7 +4,7 @@ import java.util.Random;
 
 import net.minecraft.client.gui.GuiGraphics;
 
-// Filtrage du cri (enquête dans la brume) : suivre la fréquence où le cri ressort du bruit
+// Cry filtering (mist investigation): follow the frequency at which the cry stands out from the noise
 final class FilterGame extends MiniGame {
     static final int DURATION = 320, REQUIRED = 70;
     final double p;
@@ -26,12 +26,12 @@ final class FilterGame extends MiniGame {
             end(false);
             return;
         }
-        press1(time, DURATION);
+        hurryTicks(time, DURATION);
         tic++;
         double setting = Math.max(0, Math.min(1, (cx - ox - 4) / L));
         clarity = Math.max(0, 1 - Math.abs(setting - target()) * 6);
         acquired = clarity > 0.8 ? acquired + 1 : Math.max(0, acquired - 0.3);
-        // Le signal sonne d'autant plus aigu et fort que le cri est net.
+        // The signal sounds higher and louder the clearer the cry is.
         if (tic % 5 == 0) Draw.beep(Sounds.SCAN, (float) (0.5 + clarity * 1.4), (float) (0.2 + clarity * 0.4));
         if (acquired >= REQUIRED) {
             perfect = true;
@@ -46,14 +46,14 @@ final class FilterGame extends MiniGame {
         frame(g, bx, by, false);
         g.fill(bx, by, bx + L, by + H, 0xFF0A1418);
         for (int k = 1; k < 4; k++) g.fill(bx, by + k * 24, bx + L, by + k * 24 + 1, 0xFF12303A);
-        // L'onde : un cri régulier quand le filtre est bien réglé, du bruit sinon.
+        // The waveform: a regular cry when the filter is tuned right, noise otherwise.
         noise.setSeed(tic / 2);
-        int before = by + 48;
+        int prevY = by + 48;
         for (int x = 0; x < L; x += 2) {
             double envelope = Math.sin(Math.PI * x / L);
             int y = by + 48 + (int) (Math.sin(x * 0.22 + tic * 0.35) * 26 * clarity * envelope + (noise.nextDouble() * 2 - 1) * 26 * (1 - clarity));
-            g.fill(bx + x, Math.min(before, y), bx + x + 2, Math.max(before, y) + 2, mix(0xFF5D6E80, 0xFF6CF0A0, clarity));
-            before = y;
+            g.fill(bx + x, Math.min(prevY, y), bx + x + 2, Math.max(prevY, y) + 2, mix(0xFF5D6E80, 0xFF6CF0A0, clarity));
+            prevY = y;
         }
         g.fill(bx, by + 100, bx + L, by + 104, 0xFF12303A);
         int rx = Math.max(bx + 2, Math.min(bx + L - 2, mx));

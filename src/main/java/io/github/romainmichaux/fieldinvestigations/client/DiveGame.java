@@ -5,13 +5,13 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Apnée (enquête aquatique) : remplir la fiole sur la trace que le courant déplace, avant de manquer d'air
+// Breath-hold dive (aquatic investigation): fill the vial on the trace the current keeps moving, before running out of air
 final class DiveGame extends MiniGame {
     static final ResourceLocation BACKGROUND = Draw.texture("bg_water");
     final double p, q;
     double air = 100, vial;
     int tic;
-    boolean above;
+    boolean onTrace;
     double cx, cy;
 
     DiveGame(Random h) {
@@ -33,16 +33,16 @@ final class DiveGame extends MiniGame {
     void tick() {
         tic++;
         air -= 0.22;
-        above = press && Math.hypot(cx - ox - 4 - tx(), cy - oy - 3 - ty()) < 12;
-        if (above) {
+        onTrace = mouseDown && Math.hypot(cx - ox - 4 - tx(), cy - oy - 3 - ty()) < 12;
+        if (onTrace) {
             vial += 1;
             if (tic % 12 == 0) Draw.beep(Sounds.VIAL, (float) (0.8 + vial / 120), 0.6f);
         } else {
             vial = Math.max(0, vial - 0.15);
         }
         if (tic % 14 == 0) Draw.beep(Sounds.BUBBLE, 0.8f + (tic % 5) * 0.1f, 0.35f);
-        // Le cœur s'emballe quand l'air vient à manquer.
-        if (air < 35 && tic % (air < 15 ? 8 : 14) == 0) Draw.beep(Sounds.COEUR, 1.2f, 0.9f);
+        // The heartbeat races as air runs low.
+        if (air < 35 && tic % (air < 15 ? 8 : 14) == 0) Draw.beep(Sounds.HEARTBEAT, 1.2f, 0.9f);
         if (vial >= 100) {
             perfect = air >= 40;
             end(true);
@@ -63,9 +63,9 @@ final class DiveGame extends MiniGame {
             g.fill(x, y, x + 2, y + 2, 0x90DDF4FF);
         }
         int x = bx + (int) tx(), y = by + (int) ty();
-        Draw.circle(g, x, y, 12, 1, above ? Draw.GREEN : 0xC0FFFFFF);
-        disc(g, x, y, 4, above ? 0xFFB8FFD0 : 0xFF7FE0D0);
-        if (!finished && Draw.in(mx, my, bx, by, L, H)) Draw.circle(g, mx, my, 5, 2, press ? Draw.YELLOW : Draw.TEXT);
+        Draw.circle(g, x, y, 12, 1, onTrace ? Draw.GREEN : 0xC0FFFFFF);
+        disc(g, x, y, 4, onTrace ? 0xFFB8FFD0 : 0xFF7FE0D0);
+        if (!finished && Draw.in(mx, my, bx, by, L, H)) Draw.circle(g, mx, my, 5, 2, mouseDown ? Draw.YELLOW : Draw.TEXT);
         int tx = ox + 172;
         text(g, T.f("air"), tx, oy + 10, air < 35 ? Draw.ALERT : 0xFF8FC8F0);
         gauge(g, tx, oy + 21, 100, air / 100, air < 35 ? Draw.ALERT : 0xFF5BB8F0);

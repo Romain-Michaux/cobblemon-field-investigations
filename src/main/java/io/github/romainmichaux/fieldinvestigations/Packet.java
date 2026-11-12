@@ -6,7 +6,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-// Un seul type de message dans les deux sens : un petit dictionnaire, dont la clé "t" dit de quoi il s'agit.
+// A single message type in both directions: a small compound tag whose "t" key says what it is.
 public record Packet(CompoundTag data) implements CustomPacketPayload {
     public static final Type<Packet> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("cobblemon_field_investigations", "hunt"));
     public static final StreamCodec<FriendlyByteBuf, Packet> CODEC = StreamCodec.of(

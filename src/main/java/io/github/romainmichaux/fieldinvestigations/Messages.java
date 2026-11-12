@@ -18,11 +18,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 
-// Tout ce qui part vers le client : annonces, ouverture d'écran, état de l'enquête.
+// Everything sent to the client: announcements, screen opening, investigation state.
 final class Messages {
     private Messages() {}
 
-    // Annonces qui concernent tout le dossier : les coéquipiers les reçoivent aussi.
+    // Announcements about the whole case: teammates receive them too.
     private static final Set<String> SHARED = Set.of("analysis_done", "sample_destroyed", "kit_calibrated", "target_moved", "contact_lost",
             "target_vanished", "sensed", "heard", "very_close", "flushed", "clue_uncovered", "clue_destroyed", "team_joined", "team_departure");
 
@@ -34,7 +34,7 @@ final class Messages {
         return Component.translatable("cobblemon_field_investigations." + key, args);
     }
 
-    // Les annonces partent sous forme de textes traduisibles : chaque joueur les lit dans la langue de son jeu.
+    // Announcements are sent as translatable text, so each player reads them in their own game language.
     public static void announce(ServerPlayer player, Component title, Component text, int colour) {
         Packet p = Packet.from("announce");
         p.data().putString("title", Component.Serializer.toJson(title, player.registryAccess()));
@@ -62,7 +62,7 @@ final class Messages {
         send(player, p);
     }
 
-    // Tout ce que le client a le droit de savoir sur l'enquête du joueur (jamais l'espèce avant qu'elle soit débusquée).
+    // Everything the client may know about the player's investigation (never the species before it is flushed out).
     static void sync(ServerPlayer player) {
         sendState(player);
         for (ServerPlayer other : Engine.teammates(player)) sendState(other);
@@ -83,72 +83,72 @@ final class Messages {
         career.putInt("rank", rank);
         career.putInt("threshold", Engine.THRESHOLDS[rank]);
         career.putInt("next", rank + 1 < Engine.THRESHOLDS.length ? Engine.THRESHOLDS[rank + 1] : -1);
-        int perfectOnes = 0, specials = 0;
+        int perfectCount = 0, specials = 0;
         Set<String> speciesSet = new HashSet<>();
         CompoundTag types = new CompoundTag();
         ListTag archives = new ListTag();
         for (int i = profile.history.size() - 1; i >= 0; i--) {
-            CaseRecord f = profile.history.get(i);
-            String type = f.special == null ? "" : f.special;
-            if (f.stars >= 5) perfectOnes++;
+            CaseRecord entry = profile.history.get(i);
+            String type = entry.special == null ? "" : entry.special;
+            if (entry.stars >= 5) perfectCount++;
             if (!type.isEmpty()) specials++;
-            speciesSet.add(f.species);
+            speciesSet.add(entry.species);
             types.putInt(type.isEmpty() ? "standard" : type, types.getInt(type.isEmpty() ? "standard" : type) + 1);
             if (archives.size() >= 40) continue;
             CompoundTag c = new CompoundTag();
-            c.putString("species", f.species);
+            c.putString("species", entry.species);
             c.putString("special", type);
-            c.putInt("stars", f.stars);
-            c.putInt("xp", f.xp);
-            c.putBoolean("capture", f.capture);
-            c.putLong("date", f.date);
+            c.putInt("stars", entry.stars);
+            c.putInt("xp", entry.xp);
+            c.putBoolean("capture", entry.capture);
+            c.putLong("date", entry.date);
             archives.add(c);
         }
-        career.putInt("perfect", perfectOnes);
+        career.putInt("perfect", perfectCount);
         career.putInt("specials", specials);
         career.putInt("species_count", speciesSet.size());
         career.put("types", types);
         career.put("archives", archives);
         t.put("career", career);
-        ListTag team = new ListTag(), closeOnes = new ListTag();
+        ListTag team = new ListTag(), nearby = new ListTag();
         boolean leader = d != null && player.getUUID().equals(d.leader);
         if (d != null) {
             for (UUID u : Engine.members(d)) team.add(StringTag.valueOf(Engine.name(player.server, u)));
         }
         if (leader) {
-            // Les joueurs sans enquête à moins de 64 blocs : d'abord ceux avec qui ce joueur a déjà résolu le plus
-            // d'enquêtes, puis par ordre alphabétique.
-            List<ServerPlayer> freeOnes = new ArrayList<>();
+            // Players without an investigation within 64 blocks: first those this player has solved the most cases
+            // with, then alphabetically.
+            List<ServerPlayer> available = new ArrayList<>();
             for (ServerPlayer other : player.serverLevel().players()) {
-                if (other != player && other.distanceToSqr(player) < 64 * 64 && Engine.caseFile(other) == null) freeOnes.add(other);
+                if (other != player && other.distanceToSqr(player) < 64 * 64 && Engine.caseFile(other) == null) available.add(other);
             }
-            freeOnes.sort((a, b) -> {
+            available.sort((a, b) -> {
                 int na = profile.partners.getOrDefault(a.getUUID(), 0), nb = profile.partners.getOrDefault(b.getUUID(), 0);
                 return na != nb ? Integer.compare(nb, na) : a.getGameProfile().getName().compareToIgnoreCase(b.getGameProfile().getName());
             });
-            for (ServerPlayer other : freeOnes) {
-                if (closeOnes.size() >= 80) break;
+            for (ServerPlayer other : available) {
+                if (nearby.size() >= 80) break;
                 CompoundTag c = new CompoundTag();
                 c.putString("name", other.getGameProfile().getName());
                 c.putInt("together", profile.partners.getOrDefault(other.getUUID(), 0));
-                closeOnes.add(c);
+                nearby.add(c);
             }
         }
         UUID inviter = d == null ? Team.invitation(player) : null;
         t.put("team", team);
-        t.put("close", closeOnes);
+        t.put("close", nearby);
         t.putBoolean("chef", leader);
         t.putInt("teamMax", Engine.settings.maxTeamSize);
         t.putString("invitation", inviter == null ? "" : Engine.name(player.server, inviter));
         List<CaseFile> leads = d == null ? Reports.leads(player) : null;
         if (leads != null) {
-            // Ce que le joueur sait d'un signalement avant de le choisir : sa rareté, son type, où se trouve la zone.
+            // What the player knows about a lead before choosing it: its rarity, its kind, where the zone is.
             ListTag list = new ListTag();
             for (CaseFile o : leads) {
                 CompoundTag c = new CompoundTag();
                 c.putInt("rank", Math.max(0, Reports.CATEGORIES.indexOf(o.category)));
                 c.putString("special", o.special == null ? "" : o.special);
-                c.putBoolean("new", o.newB);
+                c.putBoolean("new", o.newSpecies);
                 c.putDouble("zoneX", o.zoneX);
                 c.putDouble("zoneZ", o.zoneZ);
                 list.add(c);
@@ -160,7 +160,7 @@ final class Messages {
             Species target = PokemonSpecies.getByName(d.species);
             t.putString("phase", d.phase);
             t.putInt("rank", Math.max(0, Reports.CATEGORIES.indexOf(d.category)));
-            t.putBoolean("new", d.newB);
+            t.putBoolean("new", d.newSpecies);
             t.putDouble("zoneX", d.zoneX);
             t.putDouble("zoneZ", d.zoneZ);
             t.putInt("rayonZone", Engine.radius(d));
@@ -168,28 +168,28 @@ final class Messages {
             t.putString("special", d.special == null ? "" : d.special);
             t.putString("pronostic", d.guess == null ? "" : d.guess);
             ListTag traces = new ListTag();
-            for (Trace tr : d.traces) {
+            for (Trace trace : d.traces) {
                 CompoundTag c = new CompoundTag();
-                c.putString("kind", tr.kind);
-                c.putBoolean("harvest", tr.harvest);
-                c.putBoolean("buried", tr.buried);
-                c.putInt("variant", tr.variant);
-                c.putBoolean("uncovered", tr.uncovered);
-                c.putBoolean("lost", tr.lost);
-                c.putBoolean("pin", d.pins.contains(tr.kind));
-                if (d.pins.contains(tr.kind) && target != null) c.putString("value", Genetics.value(tr.kind, target));
+                c.putString("kind", trace.kind);
+                c.putBoolean("harvest", trace.sampled);
+                c.putBoolean("buried", trace.buried);
+                c.putInt("variant", trace.variant);
+                c.putBoolean("uncovered", trace.uncovered);
+                c.putBoolean("lost", trace.lost);
+                c.putBoolean("pin", d.pins.contains(trace.kind));
+                if (d.pins.contains(trace.kind) && target != null) c.putString("value", Genetics.value(trace.kind, target));
                 traces.add(c);
             }
             t.put("traces", traces);
             ListTag suspects = new ListTag();
             PokedexManager pokedex = Cobblemon.playerDataManager.getPokedexData(player);
             for (String s : d.suspects) {
-                Species esp = PokemonSpecies.getByName(s);
-                if (esp == null) continue;
+                Species species = PokemonSpecies.getByName(s);
+                if (species == null) continue;
                 CompoundTag c = new CompoundTag();
                 c.putString("species", s);
                 ListTag values = new ListTag();
-                for (String m : Genetics.MARKERS) values.add(StringTag.valueOf(Genetics.value(m, esp)));
+                for (String m : Genetics.MARKERS) values.add(StringTag.valueOf(Genetics.value(m, species)));
                 c.put("values", values);
                 c.putBoolean("ruled_out", d.ruledOut != null && d.ruledOut.contains(s));
                 c.putBoolean("owned", Reports.owns(pokedex, s));
@@ -201,26 +201,26 @@ final class Messages {
                 CompoundTag c = new CompoundTag();
                 c.putDouble("x", r.x);
                 c.putDouble("z", r.z);
-                c.putDouble("cap", r.cap);
+                c.putDouble("cap", r.heading);
                 c.putDouble("error", r.error);
                 c.putBoolean("expired", r.expired);
                 bearings.add(c);
             }
             t.put("bearings", bearings);
-            Tracking.CrossFix fix1 = Tracking.crossFix(d);
-            t.putBoolean("fixValid", fix1.valid());
-            t.putString("fixMessage", fix1.message());
-            if (fix1.valid()) {
-                t.putDouble("fixX", fix1.x());
-                t.putDouble("fixZ", fix1.z());
-                t.putDouble("fixUncertainty", fix1.uncertainty());
+            Tracking.CrossFix fix = Tracking.crossFix(d);
+            t.putBoolean("fixValid", fix.valid());
+            t.putString("fixMessage", fix.message());
+            if (fix.valid()) {
+                t.putDouble("fixX", fix.x());
+                t.putDouble("fixZ", fix.z());
+                t.putDouble("fixUncertainty", fix.uncertainty());
             }
             boolean identified = "APPROACH".equals(d.phase) || "FLUSHED".equals(d.phase);
             if (identified) t.putString("species", d.species);
-            // Tant que la cible n'est pas identifiée, le client ne doit pas pouvoir deviner si le pronostic est juste.
+            // Until the target is identified, the client must not be able to tell whether the guess is right.
             t.putInt("stars", Engine.stars(d, identified));
             t.putInt("fautes", d.faults);
-            t.putInt("leaks", d.leaks);
+            t.putInt("leaks", d.flees);
         }
         send(player, p);
     }

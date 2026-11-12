@@ -5,22 +5,22 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Tri des fragments (nid) : lancer chaque coquille dans la boîte, vite, sans que les chocs envoient le reste n'importe où
+// Sorting (nest): fling each shell into the box, quickly, without the collisions scattering everything else.
 final class SortingGame extends MiniGame {
     static final ResourceLocation TRAY = Draw.texture("plateau");
     static final ResourceLocation[] DEBRIS = {Draw.texture("debris_shell"), Draw.texture("debris_twig"),
             Draw.texture("debris_leaf"), Draw.texture("debris_pebble")};
     static final int N = 13, SHELLS = 5, DURATION = 260, RADIUS = 7, DISCARD = 26, BOX = L - 26;
-    static final double RUB = 0.94, BOUNCE = 0.75, MAX_SPEED = 11;
+    static final double FRICTION = 0.94, BOUNCE = 0.75, MAX_SPEED = 11;
     final double[] x = new double[N], y = new double[N], vx = new double[N], vy = new double[N];
-    final int[] kind1 = new int[N];
+    final int[] kind = new int[N];
     final boolean[] out = new boolean[N];
-    int held = -1, rows, remainingOnes = SHELLS, faults, time = DURATION, flash, tic, lastKnock;
+    int held = -1, boxed, remaining = SHELLS, faults, time = DURATION, flash, tic, lastKnock;
     double cx, cy;
 
     SortingGame(Random h) {
         for (int i = 0; i < N; i++) {
-            kind1[i] = i < SHELLS ? 0 : 1 + h.nextInt(3);
+            kind[i] = i < SHELLS ? 0 : 1 + h.nextInt(3);
             for (int attempt = 0; attempt < 200; attempt++) {
                 x[i] = DISCARD + 14 + h.nextInt(BOX - DISCARD - 28);
                 y[i] = 12 + h.nextInt(H - 24);
@@ -44,11 +44,11 @@ final class SortingGame extends MiniGame {
             end(false);
             return;
         }
-        press1(time, DURATION);
+        hurryTicks(time, DURATION);
         tic++;
-        if (!press) held = -1; // lâché : l'objet garde son élan et continue sur sa lancée
+        if (!mouseDown) held = -1; // released: the object keeps its momentum
         if (held >= 0) {
-            // L'objet tenu file vers la souris ; sa vitesse est celle qu'il gardera quand on le lâchera.
+            // The held object chases the mouse; its velocity is what it keeps when released.
             double dx = (cx - ox - 4 - x[held]) * 0.55, dy = (cy - oy - 3 - y[held]) * 0.55, v = Math.hypot(dx, dy);
             if (v > MAX_SPEED) {
                 dx *= MAX_SPEED / v;
@@ -57,8 +57,8 @@ final class SortingGame extends MiniGame {
             vx[held] = dx;
             vy[held] = dy;
         }
-        // Deux demi-pas par tic, pour qu'un objet lancé vite ne traverse pas ses voisins.
-        for (int stepSize = 0; stepSize < 2; stepSize++) {
+        // Two half-steps per tick, so a fast object cannot pass through its neighbours.
+        for (int half = 0; half < 2; half++) {
             for (int i = 0; i < N; i++) {
                 if (out[i]) continue;
                 x[i] += vx[i] / 2;
@@ -74,21 +74,21 @@ final class SortingGame extends MiniGame {
             for (int i = 0; i < N; i++) {
                 for (int k = i + 1; k < N; k++) {
                     if (out[i] || out[k]) continue;
-                    double dx = x[k] - x[i], dy = y[k] - y[i], d = Math.hypot(dx, dy), missing = RADIUS * 2 - d;
-                    if (missing <= 0) continue;
+                    double dx = x[k] - x[i], dy = y[k] - y[i], d = Math.hypot(dx, dy), overlap = RADIUS * 2 - d;
+                    if (overlap <= 0) continue;
                     if (d < 0.01) {
                         dx = 1;
                         dy = 0;
                         d = 1;
                     }
                     double nx = dx / d, ny = dy / d;
-                    // Celui qu'on tient ne cède pas ; sinon chacun recule de moitié.
-                    double pi = i == held ? 0 : k == held ? 1 : 0.5;
-                    x[i] -= nx * missing * pi;
-                    y[i] -= ny * missing * pi;
-                    x[k] += nx * missing * (1 - pi);
-                    y[k] += ny * missing * (1 - pi);
-                    // Choc : la vitesse d'approche passe de l'un à l'autre, comme au billard.
+                    // The held object does not give way; otherwise each one backs off by half.
+                    double share = i == held ? 0 : k == held ? 1 : 0.5;
+                    x[i] -= nx * overlap * share;
+                    y[i] -= ny * overlap * share;
+                    x[k] += nx * overlap * (1 - share);
+                    y[k] += ny * overlap * (1 - share);
+                    // Collision: the approach speed transfers from one to the other, like billiard balls.
                     double approach = (vx[k] - vx[i]) * nx + (vy[k] - vy[i]) * ny;
                     if (approach >= 0) continue;
                     double momentum = (1 + BOUNCE) * approach;
@@ -114,8 +114,8 @@ final class SortingGame extends MiniGame {
         for (int i = 0; i < N; i++) {
             if (out[i]) continue;
             if (i != held) {
-                vx[i] *= RUB;
-                vy[i] *= RUB;
+                vx[i] *= FRICTION;
+                vy[i] *= FRICTION;
                 if (Math.hypot(vx[i], vy[i]) < 0.06) {
                     vx[i] = 0;
                     vy[i] = 0;
@@ -125,34 +125,34 @@ final class SortingGame extends MiniGame {
             if (!discard && !box) continue;
             out[i] = true;
             if (i == held) held = -1;
-            if (kind1[i] == 0) {
-                remainingOnes--;
+            if (kind[i] == 0) {
+                remaining--;
                 if (box) {
-                    rows++;
-                    Draw.note(1f + rows * 0.15f);
+                    boxed++;
+                    Draw.note(1f + boxed * 0.15f);
                 } else {
-                    fault(); // une coquille au rebut
+                    fault(); // a shell in the discard
                 }
             } else if (box) {
-                fault(); // un débris dans la boîte d'échantillons
+                fault(); // debris in the sample box
             } else {
                 Draw.beep(Sounds.PLUCK, 0.7f, 0.4f);
             }
         }
-        if (remainingOnes <= 0 && !finished) {
+        if (remaining <= 0 && !finished) {
             perfect = faults == 0;
-            end(rows > 0);
+            end(boxed > 0);
         }
     }
 
     @Override
     void click(double mx, double my) {
-        double lx = mx - ox - 4, ly = my - oy - 3, close = RADIUS + 4;
+        double lx = mx - ox - 4, ly = my - oy - 3, nearest = RADIUS + 4;
         held = -1;
         for (int i = 0; i < N; i++) {
             double d = Math.hypot(lx - x[i], ly - y[i]);
-            if (!out[i] && d < close) {
-                close = d;
+            if (!out[i] && d < nearest) {
+                nearest = d;
                 held = i;
             }
         }
@@ -178,14 +178,14 @@ final class SortingGame extends MiniGame {
         g.enableScissor(bx, by, bx + L, by + H);
         for (int i = 0; i < N; i++) {
             if (out[i]) continue;
-            // Entre deux tics, l'objet est dessiné là où son élan le porte : le mouvement reste fluide.
+            // Between two ticks the object is drawn where its momentum carries it, so motion stays smooth.
             int x0 = bx + (int) Math.round(x[i] + (finished ? 0 : vx[i] * pt)), y0 = by + (int) Math.round(y[i] + (finished ? 0 : vy[i] * pt));
             if (i == held) Draw.circle(g, x0 - 0.5, y0 - 0.5, RADIUS + 2, 1, Draw.YELLOW);
-            Draw.image(g, DEBRIS[kind1[i]], x0 - 8, y0 - 8, 16, 16);
+            Draw.image(g, DEBRIS[kind[i]], x0 - 8, y0 - 8, 16, 16);
         }
         g.disableScissor();
         int tx = ox + 172;
-        text(g, T.f("shells_2") + rows + " / " + SHELLS, tx, oy + 10, Draw.TEXT);
+        text(g, T.f("shells_2") + boxed + " / " + SHELLS, tx, oy + 10, Draw.TEXT);
         text(g, T.f("mistakes") + faults + " / 3", tx, oy + 22, faults > 1 ? Draw.ALERT : Draw.GREY);
         Draw.paragraph(g, T.f("throw_the_shells_they_keep"), tx, oy + 42, 104, Draw.DARK);
         timeGauge(g, tx, oy + 104, 100, time / (double) DURATION);

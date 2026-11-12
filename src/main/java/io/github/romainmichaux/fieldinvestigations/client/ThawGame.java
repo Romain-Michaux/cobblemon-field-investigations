@@ -5,7 +5,7 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Dégel (enquête givre) : chauffer l'échantillon gelé en restant dans la bonne plage de température
+// Thawing (frost investigation): heat the frozen sample while staying in the right temperature range
 final class ThawGame extends MiniGame {
     static final ResourceLocation ICE_CUBE = Draw.texture("ice_cube");
     static final int DURATION = 580;
@@ -28,9 +28,9 @@ final class ThawGame extends MiniGame {
             end(false);
             return;
         }
-        press1(time, DURATION);
+        hurryTicks(time, DURATION);
         tic++;
-        if (press) {
+        if (mouseDown) {
             heat = Math.min(30, heat + 1);
             temperature += 0.5 + heat * 0.05;
             if (tic % 9 == 0) Draw.beep(Sounds.FLAME, 1.4f, 0.5f);
@@ -65,14 +65,14 @@ final class ThawGame extends MiniGame {
         int size = (int) (64 - thaw * 0.34), gx = bx + 52 - size / 2, gy = by + 82 - size;
         g.fill(bx + 52 - 20 - (int) (thaw * 0.14), by + 82, bx + 52 + 20 + (int) (thaw * 0.14), by + 85, 0xFF5BB8F0);
         Draw.pieceEnlarged(g, ICE_CUBE, gx, gy, size, size, 0, 0, 48, 48, 48, 48);
-        if (press && !finished) {
+        if (mouseDown && !finished) {
             for (int i = 0; i < 5; i++) {
                 int fx = bx + 34 + i * 9, fh = 4 + (tic * 3 + i * 5) % 7;
                 g.fill(fx, by + 100 - fh, fx + 5, by + 100, i % 2 == 0 ? 0xFFF2C93A : 0xFFE8543A);
             }
         }
         g.fill(bx + 26, by + 100, bx + 80, by + 104, 0xFF46525E);
-        // Le thermomètre : la plage verte se déplace lentement, la zone rouge fait cuire l'échantillon.
+        // The thermometer: the green range drifts slowly, the red zone cooks the sample.
         int tx0 = bx + 118, top = by + 6, h = 100;
         g.fill(tx0 - 1, top - 1, tx0 + 15, top + h + 1, Draw.EDGE);
         g.fill(tx0, top, tx0 + 14, top + h, 0xFF0F1820);

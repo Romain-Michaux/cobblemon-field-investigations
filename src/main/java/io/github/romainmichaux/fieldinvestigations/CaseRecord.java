@@ -1,6 +1,6 @@
 package io.github.romainmichaux.fieldinvestigations;
 
-// Une enquête résolue, telle qu'elle reste dans les archives du joueur.
+// A solved case, as kept in the player's archive.
 public class CaseRecord {
     public String species, special, category;
     public int stars, xp;

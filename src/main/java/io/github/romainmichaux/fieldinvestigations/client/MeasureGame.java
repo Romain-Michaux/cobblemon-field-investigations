@@ -5,20 +5,20 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Mesure de l'empreinte : poser les quatre mâchoires du pied à coulisse
+// Footprint measurement: set the four jaws of the calliper
 final class MeasureGame extends MiniGame {
     static final ResourceLocation FOOTPRINT = Draw.texture("footprint");
-    static final int EL = 74, EH = 70;
+    static final int PRINT_W = 74, PRINT_H = 70;
     static final String[] EDGES = {T.f("left_edge"), T.f("right_edge"), T.f("top_edge"), T.f("bottom_edge")};
-    final int ex, ey;
+    final int printX, printY;
     final double[] placements = new double[4];
     double pos, direction = 1;
     int step, faults, flash;
     boolean flashOk;
 
     MeasureGame(Random h) {
-        ex = 22 + h.nextInt(28);
-        ey = 14 + h.nextInt(20);
+        printX = 22 + h.nextInt(28);
+        printY = 14 + h.nextInt(20);
         pos = h.nextInt(100);
     }
 
@@ -47,16 +47,16 @@ final class MeasureGame extends MiniGame {
 
     double target() {
         return switch (step) {
-            case 0 -> ex;
-            case 1 -> ex + EL;
-            case 2 -> ey;
-            default -> ey + EH;
+            case 0 -> printX;
+            case 1 -> printX + PRINT_W;
+            case 2 -> printY;
+            default -> printY + PRINT_H;
         };
     }
 
     @Override
     void click(double mx, double my) {
-        // Position de la règle dans le repère de la zone (8 px de marge à gauche, 6 en haut).
+        // Ruler position in the play area frame (8 px margin on the left, 6 at the top).
         double here = pos + (step < 2 ? 8 : 6);
         flashOk = Math.abs(here - target()) <= 4.5;
         flash = 8;
@@ -80,11 +80,11 @@ final class MeasureGame extends MiniGame {
         g.fill(ox + 6, oy + 4, ox + 140, oy + 114, Draw.EDGE);
         g.fill(ox + 7, oy + 5, ox + 139, oy + 113, 0xFF4A3828);
         g.fill(ox + 7, oy + 5, ox + 139, oy + 6, 0xFF5E4834);
-        Draw.image(g, FOOTPRINT, ox + ex, oy + ey, EL, EH);
-        for (int i = 0; i < Math.min(step, 4); i++) rule(g, i, placements[i], Draw.YELLOW);
+        Draw.image(g, FOOTPRINT, ox + printX, oy + printY, PRINT_W, PRINT_H);
+        for (int i = 0; i < Math.min(step, 4); i++) ruler(g, i, placements[i], Draw.YELLOW);
         if (!finished) {
             double p = Math.max(0, Math.min(length(), pos + direction * speed() * pt)) + (step < 2 ? 8 : 6);
-            rule(g, step, p, flash > 0 ? (flashOk ? Draw.GREEN : Draw.ALERT) : Draw.TEXT);
+            ruler(g, step, p, flash > 0 ? (flashOk ? Draw.GREEN : Draw.ALERT) : Draw.TEXT);
         }
         int px = ox + 150;
         Draw.write(g, T.f("jaw") + Math.min(4, step + 1) + " / 4", px, oy + 12, Draw.TEXT, false);
@@ -95,7 +95,7 @@ final class MeasureGame extends MiniGame {
         Draw.paragraph(g, T.f("click_when_the_ruler_touches"), px, oy + 88, 124, Draw.DARK);
     }
 
-    void rule(GuiGraphics g, int i, double p, int colour) {
+    void ruler(GuiGraphics g, int i, double p, int colour) {
         int q = (int) Math.round(p);
         if (i < 2) g.fill(ox + q, oy + 6, ox + q + 1, oy + 112, colour);
         else g.fill(ox + 8, oy + q, ox + 138, oy + q + 1, colour);

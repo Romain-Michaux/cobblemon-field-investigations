@@ -8,11 +8,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-// Carrière d'un enquêteur : son expérience (dont découle son rang), ses archives, et les mini-jeux qu'il a déjà vus.
+// An investigator's career: XP (which sets the rank), archive, and the mini-games already seen.
 public class Profile {
     public int xp;
     public List<CaseRecord> history = new ArrayList<>();
     public Set<String> gamesSeen = new HashSet<>();
-    // Nombre d'enquêtes résolues avec chaque autre joueur : les partenaires habituels passent en tête des invitations.
+    // Cases solved with each other player: regular partners are listed first when inviting.
     public Map<UUID, Integer> partners = new HashMap<>();
 }

@@ -24,79 +24,79 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
-// Pose des traces dans le monde : en surface, sur paroi, dans les cimes, sous l'eau, sous terre ou enfouies.
+// Places traces in the world: on the surface, on walls, in treetops, underwater, underground or buried.
 final class Traces {
     private Traces() {}
 
-    // Vrai pendant que le mod remplace lui-même un sol remué (dégagement, nettoyage) : ce n'est pas une destruction.
-    private static boolean replacement;
+    // True while the mod itself replaces disturbed soil (uncovering, cleanup): that is not the player destroying it.
+    private static boolean replacingSoil;
 
-    // Où poser la trace : au sol par défaut, mais les griffures vont sur les troncs (ou une paroi), certains dépôts sur les
-    // parois rocheuses, et un nid sur deux se trouve en haut d'un arbre. Le choix est fixe pour une trace donnée.
-    static void placeIt(ServerLevel level1, CaseFile d, Trace t) {
+    // Where to place the trace: on the ground by default, but scratches go on tree trunks (or a wall), some deposits on rock
+    // walls, and every other nest at the top of a tree. The choice is fixed for a given trace.
+    static void placeTrace(ServerLevel level, CaseFile d, Trace t) {
         int bx = (int) Math.floor(t.x), bz = (int) Math.floor(t.z);
-        if (!level1.hasChunk(bx >> 4, bz >> 4)) return;
-        if (t.placedOne) {
-            BlockState la = level1.getBlockState(new BlockPos(t.px, t.py, t.pz));
-            if (la.is(PacketContent.TRACE) || (t.buried && !t.uncovered && la.is(PacketContent.SOIL))) return;
+        if (!level.hasChunk(bx >> 4, bz >> 4)) return;
+        if (t.placed) {
+            BlockState existing = level.getBlockState(new BlockPos(t.px, t.py, t.pz));
+            if (existing.is(ModContent.TRACE) || (t.buried && !t.uncovered && existing.is(ModContent.DISTURBED_SOIL))) return;
         }
         if (t.buried && !t.uncovered) {
-            if (bury(level1, t, bx, bz)) return;
-            t.buried = false; // aucun sol meuble par ici : l'indice affleure, comme une trace ordinaire
+            if (bury(level, t, bx, bz)) return;
+            t.buried = false; // no loose soil around here: the clue sits on the surface like an ordinary trace
         }
         if (t.buried) {
-            // Déjà dégagé mais disparu (eau, chute de sable...) : on le repose dans son trou.
+            // Already uncovered but gone (water, falling sand...): put it back in its hole.
             BlockPos hole = new BlockPos(t.px, t.py, t.pz);
-            if (level1.getBlockState(hole).canBeReplaced()) fix(level1, t, hole, Direction.UP);
+            if (level.getBlockState(hole).canBeReplaced()) placeAt(level, t, hole, Direction.UP);
             return;
         }
         if (Engine.is(d, "aquatic")) {
-            if (!underwater(level1, t, bx, bz)) elsewhere(d, t);
+            if (!underwater(level, t, bx, bz)) elsewhere(d, t);
             return;
         }
         if (Engine.is(d, "underground") && t.failures < 6) {
-            BlockPos ground = cave(level1, bx, bz, 10);
+            BlockPos ground = cave(level, bx, bz, 10);
             if (ground != null) {
-                fix(level1, t, ground, Direction.UP);
+                placeAt(level, t, ground, Direction.UP);
             } else {
-                // Pas de grotte sous cet endroit : on cherche ailleurs dans la zone. Après six essais, la trace finit en surface.
+                // No cave below this spot: try elsewhere in the zone. After six attempts the trace ends up on the surface.
                 t.failures++;
                 elsewhere(d, t);
             }
             return;
         }
         if (t.cave) {
-            BlockPos ground = openCave(level1, bx, bz);
+            BlockPos ground = openCave(level, bx, bz);
             if (ground != null) {
-                fix(level1, t, ground, Direction.UP);
+                placeAt(level, t, ground, Direction.UP);
                 return;
             }
             t.cave = false;
             Engine.save();
         }
         Random h = new Random(d.seed + t.kind.hashCode());
-        // Cimes : tout se trouve dans les arbres. Altitude : sur les parois rocheuses.
-        if (Engine.is(d, "canopy") && (h.nextBoolean() ? onTreetop(level1, t, bx, bz) || onWall(level1, t, bx, bz, true)
-                : onWall(level1, t, bx, bz, true) || onTreetop(level1, t, bx, bz))) return;
-        if (Engine.is(d, "altitude") && onWall(level1, t, bx, bz, false)) return;
+        // Canopy: everything is in the trees. Altitude: on rock walls.
+        if (Engine.is(d, "canopy") && (h.nextBoolean() ? onTreetop(level, t, bx, bz) || onWall(level, t, bx, bz, true)
+                : onWall(level, t, bx, bz, true) || onTreetop(level, t, bx, bz))) return;
+        if (Engine.is(d, "altitude") && onWall(level, t, bx, bz, false)) return;
         boolean scratches = t.kind.equals("stat");
         boolean wall = scratches || (t.kind.equals("type2") && h.nextBoolean()) || (t.kind.equals("type1") && h.nextInt(3) == 0);
         boolean treetop = t.kind.equals("egg") && h.nextBoolean();
-        if (scratches && onWall(level1, t, bx, bz, true)) return;
-        if (wall && onWall(level1, t, bx, bz, false)) return;
-        if (treetop && onTreetop(level1, t, bx, bz)) return;
-        // Premier emplacement libre posé sur un bloc plein, en s'écartant en spirale si besoin (eau, feuillage...).
+        if (scratches && onWall(level, t, bx, bz, true)) return;
+        if (wall && onWall(level, t, bx, bz, false)) return;
+        if (treetop && onTreetop(level, t, bx, bz)) return;
+        // First free spot on a solid block, spiralling outwards if needed (water, foliage...).
         for (int radius = 0; radius <= 20; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
                     int x = bx + dx, z = bz + dz;
-                    if (!level1.hasChunk(x >> 4, z >> 4)) continue;
-                    int y = level1.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
+                    if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                    int y = level.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
                     BlockPos pos = new BlockPos(x, y, z);
-                    BlockState here = level1.getBlockState(pos), below = level1.getBlockState(pos.below());
-                    if (!here.canBeReplaced() || !here.getFluidState().isEmpty() || !below.isFaceSturdy(level1, pos.below(), Direction.UP)) continue;
-                    fix(level1, t, pos, Direction.UP);
+                    BlockState here = level.getBlockState(pos), below = level.getBlockState(pos.below());
+                    if (!here.canBeReplaced() || !here.getFluidState().isEmpty() || !below.isFaceSturdy(level, pos.below(), Direction.UP)) continue;
+                    placeAt(level, t, pos, Direction.UP);
                     return;
                 }
             }
@@ -104,37 +104,37 @@ final class Traces {
         elsewhere(d, t);
     }
 
-    // Rien de praticable à vingt blocs à la ronde (lac, marais, terre ferme pour une trace aquatique...) : la trace est
-    // déplacée ailleurs dans la zone et sera posée au prochain passage. Sans cela, le kit guiderait vers un endroit vide.
+    // Nothing usable within twenty blocks (lake, swamp, dry land for an aquatic trace...): the trace moves elsewhere in the
+    // zone and is placed on the next pass. Otherwise the kit would lead the player to an empty spot.
     private static void elsewhere(CaseFile d, Trace t) {
         double a = Engine.RANDOM.nextDouble() * Math.PI * 2, r = 6 + Engine.RANDOM.nextDouble() * (Engine.radius(d) - 6);
         t.x = Math.floor(d.zoneX + Math.cos(a) * r) + 0.5;
         t.z = Math.floor(d.zoneZ + Math.sin(a) * r) + 0.5;
-        t.placedOne = false;
+        t.placed = false;
         Engine.save();
     }
 
-    // Enquête souterraine : le sol d'une grotte sous ce point (deux blocs d'air sur un bloc plein, à l'abri du ciel, au moins
-    // huit blocs sous la surface), en s'écartant en spirale.
-    static BlockPos cave(ServerLevel level1, int bx, int bz, int radiusMax) {
-        int background = level1.getMinBuildHeight() + 6;
+    // Underground case: the floor of a cave below this point (two air blocks over a solid block, out of the sky, at least
+    // eight blocks below the surface), spiralling outwards.
+    static BlockPos cave(ServerLevel level, int bx, int bz, int radiusMax) {
+        int minY = level.getMinBuildHeight() + 6;
         for (int radius = 0; radius <= radiusMax; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
                     int x = bx + dx, z = bz + dz;
-                    if (!level1.hasChunk(x >> 4, z >> 4)) continue;
-                    var chunk = level1.getChunk(x >> 4, z >> 4);
+                    if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                    var chunk = level.getChunk(x >> 4, z >> 4);
                     int surface = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
                     BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, surface - 8, z);
-                    boolean above = false; // le bloc juste au-dessus est-il de l'air ?
-                    for (int y = surface - 8; y > background; y--) {
+                    boolean above = false; // is the block just above air?
+                    for (int y = surface - 8; y > minY; y--) {
                         pos.setY(y);
                         BlockState here = chunk.getBlockState(pos);
                         boolean air = here.isAir();
-                        if (!air && above && here.getFluidState().isEmpty() && here.isFaceSturdy(level1, pos, Direction.UP)) {
+                        if (!air && above && here.getFluidState().isEmpty() && here.isFaceSturdy(level, pos, Direction.UP)) {
                             BlockPos ground = new BlockPos(x, y + 1, z);
-                            if (chunk.getBlockState(ground.above()).isAir() && !level1.canSeeSky(ground)) return ground;
+                            if (chunk.getBlockState(ground.above()).isAir() && !level.canSeeSky(ground)) return ground;
                         }
                         above = air;
                     }
@@ -144,27 +144,27 @@ final class Traces {
         return null;
     }
 
-    // Trace en grotte : un sol de grotte entre 3 et 15 blocs sous la surface, qu'on peut rejoindre à pied depuis l'extérieur
-    // (jamais une poche fermée qu'il faudrait creuser). On s'écarte en spirale jusqu'à 16 blocs de l'endroit prévu.
-    static BlockPos openCave(ServerLevel level1, int bx, int bz) {
-        int attempts = 0; // chaque vérification de passage parcourt jusqu'à 600 blocs : on en limite le nombre
+    // Cave trace: a cave floor 3 to 15 blocks below the surface that can be reached on foot from outside (never a sealed
+    // pocket that would need digging). Spirals out up to 16 blocks from the intended spot.
+    static BlockPos openCave(ServerLevel level, int bx, int bz) {
+        int attempts = 0; // each path check visits up to 600 blocks, so their number is capped
         for (int radius = 0; radius <= 16; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
                     int x = bx + dx, z = bz + dz;
-                    if (!level1.hasChunk(x >> 4, z >> 4)) continue;
-                    var chunk = level1.getChunk(x >> 4, z >> 4);
+                    if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                    var chunk = level.getChunk(x >> 4, z >> 4);
                     int surface = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
-                    int bottom = Math.max(surface - 15, level1.getMinBuildHeight() + 1);
+                    int bottom = Math.max(surface - 15, level.getMinBuildHeight() + 1);
                     BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, surface - 1, z);
                     for (int y = surface - 3; y >= bottom; y--) {
                         pos.setY(y);
                         BlockState here = chunk.getBlockState(pos);
-                        if (here.isAir() || !here.getFluidState().isEmpty() || !here.isFaceSturdy(level1, pos, Direction.UP)) continue;
+                        if (here.isAir() || !here.getFluidState().isEmpty() || !here.isFaceSturdy(level, pos, Direction.UP)) continue;
                         BlockPos ground = new BlockPos(x, y + 1, z);
-                        if (!free(level1, ground) || !free(level1, ground.above()) || level1.canSeeSky(ground)) continue;
-                        if (linkedToSky(level1, ground)) return ground;
+                        if (!free(level, ground) || !free(level, ground.above()) || level.canSeeSky(ground)) continue;
+                        if (linkedToSky(level, ground)) return ground;
                         if (++attempts >= 40) return null;
                     }
                 }
@@ -173,50 +173,49 @@ final class Traces {
         return null;
     }
 
-    private static boolean free(ServerLevel level1, BlockPos pos) {
-        BlockState b = level1.getBlockState(pos);
+    private static boolean free(ServerLevel level, BlockPos pos) {
+        BlockState b = level.getBlockState(pos);
         return b.isAir() && b.getFluidState().isEmpty();
     }
 
-    // Parcours de l'air en partant du sol de la grotte : vrai si l'on atteint un bloc à ciel ouvert en moins de 600 pas,
-    // sans s'éloigner de plus de 32 blocs. Les blocs d'air doivent avoir de l'air au-dessus ou en dessous pour qu'un
-    // joueur puisse y passer (pas de fente d'un bloc de haut).
-    private static boolean linkedToSky(ServerLevel level1, BlockPos departure) {
-        java.util.ArrayDeque<BlockPos> file = new java.util.ArrayDeque<>();
+    // Flood fill through air from the cave floor: true if an open-sky block is reached within 600 steps and 32 blocks.
+    // Air blocks need air above or below so a player can pass (no one-block-high slits).
+    private static boolean linkedToSky(ServerLevel level, BlockPos start) {
+        java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
         java.util.Set<BlockPos> seen = new java.util.HashSet<>();
-        file.add(departure);
-        seen.add(departure);
-        while (!file.isEmpty() && seen.size() < 600) {
-            BlockPos p = file.poll();
-            if (level1.canSeeSky(p)) return true;
+        queue.add(start);
+        seen.add(start);
+        while (!queue.isEmpty() && seen.size() < 600) {
+            BlockPos p = queue.poll();
+            if (level.canSeeSky(p)) return true;
             for (Direction dir : Direction.values()) {
                 BlockPos v = p.relative(dir);
-                if (seen.contains(v) || Math.abs(v.getX() - departure.getX()) > 32 || Math.abs(v.getZ() - departure.getZ()) > 32) continue;
-                if (!level1.hasChunk(v.getX() >> 4, v.getZ() >> 4) || !free(level1, v)) continue;
-                if (!free(level1, v.above()) && !free(level1, v.below())) continue;
+                if (seen.contains(v) || Math.abs(v.getX() - start.getX()) > 32 || Math.abs(v.getZ() - start.getZ()) > 32) continue;
+                if (!level.hasChunk(v.getX() >> 4, v.getZ() >> 4) || !free(level, v)) continue;
+                if (!free(level, v.above()) && !free(level, v.below())) continue;
                 seen.add(v);
-                file.add(v);
+                queue.add(v);
             }
         }
         return false;
     }
 
-    // Enquête aquatique : la trace repose au fond de l'eau, de préférence par petit fond (14 blocs au plus).
-    private static boolean underwater(ServerLevel level1, Trace t, int bx, int bz) {
-        for (int backgroundMax : new int[] {14, 48}) {
+    // Aquatic case: the trace lies on the bottom, preferably in shallow water (14 blocks at most).
+    private static boolean underwater(ServerLevel level, Trace t, int bx, int bz) {
+        for (int maxDepth : new int[] {14, 48}) {
             for (int radius = 0; radius <= 20; radius++) {
                 for (int dx = -radius; dx <= radius; dx++) {
                     for (int dz = -radius; dz <= radius; dz++) {
                         if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
                         int x = bx + dx, z = bz + dz;
-                        if (!level1.hasChunk(x >> 4, z >> 4)) continue;
-                        var chunk = level1.getChunk(x >> 4, z >> 4);
+                        if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                        var chunk = level.getChunk(x >> 4, z >> 4);
                         int y = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x & 15, z & 15) + 1;
                         int surface = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x & 15, z & 15);
                         BlockPos pos = new BlockPos(x, y, z);
-                        if (surface - y < 1 || surface - y > backgroundMax || !level1.getBlockState(pos).is(Blocks.WATER)) continue;
-                        if (!level1.getFluidState(pos).isSource() || !level1.getBlockState(pos.below()).isFaceSturdy(level1, pos.below(), Direction.UP)) continue;
-                        fix(level1, t, pos, Direction.UP);
+                        if (surface - y < 1 || surface - y > maxDepth || !level.getBlockState(pos).is(Blocks.WATER)) continue;
+                        if (!level.getFluidState(pos).isSource() || !level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)) continue;
+                        placeAt(level, t, pos, Direction.UP);
                         return true;
                     }
                 }
@@ -229,32 +228,32 @@ final class Traces {
         return ground.is(BlockTags.DIRT) ? 0 : ground.is(BlockTags.SAND) ? 1 : ground.is(Blocks.GRAVEL) ? 2 : -1;
     }
 
-    // Cache l'indice sous la surface : un bloc de sol meuble (terre, sable, gravier), recouvert d'un ou deux blocs,
-    // est remplacé par un sol remué. Il faut creuser pour le trouver, puis le dégager au pinceau.
-    private static boolean bury(ServerLevel level1, Trace t, int bx, int bz) {
+    // Hides the clue underground: a loose soil block (dirt, sand, gravel) under one or two blocks is replaced with disturbed
+    // soil. The player has to dig to find it, then brush it clear.
+    private static boolean bury(ServerLevel level, Trace t, int bx, int bz) {
         for (int radius = 0; radius <= 16; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
                     int x = bx + dx, z = bz + dz;
-                    if (!level1.hasChunk(x >> 4, z >> 4)) continue;
-                    int surface = level1.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
-                    BlockState above = level1.getBlockState(new BlockPos(x, surface + 1, z));
+                    if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                    int surface = level.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
+                    BlockState above = level.getBlockState(new BlockPos(x, surface + 1, z));
                     if (!above.canBeReplaced() || !above.getFluidState().isEmpty()) continue;
                     for (int depth = 2; depth >= 1; depth--) {
                         BlockPos pos = new BlockPos(x, surface - depth, z);
-                        BlockState ground = level1.getBlockState(pos);
+                        BlockState ground = level.getBlockState(pos);
                         boolean loose = material(ground) >= 0;
-                        for (int y = pos.getY() + 1; y <= surface && loose; y++) loose = material(level1.getBlockState(new BlockPos(x, y, z))) >= 0;
-                        if (!loose || !level1.getBlockState(pos.below()).isFaceSturdy(level1, pos.below(), Direction.UP)) continue;
+                        for (int y = pos.getY() + 1; y <= surface && loose; y++) loose = material(level.getBlockState(new BlockPos(x, y, z))) >= 0;
+                        if (!loose || !level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)) continue;
                         t.origin = BuiltInRegistries.BLOCK.getKey(ground.getBlock()).toString();
-                        level1.setBlock(pos, PacketContent.SOIL.defaultBlockState().setValue(PacketContent.DisturbedSoilBlock.MATERIAL, material(ground)), 3);
+                        level.setBlock(pos, ModContent.DISTURBED_SOIL.defaultBlockState().setValue(ModContent.DisturbedSoilBlock.MATERIAL, material(ground)), 3);
                         t.px = x;
                         t.py = pos.getY();
                         t.pz = z;
                         t.x = x + 0.5;
                         t.z = z + 0.5;
-                        t.placedOne = true;
+                        t.placed = true;
                         t.brushing = 0;
                         Engine.save();
                         return true;
@@ -265,54 +264,54 @@ final class Traces {
         return false;
     }
 
-    // Le joueur brosse (pinceau maintenu) un sol remué de son enquête : quatre étapes, puis l'indice apparaît dans le trou.
-    static void brush(ServerPlayer player, CaseFile d, ServerLevel level1) {
+    // The player brushes (brush held) disturbed soil from their case: four stages, then the clue appears in the hole.
+    static void brush(ServerPlayer player, CaseFile d, ServerLevel level) {
         HitResult aimed = player.pick(5.0, 0f, false);
-        if (!(aimed instanceof BlockHitResult stroke) || aimed.getType() != HitResult.Type.BLOCK) return;
-        BlockPos pos = stroke.getBlockPos();
-        BlockState state = level1.getBlockState(pos);
-        if (!state.is(PacketContent.SOIL)) return;
+        if (!(aimed instanceof BlockHitResult hit) || aimed.getType() != HitResult.Type.BLOCK) return;
+        BlockPos pos = hit.getBlockPos();
+        BlockState state = level.getBlockState(pos);
+        if (!state.is(ModContent.DISTURBED_SOIL)) return;
         Trace trace = null;
         for (Trace t : d.traces) {
-            if (t.buried && !t.uncovered && !t.over() && t.placedOne && t.px == pos.getX() && t.py == pos.getY() && t.pz == pos.getZ()) trace = t;
+            if (t.buried && !t.uncovered && !t.over() && t.placed && t.px == pos.getX() && t.py == pos.getY() && t.pz == pos.getZ()) trace = t;
         }
         if (trace == null) return;
         trace.brushing++;
         int step = Math.min(3, trace.brushing / 2);
-        level1.sendParticles(ParticleTypes.WHITE_ASH, pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5, 6, 0.25, 0.02, 0.25, 0.0);
+        level.sendParticles(ParticleTypes.WHITE_ASH, pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5, 6, 0.25, 0.02, 0.25, 0.0);
         if (trace.brushing < 8) {
-            if (state.getValue(PacketContent.DisturbedSoilBlock.UNCOVERED) != step) {
-                replacement = true;
-                level1.setBlock(pos, state.setValue(PacketContent.DisturbedSoilBlock.UNCOVERED, step), 3);
-                replacement = false;
+            if (state.getValue(ModContent.DisturbedSoilBlock.UNCOVERED) != step) {
+                replacingSoil = true;
+                level.setBlock(pos, state.setValue(ModContent.DisturbedSoilBlock.UNCOVERED, step), 3);
+                replacingSoil = false;
             }
             return;
         }
-        replacement = true;
-        level1.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-        replacement = false;
+        replacingSoil = true;
+        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+        replacingSoil = false;
         trace.uncovered = true;
-        fix(level1, trace, pos, Direction.UP);
+        placeAt(level, trace, pos, Direction.UP);
         player.playNotifySound(SoundEvents.BRUSH_SAND_COMPLETED, SoundSource.PLAYERS, 1f, 1f);
-        Engine.progress1(player, "clue_uncovered");
+        Engine.grantAdvancement(player, "clue_uncovered");
         Messages.announce(player, "clue_uncovered", 0x6CCB5F, Component.translatable(Genetics.traceName(trace.kind, true, trace.variant)));
         Messages.sync(player);
     }
 
-    // Un sol remué a été cassé (pioche, pelle, explosion, piston...) : l'indice qu'il cachait est perdu.
-    public static void groundDestroyed(Level level1, BlockPos pos) {
-        if (replacement || !(level1 instanceof ServerLevel server1)) return;
-        String dim = level1.dimension().location().toString();
-        for (Map.Entry<UUID, CaseFile> en : Engine.state.caseFiles.entrySet()) {
-            CaseFile d = en.getValue();
-            if (!dim.equals(d.level1)) continue;
+    // Disturbed soil was broken (pickaxe, shovel, explosion, piston...): the clue it hid is lost.
+    public static void groundDestroyed(Level level, BlockPos pos) {
+        if (replacingSoil || !(level instanceof ServerLevel serverLevel)) return;
+        String dim = level.dimension().location().toString();
+        for (Map.Entry<UUID, CaseFile> entry : Engine.state.caseFiles.entrySet()) {
+            CaseFile d = entry.getValue();
+            if (!dim.equals(d.dimension)) continue;
             for (Trace t : d.traces) {
-                if (!t.buried || t.uncovered || t.over() || !t.placedOne || t.px != pos.getX() || t.py != pos.getY() || t.pz != pos.getZ()) continue;
+                if (!t.buried || t.uncovered || t.over() || !t.placed || t.px != pos.getX() || t.py != pos.getY() || t.pz != pos.getZ()) continue;
                 t.lost = true;
-                t.placedOne = false;
+                t.placed = false;
                 d.faults++;
                 Engine.save();
-                List<ServerPlayer> present = Engine.online(d, server1.getServer());
+                List<ServerPlayer> present = Engine.online(d, serverLevel.getServer());
                 ServerPlayer owner = present.isEmpty() ? null : present.get(0);
                 if (owner != null) {
                     owner.playNotifySound(SoundEvents.TURTLE_EGG_BREAK, SoundSource.PLAYERS, 1f, 0.8f);
@@ -324,60 +323,60 @@ final class Traces {
         }
     }
 
-    // Remet le bloc d'origine à la place d'un indice enfoui (une fois prélevé, ou quand l'enquête se termine).
-    static void reboucher(ServerLevel level1, Trace t) {
+    // Puts the original block back in place of a buried clue (once sampled, or when the case ends).
+    static void restoreGround(ServerLevel level, Trace t) {
         BlockPos pos = new BlockPos(t.px, t.py, t.pz);
-        BlockState la = level1.getBlockState(pos);
-        if (!la.is(PacketContent.SOIL) && !la.is(PacketContent.TRACE) && !la.isAir()) return;
+        BlockState current = level.getBlockState(pos);
+        if (!current.is(ModContent.DISTURBED_SOIL) && !current.is(ModContent.TRACE) && !current.isAir()) return;
         var block = t.origin == null ? java.util.Optional.<net.minecraft.world.level.block.Block>empty()
                 : BuiltInRegistries.BLOCK.getOptional(ResourceLocation.parse(t.origin));
-        replacement = true;
-        level1.setBlock(pos, block.map(b -> b.defaultBlockState()).orElse(Blocks.DIRT.defaultBlockState()), 3);
-        replacement = false;
+        replacingSoil = true;
+        level.setBlock(pos, block.map(b -> b.defaultBlockState()).orElse(Blocks.DIRT.defaultBlockState()), 3);
+        replacingSoil = false;
     }
 
-    private static void fix(ServerLevel level1, Trace t, BlockPos pos, Direction press) {
+    private static void placeAt(ServerLevel level, Trace t, BlockPos pos, Direction facing) {
         int kind = Genetics.MARKERS.indexOf(t.kind);
         if (t.buried) kind = Genetics.buriedBlock(t.kind, t.variant);
-        level1.setBlock(pos, PacketContent.TRACE.defaultBlockState().setValue(PacketContent.TraceBlock.KIND, kind)
-                .setValue(PacketContent.TraceBlock.PRESS, press).setValue(PacketContent.TraceBlock.WATER_BG, level1.getFluidState(pos).is(FluidTags.WATER)), 3);
+        level.setBlock(pos, ModContent.TRACE.defaultBlockState().setValue(ModContent.TraceBlock.KIND, kind)
+                .setValue(ModContent.TraceBlock.FACING, facing).setValue(ModContent.TraceBlock.WATERLOGGED, level.getFluidState(pos).is(FluidTags.WATER)), 3);
         t.px = pos.getX();
         t.py = pos.getY();
         t.pz = pos.getZ();
         t.x = pos.getX() + 0.5;
         t.z = pos.getZ() + 0.5;
-        t.placedOne = true;
+        t.placed = true;
         Engine.save();
     }
 
-    // Plaquée à hauteur de regard contre un tronc (troncs = true) ou contre une paroi pleine d'au moins deux blocs de haut.
-    private static boolean onWall(ServerLevel level1, Trace t, int bx, int bz, boolean trunks) {
+    // At eye level against a tree trunk (trunks = true) or against a solid wall at least two blocks high.
+    private static boolean onWall(ServerLevel level, Trace t, int bx, int bz, boolean trunks) {
         int[] heights = {1, 0, 2};
         for (int radius = 0; radius <= 9; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
                     int x = bx + dx, z = bz + dz;
-                    if (!level1.hasChunk(x >> 4, z >> 4)) continue;
-                    int ground = level1.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
-                    if (!level1.getBlockState(new BlockPos(x, ground - 1, z)).isFaceSturdy(level1, new BlockPos(x, ground - 1, z), Direction.UP)) continue;
+                    if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                    int ground = level.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
+                    if (!level.getBlockState(new BlockPos(x, ground - 1, z)).isFaceSturdy(level, new BlockPos(x, ground - 1, z), Direction.UP)) continue;
                     for (int dy : heights) {
                         BlockPos pos = new BlockPos(x, ground + dy, z);
-                        BlockState here = level1.getBlockState(pos);
+                        BlockState here = level.getBlockState(pos);
                         if (!here.canBeReplaced() || !here.getFluidState().isEmpty()) continue;
                         for (Direction dir : Direction.Plane.HORIZONTAL) {
                             BlockPos behind = pos.relative(dir);
-                            if (!level1.hasChunk(behind.getX() >> 4, behind.getZ() >> 4)) continue;
-                            BlockState press = level1.getBlockState(behind);
+                            if (!level.hasChunk(behind.getX() >> 4, behind.getZ() >> 4)) continue;
+                            BlockState support = level.getBlockState(behind);
                             boolean ok;
                             if (trunks) {
-                                ok = press.is(BlockTags.LOGS);
+                                ok = support.is(BlockTags.LOGS);
                             } else {
-                                ok = !press.is(BlockTags.LOGS) && !press.is(BlockTags.LEAVES) && press.isFaceSturdy(level1, behind, dir.getOpposite())
-                                        && level1.getBlockState(behind.above()).isFaceSturdy(level1, behind.above(), dir.getOpposite());
+                                ok = !support.is(BlockTags.LOGS) && !support.is(BlockTags.LEAVES) && support.isFaceSturdy(level, behind, dir.getOpposite())
+                                        && level.getBlockState(behind.above()).isFaceSturdy(level, behind.above(), dir.getOpposite());
                             }
                             if (!ok) continue;
-                            fix(level1, t, pos, dir.getOpposite());
+                            placeAt(level, t, pos, dir.getOpposite());
                             return true;
                         }
                     }
@@ -387,19 +386,19 @@ final class Traces {
         return false;
     }
 
-    private static boolean onTreetop(ServerLevel level1, Trace t, int bx, int bz) {
+    private static boolean onTreetop(ServerLevel level, Trace t, int bx, int bz) {
         for (int radius = 0; radius <= 9; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
                     int x = bx + dx, z = bz + dz;
-                    if (!level1.hasChunk(x >> 4, z >> 4)) continue;
-                    var chunk = level1.getChunk(x >> 4, z >> 4);
+                    if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                    var chunk = level.getChunk(x >> 4, z >> 4);
                     int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x & 15, z & 15);
                     int ground = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
                     BlockPos pos = new BlockPos(x, top + 1, z);
-                    if (top - ground < 3 || !level1.getBlockState(pos.below()).is(BlockTags.LEAVES) || !level1.getBlockState(pos).canBeReplaced()) continue;
-                    fix(level1, t, pos, Direction.UP);
+                    if (top - ground < 3 || !level.getBlockState(pos.below()).is(BlockTags.LEAVES) || !level.getBlockState(pos).canBeReplaced()) continue;
+                    placeAt(level, t, pos, Direction.UP);
                     return true;
                 }
             }
@@ -407,15 +406,15 @@ final class Traces {
         return false;
     }
 
-    static void removeTraces(ServerLevel level1, CaseFile d) {
+    static void removeTraces(ServerLevel level, CaseFile d) {
         for (Trace t : d.traces) {
-            if (!t.placedOne || t.over()) continue;
+            if (!t.placed || t.over()) continue;
             BlockPos pos = new BlockPos(t.px, t.py, t.pz);
-            if (level1.hasChunk(t.px >> 4, t.pz >> 4)) {
-                if (t.buried) reboucher(level1, t);
-                else if (level1.getBlockState(pos).is(PacketContent.TRACE)) level1.removeBlock(pos, false);
+            if (level.hasChunk(t.px >> 4, t.pz >> 4)) {
+                if (t.buried) restoreGround(level, t);
+                else if (level.getBlockState(pos).is(ModContent.TRACE)) level.removeBlock(pos, false);
             }
-            t.placedOne = false;
+            t.placed = false;
         }
     }
 }

@@ -3,21 +3,21 @@ package io.github.romainmichaux.fieldinvestigations;
 public class Trace {
     public String kind;
     public double x, z;
-    public boolean harvest, placedOne;
+    public boolean sampled, placed;
     public int px, py, pz;
-    // Indice enfoui : d'abord un bloc de sol remué (qui remplace le bloc d'origine), puis l'indice une fois dégagé au pinceau.
+    // Buried clue: first a disturbed soil block (replacing the original block), then the clue itself once brushed clear.
     public boolean buried, uncovered, lost;
     public String origin;
     public int brushing;
-    // Quel objet est enfoui (voir Genetique.VARIANTES) : os ou dent, coquilles, plume ou mue, croc, griffe ou écaille.
+    // Which object is buried (see Genetics.VARIANTS): bone or tooth, shells, feather or shed skin, fang, claw or scale.
     public int variant;
-    // Une trace par enquête peut se trouver dans une grotte peu profonde reliée à l'extérieur (voir Traces.grotteOuverte).
-    // Elle redevient une trace de surface si aucune grotte de ce genre n'existe près de l'endroit prévu.
+    // One trace per case may be in a shallow cave connected to the outside (see Traces.openCave).
+    // It reverts to a surface trace if no such cave exists near the intended spot.
     public boolean cave;
-    // Enquête souterraine : nombre de fois où aucune grotte n'a été trouvée pour cette trace (à six, elle est posée en surface).
+    // Underground case: how many times no cave was found for this trace (after six, it is placed on the surface).
     public transient int failures;
 
     boolean over() {
-        return harvest || lost;
+        return sampled || lost;
     }
 }

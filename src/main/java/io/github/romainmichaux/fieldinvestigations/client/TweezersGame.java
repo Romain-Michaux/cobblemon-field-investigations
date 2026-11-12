@@ -5,7 +5,7 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Pince à épiler : saisir chaque fibre quand la pince se referme, bien alignée
+// Tweezers: grab each fibre as the tweezers close, lined up with it
 final class TweezersGame extends MiniGame {
     static final ResourceLocation NEST = Draw.texture("nest"), TWEEZERS = Draw.texture("tweezers");
     static final int N = 5, DURATION = 560;
@@ -18,7 +18,7 @@ final class TweezersGame extends MiniGame {
         for (int i = 0; i < N; i++) fx[i] = 16 + i * 28 + h.nextInt(14);
     }
 
-    // 0 = pince fermée, 1 = grande ouverte. Elle bat de plus en plus vite.
+    // 0 = tweezers closed, 1 = wide open. They snap faster and faster.
     double opening() {
         return (Math.sin(phase) + 1) / 2;
     }
@@ -30,11 +30,11 @@ final class TweezersGame extends MiniGame {
             end(false);
             return;
         }
-        press1(time, DURATION);
+        hurryTicks(time, DURATION);
         tic++;
-        double before = opening();
+        double prevOpening = opening();
         phase += 0.15 + 0.035 * (N - remaining);
-        if (before >= 0.3 && opening() < 0.3) Draw.beep(Sounds.TWEEZERS, 1.6f, 0.4f);
+        if (prevOpening >= 0.3 && opening() < 0.3) Draw.beep(Sounds.TWEEZERS, 1.6f, 0.4f);
     }
 
     @Override
@@ -53,7 +53,7 @@ final class TweezersGame extends MiniGame {
                 return;
             }
         }
-        // Pince ouverte ou à côté d'une fibre : elle ripe sur l'écorce.
+        // Tweezers open or beside a fibre: they slip on the bark.
         flash = 8;
         Draw.note(0.5f);
         if (++faults >= 3) end(false);
