@@ -5,11 +5,10 @@
 ### Choosing and running a case
 - **Pick your case**: the kit now reports up to three leads. Each shows the rarity of the species, where the zone is,
   whether you already caught that species, and what it rewards.
-- **Eleven kinds of special investigations**, each with its own rule and reward:
+- **Ten kinds of special investigations**, each with its own rule and reward:
   - Anywhere: nocturnal (night only, shiny odds ×2), skittish (senses you from farther, double special loot),
     exceptional (one more result required, look-alike suspects, hidden ability), restless (moves twice as often,
-    farther lair, double special loot), underground (cave species, traces and lair in caves, depth shown on the
-    radar, ores and stones as special loot).
+    farther lair, double special loot).
   - By biome: aquatic (water species, traces on the bottom, target in the water), dig site (every remain buried),
     canopy (traces in the trees), highlands (traces on rock faces, wider zone), frost (one dose fewer per sample),
     mist (less precise bearings).
@@ -18,6 +17,9 @@
 - **Team investigations**: the lead investigator invites players within 64 blocks from the kit's Team tab (search by
   name, usual partners listed first, up to `tailleEquipe` members, 4 by default). One shared case, shared stars,
   loot and experience for every member.
+- **Cave traces**: one trace per case can sit in a shallow cave, 3 to 15 blocks below the surface, always reachable
+  on foot from the outside. The kit radar then counts height and shows the distance and height difference
+  ("In a cave: 23 m ▼8"). Aquatic and dig-site cases keep all their traces outside.
 - **Buried clues**: a single one per regular case (dig sites keep three), dug up with the brush or the sieve, and what
   you find varies: bone or tooth, eggshells, feather or moult, fang, claw or scale.
 
@@ -26,7 +28,7 @@
   - Sampling: sieving, footprint cast, tweezers, trace photo, swabbing.
   - Analysis: microscope, chromatography, family tree, drop titration, bite cast.
   - Tied to the kind of case: free dive (aquatic), tree climb (canopy), abseil (highlands), UV lamp (nocturnal),
-    thawing (frost), cry filter (mist, played before each bearing during the hunt), rockfall (underground).
+    thawing (frost), cry filter (mist, played before each bearing during the hunt), rockfall (cave traces).
   - Each trace and each marker now picks among several games.
 - Several games reworked after playtests: tree climb (scrolling trunk, dead branches to let go by), plaster cast
   (tooth sockets, validated once the spout is lifted), bite cast, field photo (a random suspect as subject),
@@ -49,6 +51,11 @@
 - Case board: the tooltip is drawn above the item icons.
 - **Accessibility**: per-player colour aid (colorimetry shows the match percentage while you mix); server setting
   `difficulteMiniJeux` (`easy`, `normal`, `hard`) for the pace of every mini-game.
+
+### Fixes
+- Investigation state (cases, ranks, solved count) is now saved in each world. Before, every single-player world
+  shared the same file in `config/`, so a new world started with the cases and rank of the others. A dedicated
+  server takes over its old `config/cobblemon_field_investigations_state.json` once (kept as `.migre`).
 
 ### Server settings
 - New: `nombrePistes` (1 to 3; 1 = no choice, as in 1.0), `minutesValiditePistes`, `chanceEnqueteSpeciale`,

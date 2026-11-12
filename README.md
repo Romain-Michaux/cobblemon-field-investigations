@@ -21,7 +21,8 @@ Everything fits in one item: the **Field Kit**. No workstation to carry around.
    away and a line-up of suspects taken from the species that really spawn in that biome.
 2. **Sample the traces.** Five traces are hidden in the zone (elemental residue, strange deposit, footprint, abandoned
    nest, signs of a struggle). The kit's proximity radar leads you to them. Each kind of trace has its own sampling
-   mini-game, and you need an empty vial for each.
+   mini-game, and you need an empty vial for each. One trace may sit in a shallow cave (3 to 15 blocks deep, always
+   reachable on foot from outside): the radar then shows its distance and height difference.
 3. **Dig up buried clues.** Some clues (bone, eggshells, fang) are buried one or two blocks underground. The radar gives
    you the exact distance; dig carefully, then uncover the disturbed soil with a vanilla **brush**. Breaking that block
    destroys the clue.
@@ -62,7 +63,6 @@ Possible anywhere:
 | Skittish | The target senses you from much farther away: scan it from a long distance | Double special loot |
 | Exceptional | One more analysis result is required and the suspects all look alike | Hidden ability, special loot |
 | Restless | The target moves twice as often during the hunt and its lair is farther away | Double special loot |
-| Underground | Cave species: traces and lair are underground, the radar gives the depth | Ores and stones, special loot |
 
 Tied to the biome of the trace zone (biome tags, with a fallback on the biome name for untagged modded biomes):
 
@@ -138,9 +138,11 @@ Some special investigations bring their own games:
 | Canopy | Tree climb: grab each hold on the right side, in rhythm |
 | Highlands | Abseil: let the rope run and brake level with each trace |
 | Nocturnal | UV lamp: sweep the dark ground to reveal fluorescent stains |
-| Underground | Rockfall: free the glowing stone by pulling the stones that rest on it first |
 | Frost | Thawing: keep the frozen sample in the right temperature range |
 | Mist | Cry filter: before each bearing, track the frequency where the cry stands out; a miss only makes the bearing less precise |
+
+A trace found in a cave is usually sampled with the rockfall game: free the glowing stone by pulling the stones that
+rest on it first.
 
 Only one clue is buried in a regular case, and what you dig up varies: bone or tooth, eggshells, feather or moult,
 fang, claw or scale.
