@@ -65,6 +65,15 @@ final class Traces {
             }
             return;
         }
+        if (t.grotte) {
+            BlockPos sol = grotteOuverte(monde, bx, bz);
+            if (sol != null) {
+                fixer(monde, t, sol, Direction.UP);
+                return;
+            }
+            t.grotte = false;
+            Moteur.sauver();
+        }
         Random h = new Random(d.graine + t.genre.hashCode());
         // Cimes : tout se trouve dans les arbres. Altitude : sur les parois rocheuses.
         if (Moteur.est(d, "cimes") && (h.nextBoolean() ? surCime(monde, t, bx, bz) || surParoi(monde, t, bx, bz, true)
@@ -133,6 +142,63 @@ final class Traces {
             }
         }
         return null;
+    }
+
+    // Trace en grotte : un sol de grotte entre 3 et 15 blocs sous la surface, qu'on peut rejoindre à pied depuis l'extérieur
+    // (jamais une poche fermée qu'il faudrait creuser). On s'écarte en spirale jusqu'à 16 blocs de l'endroit prévu.
+    static BlockPos grotteOuverte(ServerLevel monde, int bx, int bz) {
+        int essais = 0; // chaque vérification de passage parcourt jusqu'à 600 blocs : on en limite le nombre
+        for (int rayon = 0; rayon <= 16; rayon++) {
+            for (int dx = -rayon; dx <= rayon; dx++) {
+                for (int dz = -rayon; dz <= rayon; dz++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != rayon) continue;
+                    int x = bx + dx, z = bz + dz;
+                    if (!monde.hasChunk(x >> 4, z >> 4)) continue;
+                    var chunk = monde.getChunk(x >> 4, z >> 4);
+                    int surface = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
+                    int bas = Math.max(surface - 15, monde.getMinBuildHeight() + 1);
+                    BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, surface - 1, z);
+                    for (int y = surface - 3; y >= bas; y--) {
+                        pos.setY(y);
+                        BlockState ici = chunk.getBlockState(pos);
+                        if (ici.isAir() || !ici.getFluidState().isEmpty() || !ici.isFaceSturdy(monde, pos, Direction.UP)) continue;
+                        BlockPos sol = new BlockPos(x, y + 1, z);
+                        if (!libre(monde, sol) || !libre(monde, sol.above()) || monde.canSeeSky(sol)) continue;
+                        if (relieeAuCiel(monde, sol)) return sol;
+                        if (++essais >= 40) return null;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean libre(ServerLevel monde, BlockPos pos) {
+        BlockState b = monde.getBlockState(pos);
+        return b.isAir() && b.getFluidState().isEmpty();
+    }
+
+    // Parcours de l'air en partant du sol de la grotte : vrai si l'on atteint un bloc à ciel ouvert en moins de 600 pas,
+    // sans s'éloigner de plus de 32 blocs. Les blocs d'air doivent avoir de l'air au-dessus ou en dessous pour qu'un
+    // joueur puisse y passer (pas de fente d'un bloc de haut).
+    private static boolean relieeAuCiel(ServerLevel monde, BlockPos depart) {
+        java.util.ArrayDeque<BlockPos> file = new java.util.ArrayDeque<>();
+        java.util.Set<BlockPos> vus = new java.util.HashSet<>();
+        file.add(depart);
+        vus.add(depart);
+        while (!file.isEmpty() && vus.size() < 600) {
+            BlockPos p = file.poll();
+            if (monde.canSeeSky(p)) return true;
+            for (Direction dir : Direction.values()) {
+                BlockPos v = p.relative(dir);
+                if (vus.contains(v) || Math.abs(v.getX() - depart.getX()) > 32 || Math.abs(v.getZ() - depart.getZ()) > 32) continue;
+                if (!monde.hasChunk(v.getX() >> 4, v.getZ() >> 4) || !libre(monde, v)) continue;
+                if (!libre(monde, v.above()) && !libre(monde, v.below())) continue;
+                vus.add(v);
+                file.add(v);
+            }
+        }
+        return false;
     }
 
     // Enquête aquatique : la trace repose au fond de l'eau, de préférence par petit fond (14 blocs au plus).

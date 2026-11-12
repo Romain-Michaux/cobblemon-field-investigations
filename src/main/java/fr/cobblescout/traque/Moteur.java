@@ -22,8 +22,10 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.LevelResource;
 
 // État partagé des enquêtes (réglages, dossiers, profils) et règles communes : étoiles, rang, paramètres par type d'enquête.
 public final class Moteur {
@@ -60,7 +62,23 @@ public final class Moteur {
         Path dossier = FabricLoader.getInstance().getConfigDir();
         reglages = lire(dossier.resolve("cobblemon_field_investigations.json"), Reglages.class, new Reglages());
         ecrire(dossier.resolve("cobblemon_field_investigations.json"), reglages);
-        fichierEtat = dossier.resolve("cobblemon_field_investigations_state.json");
+    }
+
+    // L'état appartient au monde, pas à l'instance : en solo, chaque partie a ses propres enquêtes et ses propres rangs.
+    // Jusqu'en 1.1.0 il était rangé dans config/ ; un serveur dédié n'a qu'un monde, il reprend donc ce fichier une fois.
+    // En solo, impossible de savoir à quel monde l'ancien fichier appartenait : chaque monde repart de zéro.
+    static void chargerMonde(MinecraftServer serveur) {
+        etat = new Etat();
+        fichierEtat = serveur.getWorldPath(LevelResource.ROOT).resolve("cobblemon_field_investigations_state.json");
+        Path ancien = FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_state.json");
+        if (!Files.exists(fichierEtat) && serveur.isDedicatedServer() && Files.exists(ancien)) {
+            try {
+                Files.copy(ancien, fichierEtat);
+                Files.move(ancien, ancien.resolveSibling("cobblemon_field_investigations_state.json.migre"));
+            } catch (Exception e) {
+                System.err.println("[Field Investigations] Reprise impossible de " + ancien + " : " + e);
+            }
+        }
         Etat lu = lire(fichierEtat, Etat.class, null);
         if (lu != null) {
             etat = lu;
@@ -78,6 +96,9 @@ public final class Moteur {
     }
 
     static void arret() {
+        sauver();
+        etat = new Etat();
+        fichierEtat = null;
         ENTITES.clear();
         ANALYSES.clear();
         PRELEVEMENTS.clear();
@@ -296,7 +317,7 @@ public final class Moteur {
     }
 
     static void sauver() {
-        ecrire(fichierEtat, etat);
+        if (fichierEtat != null) ecrire(fichierEtat, etat);
     }
 
     private static <T> T lire(Path fichier, java.lang.reflect.Type type, T defaut) {

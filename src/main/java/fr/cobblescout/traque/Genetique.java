@@ -81,8 +81,9 @@ public final class Genetique {
 
     // Le geste de prélèvement dépend de ce qu'on prélève, et parfois du type d'enquête : en apnée pour une enquête
     // aquatique, en grimpant dans les cimes, en rappel en altitude, à la lampe UV de nuit. Le tirage est fixe pour une trace.
-    public static String jeuPrelevement(String genre, boolean enfoui, String special, java.util.Random h) {
+    public static String jeuPrelevement(String genre, boolean enfoui, boolean grotte, String special, java.util.Random h) {
         if (enfoui) return h.nextBoolean() ? "degagement" : "tamisage";
+        if (grotte && h.nextInt(3) != 0) return "eboulis";
         if (special != null && h.nextInt(3) != 0) {
             switch (special) {
                 case "aquatique": return "apnee";

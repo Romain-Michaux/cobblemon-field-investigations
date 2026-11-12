@@ -281,9 +281,9 @@ case "analyse" -> jouer(mc, new EcranAnalyse(d.getString("genre"), d.getString("
                     ligne1 = libelles[niveau];
                     couleur1 = couleurs[niveau];
                     if (signal.getBoolean("grotte") && signal.contains("metres")) {
-                        // Enquête souterraine : la trace est dans une grotte, à cette distance et tant de blocs plus bas (ou plus haut).
+                        // Trace en grotte : à cette distance et tant de blocs plus bas (ou plus haut).
                         int dessous = signal.getInt("dessous");
-                        ligne2 = T.f("underground_2") + String.format("%.0f", signal.getDouble("metres")) + " m" + (dessous > 1 ? " ▼" + dessous : dessous < -1 ? " ▲" + -dessous : "");
+                        ligne2 = T.f("in_a_cave") + String.format("%.0f", signal.getDouble("metres")) + " m" + (dessous > 1 ? " ▼" + dessous : dessous < -1 ? " ▲" + -dessous : "");
                         couleur2 = 0xFFD0A070;
                     } else if (signal.getBoolean("enfoui") && signal.contains("metres")) {
                         ligne2 = T.f("buried") + String.format("%.1f", signal.getDouble("metres")) + " m";

@@ -49,8 +49,9 @@ final class Signalement {
     //  - altitude (montagne, collines) : traces sur les parois, zone de recherche bien plus vaste ;
     //  - givre (biomes enneigés) : échantillons fragiles, une dose de moins ;
     //  - brume (marais) : les cris portent mal, relevés moins précis.
-    //  - souterraine : espèces des grottes, traces et cible sous terre (le radar donne la profondeur).
-    static final List<String> GENERIQUES = List.of("nocturne", "craintive", "exceptionnel", "migratrice", "souterraine");
+    // Le type « souterraine » (1.1.0) n'est plus proposé : chercher des traces dans les grottes profondes était trop pénible.
+    // Une enquête souterraine déjà ouverte se termine normalement ; les autres enquêtes ont désormais une trace en grotte.
+    static final List<String> GENERIQUES = List.of("nocturne", "craintive", "exceptionnel", "migratrice");
 
     // Type lié au biome : il s'applique si le biome porte l'une de ces étiquettes, ou si son nom contient l'un de ces mots
     // (pour les biomes de mods qui ne sont pas étiquetés).
@@ -241,6 +242,12 @@ final class Signalement {
                 t.enfoui = !eau && !grotte && (i == 0 || "fouille".equals(special));
                 t.variante = Moteur.HASARD.nextInt(Genetique.VARIANTES.getOrDefault(t.genre, 1));
             }
+            // Une trace non enfouie part dans une grotte (sauf sous l'eau, et en fouille où tout est enfoui).
+            List<Trace> enSurface = new ArrayList<>();
+            for (Trace t : d.traces) {
+                if (!t.enfoui) enSurface.add(t);
+            }
+            if (!eau && !grotte && !enSurface.isEmpty()) enSurface.get(Moteur.HASARD.nextInt(enSurface.size())).grotte = true;
             d.suspects = suspects(cible.espece, bassin, "exceptionnel".equals(special), eau, grotte);
             return d;
         }

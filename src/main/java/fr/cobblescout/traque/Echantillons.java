@@ -117,7 +117,7 @@ final class Echantillons {
         Paquet p = Paquet.de("ouvrir");
         p.donnees().putString("ecran", "prelevement");
         p.donnees().putString("genre", trace.genre);
-        String jeuTerrain = Genetique.jeuPrelevement(trace.genre, trace.enfoui, d.special, new Random(d.graine ^ trace.genre.hashCode()));
+        String jeuTerrain = Genetique.jeuPrelevement(trace.genre, trace.enfoui, trace.grotte, d.special, new Random(d.graine ^ trace.genre.hashCode()));
         p.donnees().putString("jeu", jeuTerrain);
         p.donnees().putBoolean("premiere", Moteur.premiereFois(joueur, jeuTerrain));
         p.donnees().putBoolean("enfoui", trace.enfoui);
