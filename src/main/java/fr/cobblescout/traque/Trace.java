@@ -11,6 +11,9 @@ public class Trace {
     public int brossage;
     // Quel objet est enfoui (voir Genetique.VARIANTES) : os ou dent, coquilles, plume ou mue, croc, griffe ou écaille.
     public int variante;
+    // Une trace par enquête peut se trouver dans une grotte peu profonde reliée à l'extérieur (voir Traces.grotteOuverte).
+    // Elle redevient une trace de surface si aucune grotte de ce genre n'existe près de l'endroit prévu.
+    public boolean grotte;
     // Enquête souterraine : nombre de fois où aucune grotte n'a été trouvée pour cette trace (à six, elle est posée en surface).
     public transient int echecs;
 

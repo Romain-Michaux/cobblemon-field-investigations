@@ -242,6 +242,12 @@ final class Signalement {
                 t.enfoui = !eau && !grotte && (i == 0 || "fouille".equals(special));
                 t.variante = Moteur.HASARD.nextInt(Genetique.VARIANTES.getOrDefault(t.genre, 1));
             }
+            // Une trace non enfouie part dans une grotte (sauf sous l'eau, et en fouille où tout est enfoui).
+            List<Trace> enSurface = new ArrayList<>();
+            for (Trace t : d.traces) {
+                if (!t.enfoui) enSurface.add(t);
+            }
+            if (!eau && !grotte && !enSurface.isEmpty()) enSurface.get(Moteur.HASARD.nextInt(enSurface.size())).grotte = true;
             d.suspects = suspects(cible.espece, bassin, "exceptionnel".equals(special), eau, grotte);
             return d;
         }
