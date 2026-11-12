@@ -62,6 +62,10 @@ final class Suivi {
                 }
                 if (joueur.isUsingItem() && joueur.getUseItem().is(Items.BRUSH)) Traces.brosser(joueur, d, monde);
                 if (!kit) return;
+                // Trace en grotte (ou enquête souterraine) : la distance compte la hauteur, sinon le radar crierait « juste
+                // ici » à un joueur qui marche quinze blocs au-dessus.
+                boolean enGrotte = proche != null && proche.posee && (proche.grotte || (Moteur.est(d, "souterraine") && proche.echecs < 6));
+                if (enGrotte) min = Math.sqrt(joueur.distanceToSqr(proche.px + 0.5, proche.py + 0.5, proche.pz + 0.5));
                 signal.donnees().putBoolean("jour", jour);
                 signal.donnees().putInt("niveau", min == Double.MAX_VALUE ? -1 : min > 90 ? 0 : min > 60 ? 1 : min > 35 ? 2 : min > 14 ? 3 : min > 5 ? 4 : 5);
                 boolean sousTerre = proche != null && proche.enfoui && !proche.degage;
@@ -71,8 +75,8 @@ final class Suivi {
                     signal.donnees().putDouble("metres", Math.sqrt(joueur.distanceToSqr(proche.px + 0.5, proche.py + 0.5, proche.pz + 0.5)));
                     signal.donnees().putInt("dessous", (int) Math.round(joueur.getY() - (proche.py + 1)));
                 }
-                // Enquête souterraine : le radar donne aussi la distance réelle et la profondeur de la trace la plus proche.
-                if (Moteur.est(d, "souterraine") && proche != null && proche.posee && proche.echecs < 6) {
+                // Le radar donne aussi la distance réelle et la profondeur de la trace en grotte.
+                if (enGrotte) {
                     signal.donnees().putBoolean("grotte", true);
                     signal.donnees().putDouble("metres", Math.sqrt(joueur.distanceToSqr(proche.px + 0.5, proche.py + 0.5, proche.pz + 0.5)));
                     signal.donnees().putInt("dessous", (int) Math.round(joueur.getY() - proche.py));

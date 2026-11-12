@@ -512,7 +512,7 @@ NOUVEAUX += [
     ("§7Espèces des grottes : traces et cible", "§7Cave species: traces and target are"),
     ("§7sous terre. Prévois torches et pioche.", "§7underground. Bring torches and a pickaxe."),
     ("Butin spécial · minerais et pierres", "Special loot · ores and stones"),
-    ("Sous terre : ", "Underground: "),
+    ("En grotte : ", "In a cave: "),
     ("Pierres retirées : ", "Stones removed: "), ("Éboulements : ", "Rockslides: "),
     ("Les pierres assombries portent encore du poids. Les sombres à entailles demandent trois coups.",
      "Darkened stones still carry weight. Dark notched ones take three hits."),
