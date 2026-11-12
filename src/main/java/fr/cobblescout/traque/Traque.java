@@ -59,6 +59,7 @@ public class Traque implements ModInitializer {
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, serveur) -> serveur.execute(() -> Messages.synchroniser(handler.player)));
 
+        ServerLifecycleEvents.SERVER_STARTING.register(Moteur::chargerMonde);
         ServerLifecycleEvents.SERVER_STOPPED.register(s -> Moteur.arret());
         ServerTickEvents.END_SERVER_TICK.register(s -> {
             if (++compteur < 10) return;
