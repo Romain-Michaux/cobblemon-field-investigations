@@ -22,6 +22,12 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 // Fin d'une enquête : capture ou KO, récompenses, expérience, archives.
 final class Cloture {
+    // Noms anglais des tables de butin par type d'enquête (data/cobblemon_field_investigations/loot_table/investigation/kind_<nom>).
+    static final Map<String, String> NOMS_TYPES = Map.ofEntries(Map.entry("nocturne", "nocturnal"), Map.entry("craintive", "skittish"),
+            Map.entry("exceptionnel", "exceptional"), Map.entry("migratrice", "restless"), Map.entry("aquatique", "aquatic"),
+            Map.entry("fouille", "dig_site"), Map.entry("cimes", "canopy"), Map.entry("altitude", "highlands"), Map.entry("givre", "frost"),
+            Map.entry("brume", "mist"), Map.entry("souterraine", "underground"));
+
     private Cloture() {}
 
     static void capture(PokemonCapturedEvent evt) {
@@ -79,13 +85,13 @@ final class Cloture {
         int rangApres = Moteur.rang(profil.xp);
         if (rangApres >= 3) Moteur.progres(joueur, "rang_inspecteur");
         boolean palier = Moteur.reglages.palierBonus > 0 && total % Moteur.reglages.palierBonus == 0;
-        List<ItemStack> gains = new ArrayList<>(butin(joueur, "traque/etoiles_" + etoiles));
-        gains.addAll(butin(joueur, "traque/rarete_" + d.categorie.replace('-', '_')));
-        if (palier) gains.addAll(butin(joueur, "traque/palier"));
+        List<ItemStack> gains = new ArrayList<>(butin(joueur, "investigation/stars_" + etoiles));
+        gains.addAll(butin(joueur, "investigation/rarity_" + d.categorie.replace('-', '_')));
+        if (palier) gains.addAll(butin(joueur, "investigation/milestone"));
         if (d.special != null) {
-            gains.addAll(butin(joueur, "traque/speciale"));
-            if (Moteur.est(d, "craintive") || Moteur.est(d, "migratrice")) gains.addAll(butin(joueur, "traque/speciale"));
-            gains.addAll(butin(joueur, "traque/type_" + d.special)); // table propre au type, vide si elle n'existe pas
+            gains.addAll(butin(joueur, "investigation/special"));
+            if (Moteur.est(d, "craintive") || Moteur.est(d, "migratrice")) gains.addAll(butin(joueur, "investigation/special"));
+            gains.addAll(butin(joueur, "investigation/kind_" + NOMS_TYPES.getOrDefault(d.special, d.special))); // table propre au type, vide si elle n'existe pas
             Moteur.progres(joueur, "enquete_speciale");
         }
         Moteur.progres(joueur, "premiere_enquete");

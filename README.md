@@ -75,7 +75,9 @@ Tied to the biome of the trace zone (biome tags, with a fallback on the biome na
 | Frost | Snowy biomes | Frozen samples: one dose fewer each | Ice items |
 | Mist | Swamps | Cries carry poorly: bearings 1.8× less precise | Swamp items |
 
-Every special case rolls the `traque/speciale` loot table; biome kinds also roll `traque/type_<kind>`. Half of the
+Every special case rolls the `investigation/special` loot table, and also `investigation/kind_<kind>` (`nocturnal`,
+`skittish`, `exceptional`, `restless`, `aquatic`, `dig_site`, `canopy`, `highlands`, `frost`, `mist`; the mod ships
+the biome ones, the others are empty until a data pack adds them). Half of the
 extra leads are special by default (`specialCaseChance`).
 
 ## Rank, kit upgrades and archives
@@ -202,7 +204,7 @@ excluded labels (legendary, mythical, ultra beast and paradox by default).
 | `rarityWeights` | common 1, uncommon 2.5, rare 3, ultra-rare 2 | Weight of each rarity when picking the target |
 | `newSpeciesWeight` | 2.0 | Weight multiplier for species the player does not own |
 | `excludedLabels` | legendary, mythical, ultra_beast, paradox | Species labels never investigated |
-| `milestoneEveryCases` | 5 | Every N solved cases, the `palier` loot table is added |
+| `milestoneEveryCases` | 5 | Every N solved cases, the `milestone` loot table is added |
 | `leadCount` | 3 | Leads to choose from (1 = no choice) |
 | `leadValidityMinutes` | 10 | How long the offered leads stay valid |
 | `specialCaseChance` | 0.5 | Chance that an extra lead is a special investigation |
@@ -214,9 +216,11 @@ Files written by 1.0 or early 1.1 builds used French key names; they are still r
 Loot is data-driven. Override these loot tables with a data pack:
 
 ```
-data/cobblemon_field_investigations/loot_table/traque/etoiles_1.json … etoiles_5.json   (one per star level)
-data/cobblemon_field_investigations/loot_table/traque/rarete_common.json, rarete_uncommon.json, rarete_rare.json, rarete_ultra_rare.json
-data/cobblemon_field_investigations/loot_table/traque/palier.json                        (every fifth solved case)
+data/cobblemon_field_investigations/loot_table/investigation/stars_1.json … stars_5.json   (one per star level)
+data/cobblemon_field_investigations/loot_table/investigation/rarity_common.json, rarity_uncommon.json, rarity_rare.json, rarity_ultra_rare.json
+data/cobblemon_field_investigations/loot_table/investigation/milestone.json                (every fifth solved case)
+data/cobblemon_field_investigations/loot_table/investigation/special.json                  (every special case)
+data/cobblemon_field_investigations/loot_table/investigation/kind_<kind>.json              (one per kind of special case)
 ```
 
 ## Languages

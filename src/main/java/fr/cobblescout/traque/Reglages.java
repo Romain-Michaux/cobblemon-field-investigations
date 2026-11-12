@@ -53,8 +53,8 @@ public class Reglages {
     public Map<String, Double> poidsCategories = new LinkedHashMap<>(Map.of("common", 1.0, "uncommon", 2.5, "rare", 3.0, "ultra-rare", 2.0));
     @SerializedName(value = "excludedLabels", alternate = "etiquettesInterdites")
     public List<String> etiquettesInterdites = new ArrayList<>(List.of("legendary", "mythical", "ultra_beast", "paradox"));
-    // Le butin d'une enquête résolue vient des tables de butin du mod (data/cobblemon_field_investigations/loot_table/traque) :
-    // etoiles_1 à etoiles_5 selon la qualité de l'enquête, rarete_<catégorie> selon l'espèce, palier tous les N dossiers.
+    // Le butin d'une enquête résolue vient des tables de butin du mod (data/cobblemon_field_investigations/loot_table/investigation) :
+    // stars_1 à stars_5 selon la qualité de l'enquête, rarity_<catégorie> selon l'espèce, milestone tous les N dossiers.
     @SerializedName(value = "milestoneEveryCases", alternate = "palierBonus")
     public int palierBonus = 5;
     // À l'ouverture d'une enquête, le joueur choisit parmi plusieurs signalements (1 = pas de choix, comme en 1.0).

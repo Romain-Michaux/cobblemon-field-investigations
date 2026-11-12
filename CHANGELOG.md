@@ -12,7 +12,7 @@
   - By biome: aquatic (water species, traces on the bottom, target in the water), dig site (every remain buried),
     canopy (traces in the trees), highlands (traces on rock faces, wider zone), frost (one dose fewer per sample),
     mist (less precise bearings).
-  - New loot tables: `traque/speciale` for every special case, `traque/type_<kind>` for each kind.
+  - New loot tables: `investigation/special` for every special case, `investigation/kind_<kind>` for each kind.
   - Traces can now sit under water.
 - **Team investigations**: the lead investigator invites players within 64 blocks from the kit's Team tab (search by
   name, usual partners listed first, up to `maxTeamSize` members, 4 by default). One shared case, shared stars,
@@ -58,6 +58,8 @@
   server takes over its old `config/cobblemon_field_investigations_state.json` once (kept as `.migre`).
 
 ### Server settings
+- Loot tables renamed in English: `traque/etoiles_N` → `investigation/stars_N`, `rarete_*` → `rarity_*`, `palier` → `milestone`.
+  Data packs that overrode the 1.0 tables must rename their files.
 - Config keys are now in English (`leadCount`, `maxTeamSize`…). An existing `config/cobblemon_field_investigations.json` is read as before and rewritten with the new names on first start.
 - New: `leadCount` (1 to 3; 1 = no choice, as in 1.0), `leadValidityMinutes`, `specialCaseChance`,
   `maxTeamSize`, `miniGameDifficulty`.

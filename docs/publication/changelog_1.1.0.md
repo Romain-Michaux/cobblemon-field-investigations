@@ -29,5 +29,7 @@
 - Investigation state is now saved **per world**. Before, every single-player world shared the same file, so a new world inherited the cases and rank of the others. A dedicated server takes over its old file automatically.
 
 ### Server settings
+- Loot tables renamed in English: `traque/etoiles_N` → `investigation/stars_N`, `rarete_*` → `rarity_*`, `palier` → `milestone`.
+  Data packs that overrode the 1.0 tables must rename their files.
 - Config keys are now in English (`leadCount`, `maxTeamSize`…). An existing `config/cobblemon_field_investigations.json` is read as before and rewritten with the new names on first start.
 - New: `leadCount` (1 = no choice, as in 1.0), `leadValidityMinutes`, `specialCaseChance`, `maxTeamSize`, `miniGameDifficulty`.
