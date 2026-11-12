@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:enchanted_book"
+    },
+    "title": {
+      "translate": "cobblemon_field_investigations.advancement.ten_investigations.title"
+    },
+    "description": {
+      "translate": "cobblemon_field_investigations.advancement.ten_investigations.text"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "cobblemon_field_investigations:first_investigation",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

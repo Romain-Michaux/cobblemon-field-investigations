@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "degage=0,matiere=0": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_0_0"
+    },
+    "degage=1,matiere=0": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_0_1"
+    },
+    "degage=2,matiere=0": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_0_2"
+    },
+    "degage=3,matiere=0": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_0_3"
+    },
+    "degage=0,matiere=1": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_1_0"
+    },
+    "degage=1,matiere=1": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_1_1"
+    },
+    "degage=2,matiere=1": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_1_2"
+    },
+    "degage=3,matiere=1": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_1_3"
+    },
+    "degage=0,matiere=2": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_2_0"
+    },
+    "degage=1,matiere=2": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_2_1"
+    },
+    "degage=2,matiere=2": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_2_2"
+    },
+    "degage=3,matiere=2": {
+      "model": "cobblemon_field_investigations:block/disturbed_soil_2_3"
+    }
+  }
+}

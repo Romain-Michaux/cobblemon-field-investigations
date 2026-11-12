@@ -7,18 +7,18 @@
       "model": "cobblemon_field_investigations:block/trace_0"
     },
     "facing=north,genre=0": {
-      "model": "cobblemon_field_investigations:block/trace_0_mur"
+      "model": "cobblemon_field_investigations:block/trace_0_wall"
     },
     "facing=east,genre=0": {
-      "model": "cobblemon_field_investigations:block/trace_0_mur",
+      "model": "cobblemon_field_investigations:block/trace_0_wall",
       "y": 90
     },
     "facing=south,genre=0": {
-      "model": "cobblemon_field_investigations:block/trace_0_mur",
+      "model": "cobblemon_field_investigations:block/trace_0_wall",
       "y": 180
     },
     "facing=west,genre=0": {
-      "model": "cobblemon_field_investigations:block/trace_0_mur",
+      "model": "cobblemon_field_investigations:block/trace_0_wall",
       "y": 270
     },
     "facing=up,genre=1": {
@@ -28,18 +28,18 @@
       "model": "cobblemon_field_investigations:block/trace_1"
     },
     "facing=north,genre=1": {
-      "model": "cobblemon_field_investigations:block/trace_1_mur"
+      "model": "cobblemon_field_investigations:block/trace_1_wall"
     },
     "facing=east,genre=1": {
-      "model": "cobblemon_field_investigations:block/trace_1_mur",
+      "model": "cobblemon_field_investigations:block/trace_1_wall",
       "y": 90
     },
     "facing=south,genre=1": {
-      "model": "cobblemon_field_investigations:block/trace_1_mur",
+      "model": "cobblemon_field_investigations:block/trace_1_wall",
       "y": 180
     },
     "facing=west,genre=1": {
-      "model": "cobblemon_field_investigations:block/trace_1_mur",
+      "model": "cobblemon_field_investigations:block/trace_1_wall",
       "y": 270
     },
     "facing=up,genre=2": {
@@ -49,18 +49,18 @@
       "model": "cobblemon_field_investigations:block/trace_2"
     },
     "facing=north,genre=2": {
-      "model": "cobblemon_field_investigations:block/trace_2_mur"
+      "model": "cobblemon_field_investigations:block/trace_2_wall"
     },
     "facing=east,genre=2": {
-      "model": "cobblemon_field_investigations:block/trace_2_mur",
+      "model": "cobblemon_field_investigations:block/trace_2_wall",
       "y": 90
     },
     "facing=south,genre=2": {
-      "model": "cobblemon_field_investigations:block/trace_2_mur",
+      "model": "cobblemon_field_investigations:block/trace_2_wall",
       "y": 180
     },
     "facing=west,genre=2": {
-      "model": "cobblemon_field_investigations:block/trace_2_mur",
+      "model": "cobblemon_field_investigations:block/trace_2_wall",
       "y": 270
     },
     "facing=up,genre=3": {
@@ -70,18 +70,18 @@
       "model": "cobblemon_field_investigations:block/trace_3"
     },
     "facing=north,genre=3": {
-      "model": "cobblemon_field_investigations:block/trace_3_mur"
+      "model": "cobblemon_field_investigations:block/trace_3_wall"
     },
     "facing=east,genre=3": {
-      "model": "cobblemon_field_investigations:block/trace_3_mur",
+      "model": "cobblemon_field_investigations:block/trace_3_wall",
       "y": 90
     },
     "facing=south,genre=3": {
-      "model": "cobblemon_field_investigations:block/trace_3_mur",
+      "model": "cobblemon_field_investigations:block/trace_3_wall",
       "y": 180
     },
     "facing=west,genre=3": {
-      "model": "cobblemon_field_investigations:block/trace_3_mur",
+      "model": "cobblemon_field_investigations:block/trace_3_wall",
       "y": 270
     },
     "facing=up,genre=4": {
@@ -91,18 +91,18 @@
       "model": "cobblemon_field_investigations:block/trace_4"
     },
     "facing=north,genre=4": {
-      "model": "cobblemon_field_investigations:block/trace_4_mur"
+      "model": "cobblemon_field_investigations:block/trace_4_wall"
     },
     "facing=east,genre=4": {
-      "model": "cobblemon_field_investigations:block/trace_4_mur",
+      "model": "cobblemon_field_investigations:block/trace_4_wall",
       "y": 90
     },
     "facing=south,genre=4": {
-      "model": "cobblemon_field_investigations:block/trace_4_mur",
+      "model": "cobblemon_field_investigations:block/trace_4_wall",
       "y": 180
     },
     "facing=west,genre=4": {
-      "model": "cobblemon_field_investigations:block/trace_4_mur",
+      "model": "cobblemon_field_investigations:block/trace_4_wall",
       "y": 270
     },
     "facing=up,genre=5": {
@@ -112,18 +112,18 @@
       "model": "cobblemon_field_investigations:block/trace_5"
     },
     "facing=north,genre=5": {
-      "model": "cobblemon_field_investigations:block/trace_5_mur"
+      "model": "cobblemon_field_investigations:block/trace_5_wall"
     },
     "facing=east,genre=5": {
-      "model": "cobblemon_field_investigations:block/trace_5_mur",
+      "model": "cobblemon_field_investigations:block/trace_5_wall",
       "y": 90
     },
     "facing=south,genre=5": {
-      "model": "cobblemon_field_investigations:block/trace_5_mur",
+      "model": "cobblemon_field_investigations:block/trace_5_wall",
       "y": 180
     },
     "facing=west,genre=5": {
-      "model": "cobblemon_field_investigations:block/trace_5_mur",
+      "model": "cobblemon_field_investigations:block/trace_5_wall",
       "y": 270
     },
     "facing=up,genre=6": {
@@ -133,18 +133,18 @@
       "model": "cobblemon_field_investigations:block/trace_6"
     },
     "facing=north,genre=6": {
-      "model": "cobblemon_field_investigations:block/trace_6_mur"
+      "model": "cobblemon_field_investigations:block/trace_6_wall"
     },
     "facing=east,genre=6": {
-      "model": "cobblemon_field_investigations:block/trace_6_mur",
+      "model": "cobblemon_field_investigations:block/trace_6_wall",
       "y": 90
     },
     "facing=south,genre=6": {
-      "model": "cobblemon_field_investigations:block/trace_6_mur",
+      "model": "cobblemon_field_investigations:block/trace_6_wall",
       "y": 180
     },
     "facing=west,genre=6": {
-      "model": "cobblemon_field_investigations:block/trace_6_mur",
+      "model": "cobblemon_field_investigations:block/trace_6_wall",
       "y": 270
     },
     "facing=up,genre=7": {
@@ -154,18 +154,18 @@
       "model": "cobblemon_field_investigations:block/trace_7"
     },
     "facing=north,genre=7": {
-      "model": "cobblemon_field_investigations:block/trace_7_mur"
+      "model": "cobblemon_field_investigations:block/trace_7_wall"
     },
     "facing=east,genre=7": {
-      "model": "cobblemon_field_investigations:block/trace_7_mur",
+      "model": "cobblemon_field_investigations:block/trace_7_wall",
       "y": 90
     },
     "facing=south,genre=7": {
-      "model": "cobblemon_field_investigations:block/trace_7_mur",
+      "model": "cobblemon_field_investigations:block/trace_7_wall",
       "y": 180
     },
     "facing=west,genre=7": {
-      "model": "cobblemon_field_investigations:block/trace_7_mur",
+      "model": "cobblemon_field_investigations:block/trace_7_wall",
       "y": 270
     },
     "facing=up,genre=8": {
@@ -175,18 +175,18 @@
       "model": "cobblemon_field_investigations:block/trace_8"
     },
     "facing=north,genre=8": {
-      "model": "cobblemon_field_investigations:block/trace_8_mur"
+      "model": "cobblemon_field_investigations:block/trace_8_wall"
     },
     "facing=east,genre=8": {
-      "model": "cobblemon_field_investigations:block/trace_8_mur",
+      "model": "cobblemon_field_investigations:block/trace_8_wall",
       "y": 90
     },
     "facing=south,genre=8": {
-      "model": "cobblemon_field_investigations:block/trace_8_mur",
+      "model": "cobblemon_field_investigations:block/trace_8_wall",
       "y": 180
     },
     "facing=west,genre=8": {
-      "model": "cobblemon_field_investigations:block/trace_8_mur",
+      "model": "cobblemon_field_investigations:block/trace_8_wall",
       "y": 270
     },
     "facing=up,genre=9": {
@@ -196,18 +196,18 @@
       "model": "cobblemon_field_investigations:block/trace_9"
     },
     "facing=north,genre=9": {
-      "model": "cobblemon_field_investigations:block/trace_9_mur"
+      "model": "cobblemon_field_investigations:block/trace_9_wall"
     },
     "facing=east,genre=9": {
-      "model": "cobblemon_field_investigations:block/trace_9_mur",
+      "model": "cobblemon_field_investigations:block/trace_9_wall",
       "y": 90
     },
     "facing=south,genre=9": {
-      "model": "cobblemon_field_investigations:block/trace_9_mur",
+      "model": "cobblemon_field_investigations:block/trace_9_wall",
       "y": 180
     },
     "facing=west,genre=9": {
-      "model": "cobblemon_field_investigations:block/trace_9_mur",
+      "model": "cobblemon_field_investigations:block/trace_9_wall",
       "y": 270
     },
     "facing=up,genre=10": {
@@ -217,18 +217,18 @@
       "model": "cobblemon_field_investigations:block/trace_10"
     },
     "facing=north,genre=10": {
-      "model": "cobblemon_field_investigations:block/trace_10_mur"
+      "model": "cobblemon_field_investigations:block/trace_10_wall"
     },
     "facing=east,genre=10": {
-      "model": "cobblemon_field_investigations:block/trace_10_mur",
+      "model": "cobblemon_field_investigations:block/trace_10_wall",
       "y": 90
     },
     "facing=south,genre=10": {
-      "model": "cobblemon_field_investigations:block/trace_10_mur",
+      "model": "cobblemon_field_investigations:block/trace_10_wall",
       "y": 180
     },
     "facing=west,genre=10": {
-      "model": "cobblemon_field_investigations:block/trace_10_mur",
+      "model": "cobblemon_field_investigations:block/trace_10_wall",
       "y": 270
     },
     "facing=up,genre=11": {
@@ -238,18 +238,18 @@
       "model": "cobblemon_field_investigations:block/trace_11"
     },
     "facing=north,genre=11": {
-      "model": "cobblemon_field_investigations:block/trace_11_mur"
+      "model": "cobblemon_field_investigations:block/trace_11_wall"
     },
     "facing=east,genre=11": {
-      "model": "cobblemon_field_investigations:block/trace_11_mur",
+      "model": "cobblemon_field_investigations:block/trace_11_wall",
       "y": 90
     },
     "facing=south,genre=11": {
-      "model": "cobblemon_field_investigations:block/trace_11_mur",
+      "model": "cobblemon_field_investigations:block/trace_11_wall",
       "y": 180
     },
     "facing=west,genre=11": {
-      "model": "cobblemon_field_investigations:block/trace_11_mur",
+      "model": "cobblemon_field_investigations:block/trace_11_wall",
       "y": 270
     },
     "facing=up,genre=12": {
@@ -259,18 +259,18 @@
       "model": "cobblemon_field_investigations:block/trace_12"
     },
     "facing=north,genre=12": {
-      "model": "cobblemon_field_investigations:block/trace_12_mur"
+      "model": "cobblemon_field_investigations:block/trace_12_wall"
     },
     "facing=east,genre=12": {
-      "model": "cobblemon_field_investigations:block/trace_12_mur",
+      "model": "cobblemon_field_investigations:block/trace_12_wall",
       "y": 90
     },
     "facing=south,genre=12": {
-      "model": "cobblemon_field_investigations:block/trace_12_mur",
+      "model": "cobblemon_field_investigations:block/trace_12_wall",
       "y": 180
     },
     "facing=west,genre=12": {
-      "model": "cobblemon_field_investigations:block/trace_12_mur",
+      "model": "cobblemon_field_investigations:block/trace_12_wall",
       "y": 270
     }
   }

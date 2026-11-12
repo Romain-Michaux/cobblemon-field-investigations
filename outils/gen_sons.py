@@ -103,13 +103,13 @@ def son(nom):
 
 # ---------- Prélèvements ----------
 
-@son("tamis")  # sable secoué dans un tamis
+@son("sieve")  # sable secoué dans un tamis
 def _():
     d = 0.32
     return bruit(d, 2500, 9000, 3) * decroit(d, 9) * (0.6 + 0.4 * np.sin(PI2 * 28 * temps(d)) ** 2)
 
 
-@son("platre")  # plâtre épais qui coule
+@son("plaster")  # plâtre épais qui coule
 def _():
     d = 0.4
     p = bruit(d, 150, 900, 5) * cloche_env(d) * 0.8
@@ -118,7 +118,7 @@ def _():
     return p
 
 
-@son("debordement")  # ça déborde
+@son("overflow")  # ça déborde
 def _():
     d = 0.45
     p = bruit(d, 200, 2200, 7) * decroit(d, 11)
@@ -126,7 +126,7 @@ def _():
     return p
 
 
-@son("pince")  # la pince se referme
+@son("tweezers")  # la pince se referme
 def _():
     d = 0.09
     return (sinus(4200, d) + 0.6 * sinus(6300, d) + 0.5 * bruit(d, 3000, 12000, 2)) * decroit(d, 70, 0.001)
@@ -138,7 +138,7 @@ def _():
     return glisse(320, 950, d, 0.6) * decroit(d, 26, 0.002)
 
 
-@son("obturateur")  # déclencheur d'appareil photo
+@son("shutter")  # déclencheur d'appareil photo
 def _():
     p = piste(0.2)
     clic = (bruit(0.03, 1500, 9000, 4) + 0.5 * sinus(2400, 0.03)) * decroit(0.03, 110, 0.001)
@@ -148,19 +148,19 @@ def _():
     return p
 
 
-@son("frottement")  # écouvillon, griffure qu'on suit
+@son("rub")  # écouvillon, griffure qu'on suit
 def _():
     d = 0.24
     return bruit(d, 1200, 5000, 6) * cloche_env(d) * (0.55 + 0.45 * np.sin(PI2 * 45 * temps(d)))
 
 
-@son("pinceau")  # pinceau sur la terre
+@son("brush")  # pinceau sur la terre
 def _():
     d = 0.3
     return bruit(d, 3000, 11000, 8) * cloche_env(d)
 
 
-@son("fiole")  # la fiole se remplit
+@son("vial")  # la fiole se remplit
 def _():
     p = piste(0.36)
     for i in range(5):
@@ -168,13 +168,13 @@ def _():
     return p
 
 
-@son("bulle")  # une bulle sous l'eau
+@son("bubble")  # une bulle sous l'eau
 def _():
     d = 0.13
     return glisse(380, 1150, d, 1.6) * decroit(d, 20, 0.006)
 
 
-@son("coeur")  # un battement de cœur
+@son("heartbeat")  # un battement de cœur
 def _():
     p = piste(0.42)
     poser(p, glisse(75, 48, 0.14) * decroit(0.14, 20, 0.006), 0)
@@ -182,7 +182,7 @@ def _():
     return p
 
 
-@son("corde")  # la corde file
+@son("rope")  # la corde file
 def _():
     d = 0.2
     n = int(SR * d)
@@ -190,7 +190,7 @@ def _():
     return (bruit(d, 800, 6000, 11) * 0.8 + porteuse * 0.25) * cloche_env(d)[:n]
 
 
-@son("mousqueton")  # un mousqueton qui se ferme
+@son("carabiner")  # un mousqueton qui se ferme
 def _():
     d = 0.22
     t = temps(d)
@@ -198,13 +198,13 @@ def _():
     return y + bruit(d, 2000, 10000, 12) * decroit(d, 90, 0.001) * 0.6
 
 
-@son("branche")  # la main agrippe une branche
+@son("branch")  # la main agrippe une branche
 def _():
     d = 0.16
     return glisse(150, 95, d) * decroit(d, 26) + bruit(d, 300, 2500, 13) * decroit(d, 60, 0.001) * 0.6
 
 
-@son("craquement")  # une branche qui casse, un fragment perdu
+@son("crack")  # une branche qui casse, un fragment perdu
 def _():
     p = piste(0.3)
     rng = np.random.default_rng(14)
@@ -214,13 +214,13 @@ def _():
     return p
 
 
-@son("choc")  # deux petits objets qui se cognent
+@son("knock")  # deux petits objets qui se cognent
 def _():
     d = 0.07
     return (sinus(1900, d) + 0.6 * sinus(3100, d) + 0.4 * bruit(d, 1500, 8000, 15)) * decroit(d, 75, 0.0008)
 
 
-@son("eboulement")  # des pierres qui roulent
+@son("rockslide")  # des pierres qui roulent
 def _():
     p = bruit(0.9, 60, 500, 16) * decroit(0.9, 4) * 0.5
     rng = np.random.default_rng(17)
@@ -230,14 +230,14 @@ def _():
     return p
 
 
-@son("pioche")  # un coup de pioche sur la pierre
+@son("pickaxe")  # un coup de pioche sur la pierre
 def _():
     d = 0.2
     t = temps(d)
     return (np.sin(PI2 * 1250 * t) + 0.6 * np.sin(PI2 * 2470 * t) + 0.3 * np.sin(PI2 * 3900 * t)) * np.exp(-t * 30) + bruit(d, 800, 7000, 18) * decroit(d, 80, 0.001)
 
 
-@son("pierre")  # une pierre qu'on pose, qu'on fait glisser
+@son("stone")  # une pierre qu'on pose, qu'on fait glisser
 def _():
     d = 0.2
     return glisse(130, 70, d) * decroit(d, 22) + bruit(d, 150, 1400, 19) * decroit(d, 26) * 0.9
@@ -245,19 +245,19 @@ def _():
 
 # ---------- Laboratoire ----------
 
-@son("goutte")  # une goutte tombe dans le liquide
+@son("drop")  # une goutte tombe dans le liquide
 def _():
     d = 0.2
     return glisse(1500, 720, d, 0.4) * decroit(d, 20, 0.002)
 
 
-@son("molette")  # un cran de molette
+@son("knob")  # un cran de molette
 def _():
     d = 0.035
     return (sinus(3100, d) + 0.5 * bruit(d, 2500, 9000, 20)) * decroit(d, 160, 0.0006)
 
 
-@son("glace")  # la glace se fend
+@son("ice")  # la glace se fend
 def _():
     d = 0.3
     t = temps(d)
@@ -265,19 +265,19 @@ def _():
     return tinte * 0.6 + bruit(d, 2500, 13000, 21) * decroit(d, 55, 0.0008)
 
 
-@son("flamme")  # la flamme du brûleur
+@son("flame")  # la flamme du brûleur
 def _():
     d = 0.45
     return bruit(d, 90, 700, 22) * cloche_env(d) * (0.75 + 0.25 * np.sin(PI2 * 13 * temps(d)))
 
 
-@son("sifflement")  # ça grésille : trop chaud
+@son("whistle")  # ça grésille : trop chaud
 def _():
     d = 0.5
     return bruit(d, 4500, 15000, 23) * decroit(d, 7, 0.01)
 
 
-@son("lampe")  # bourdonnement d'une lampe UV
+@son("lamp")  # bourdonnement d'une lampe UV
 def _():
     d = 1.1
     t = temps(d)
@@ -287,19 +287,19 @@ def _():
 
 # ---------- Interface ----------
 
-@son("tic")  # le temps presse
+@son("tick")  # le temps presse
 def _():
     d = 0.04
     return (sinus(1500, d) + 0.4 * bruit(d, 2000, 9000, 24)) * decroit(d, 130, 0.0006)
 
 
-@son("clic")  # bouton de l'interface
+@son("click")  # bouton de l'interface
 def _():
     d = 0.05
     return (sinus(880, d) + 0.5 * sinus(1760, d)) * decroit(d, 95, 0.001)
 
 
-@son("papier")  # une fiche qu'on retourne
+@son("paper")  # une fiche qu'on retourne
 def _():
     d = 0.2
     return bruit(d, 1800, 9000, 25) * cloche_env(d) ** 2 * (0.6 + 0.4 * np.sin(PI2 * 22 * temps(d)))
@@ -311,12 +311,12 @@ def _():
     return (sinus(1000, d) + 0.25 * sinus(2000, d)) * np.minimum(1, temps(d) / 0.004) * np.exp(-temps(d) * 22)
 
 
-@son("carillon")  # note claire : quelque chose apparaît, une étape est franchie
+@son("chime")  # note claire : quelque chose apparaît, une étape est franchie
 def _():
     return cloche(880, 0.7, 6.0)
 
 
-@son("reussite")  # mini-jeu réussi
+@son("success")  # mini-jeu réussi
 def _():
     p = piste(0.75)
     for i, f in enumerate((523.25, 659.25, 783.99, 1046.5)):
@@ -324,7 +324,7 @@ def _():
     return p
 
 
-@son("echec")  # mini-jeu raté, clic dans le vide
+@son("failure")  # mini-jeu raté, clic dans le vide
 def _():
     p = piste(0.42)
     poser(p, carre(196, 0.17) * decroit(0.17, 12), 0)
@@ -332,7 +332,7 @@ def _():
     return p
 
 
-@son("identifie")  # la cible est identifiée
+@son("identified")  # la cible est identifiée
 def _():
     p = piste(0.8)
     poser(p, cloche(880, 0.5, 7), 0)
@@ -340,7 +340,7 @@ def _():
     return p
 
 
-@son("grade")  # montée de rang
+@son("rank_up")  # montée de rang
 def _():
     p = piste(1.5)
     for i, f in enumerate((392, 523.25, 659.25, 783.99)):
@@ -350,14 +350,14 @@ def _():
     return p
 
 
-PERSO = os.path.join(ICI, "sons_perso")
+PERSO = os.path.join(ICI, "custom_sounds")
 # Durée maximale de chaque son fait à la main, en secondes. Beaucoup sont rejoués plusieurs fois par seconde (le tamis, la
 # corde, le bip du scanner) : trop longs, ils se superposeraient en bouillie. Au-delà, le son est coupé en fondu.
-DUREES = {"clic": 0.12, "molette": 0.08, "tic": 0.1, "carillon": 0.9, "mousqueton": 0.6, "reussite": 1.6, "echec": 1.0, "identifie": 1.6,
-          "grade": 2.1, "scan": 0.18, "papier": 0.5, "tamis": 0.35, "frottement": 0.3, "pinceau": 0.35, "corde": 0.3, "platre": 0.4,
-          "debordement": 0.47, "pluck": 0.25, "fiole": 0.6, "bulle": 0.25, "goutte": 0.24, "pince": 0.15, "coeur": 0.5, "branche": 0.35,
-          "choc": 0.2, "pioche": 0.45, "pierre": 0.45, "craquement": 0.28, "eboulement": 1.4, "glace": 0.42, "obturateur": 0.22,
-          "lampe": 1.2, "flamme": 0.5, "sifflement": 0.6}
+DUREES = {"click": 0.12, "knob": 0.08, "tick": 0.1, "chime": 0.9, "carabiner": 0.6, "success": 1.6, "failure": 1.0, "identified": 1.6,
+          "rank_up": 2.1, "scan": 0.18, "paper": 0.5, "sieve": 0.35, "rub": 0.3, "brush": 0.35, "rope": 0.3, "plaster": 0.4,
+          "overflow": 0.47, "pluck": 0.25, "vial": 0.6, "bubble": 0.25, "drop": 0.24, "tweezers": 0.15, "heartbeat": 0.5, "branch": 0.35,
+          "knock": 0.2, "pickaxe": 0.45, "stone": 0.45, "crack": 0.28, "rockslide": 1.4, "ice": 0.42, "shutter": 0.22,
+          "lamp": 1.2, "flame": 0.5, "whistle": 0.6}
 
 
 def ajuster(x, sr, nom):
@@ -395,7 +395,7 @@ if __name__ == "__main__":
         else:
             sf.write(os.path.join(SORTIE, nom + ".ogg"), finir(fabrique()), SR, format="OGG", subtype="VORBIS")
         declarations[nom] = {"sounds": [NS + ":" + nom]}
-    print("sons faits à la main :", ", ".join(remplaces) if remplaces else "aucun")
+    print("sons faits à la main :", ", ".join(remplaces) if remplaces else "none")
     with open(os.path.join(SORTIE, "..", "sounds.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(declarations, f, ensure_ascii=False, indent=2, sort_keys=True)
         f.write("\n")

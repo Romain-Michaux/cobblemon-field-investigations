@@ -1,0 +1,30 @@
+{
+  "display": {
+    "icon": {
+      "id": "cobblemon_field_investigations:field_kit"
+    },
+    "title": {
+      "translate": "cobblemon_field_investigations.advancement.root.title"
+    },
+    "description": {
+      "translate": "cobblemon_field_investigations.advancement.root.text"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false,
+    "background": "minecraft:textures/gui/advancements/backgrounds/adventure.png"
+  },
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "cobblemon_field_investigations:field_kit"
+          }
+        ]
+      }
+    }
+  }
+}

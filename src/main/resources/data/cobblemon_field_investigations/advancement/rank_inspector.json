@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "cobblemon_field_investigations:field_kit"
+    },
+    "title": {
+      "translate": "cobblemon_field_investigations.advancement.rank_inspector.title"
+    },
+    "description": {
+      "translate": "cobblemon_field_investigations.advancement.rank_inspector.text"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "cobblemon_field_investigations:first_investigation",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

@@ -1,142 +1,142 @@
 {
-  "branche": {
+  "branch": {
     "sounds": [
-      "cobblemon_field_investigations:branche"
+      "cobblemon_field_investigations:branch"
     ]
   },
-  "bulle": {
+  "bubble": {
     "sounds": [
-      "cobblemon_field_investigations:bulle"
+      "cobblemon_field_investigations:bubble"
     ]
   },
-  "carillon": {
+  "chime": {
     "sounds": [
-      "cobblemon_field_investigations:carillon"
+      "cobblemon_field_investigations:chime"
     ]
   },
-  "choc": {
+  "knock": {
     "sounds": [
-      "cobblemon_field_investigations:choc"
+      "cobblemon_field_investigations:knock"
     ]
   },
-  "clic": {
+  "click": {
     "sounds": [
-      "cobblemon_field_investigations:clic"
+      "cobblemon_field_investigations:click"
     ]
   },
-  "coeur": {
+  "heartbeat": {
     "sounds": [
-      "cobblemon_field_investigations:coeur"
+      "cobblemon_field_investigations:heartbeat"
     ]
   },
-  "corde": {
+  "rope": {
     "sounds": [
-      "cobblemon_field_investigations:corde"
+      "cobblemon_field_investigations:rope"
     ]
   },
-  "craquement": {
+  "crack": {
     "sounds": [
-      "cobblemon_field_investigations:craquement"
+      "cobblemon_field_investigations:crack"
     ]
   },
-  "debordement": {
+  "overflow": {
     "sounds": [
-      "cobblemon_field_investigations:debordement"
+      "cobblemon_field_investigations:overflow"
     ]
   },
-  "eboulement": {
+  "rockslide": {
     "sounds": [
-      "cobblemon_field_investigations:eboulement"
+      "cobblemon_field_investigations:rockslide"
     ]
   },
-  "echec": {
+  "failure": {
     "sounds": [
-      "cobblemon_field_investigations:echec"
+      "cobblemon_field_investigations:failure"
     ]
   },
-  "fiole": {
+  "vial": {
     "sounds": [
-      "cobblemon_field_investigations:fiole"
+      "cobblemon_field_investigations:vial"
     ]
   },
-  "flamme": {
+  "flame": {
     "sounds": [
-      "cobblemon_field_investigations:flamme"
+      "cobblemon_field_investigations:flame"
     ]
   },
-  "frottement": {
+  "rub": {
     "sounds": [
-      "cobblemon_field_investigations:frottement"
+      "cobblemon_field_investigations:rub"
     ]
   },
-  "glace": {
+  "ice": {
     "sounds": [
-      "cobblemon_field_investigations:glace"
+      "cobblemon_field_investigations:ice"
     ]
   },
-  "goutte": {
+  "drop": {
     "sounds": [
-      "cobblemon_field_investigations:goutte"
+      "cobblemon_field_investigations:drop"
     ]
   },
-  "grade": {
+  "rank_up": {
     "sounds": [
-      "cobblemon_field_investigations:grade"
+      "cobblemon_field_investigations:rank_up"
     ]
   },
-  "identifie": {
+  "identified": {
     "sounds": [
-      "cobblemon_field_investigations:identifie"
+      "cobblemon_field_investigations:identified"
     ]
   },
-  "lampe": {
+  "lamp": {
     "sounds": [
-      "cobblemon_field_investigations:lampe"
+      "cobblemon_field_investigations:lamp"
     ]
   },
-  "molette": {
+  "knob": {
     "sounds": [
-      "cobblemon_field_investigations:molette"
+      "cobblemon_field_investigations:knob"
     ]
   },
-  "mousqueton": {
+  "carabiner": {
     "sounds": [
-      "cobblemon_field_investigations:mousqueton"
+      "cobblemon_field_investigations:carabiner"
     ]
   },
-  "obturateur": {
+  "shutter": {
     "sounds": [
-      "cobblemon_field_investigations:obturateur"
+      "cobblemon_field_investigations:shutter"
     ]
   },
-  "papier": {
+  "paper": {
     "sounds": [
-      "cobblemon_field_investigations:papier"
+      "cobblemon_field_investigations:paper"
     ]
   },
-  "pierre": {
+  "stone": {
     "sounds": [
-      "cobblemon_field_investigations:pierre"
+      "cobblemon_field_investigations:stone"
     ]
   },
-  "pince": {
+  "tweezers": {
     "sounds": [
-      "cobblemon_field_investigations:pince"
+      "cobblemon_field_investigations:tweezers"
     ]
   },
-  "pinceau": {
+  "brush": {
     "sounds": [
-      "cobblemon_field_investigations:pinceau"
+      "cobblemon_field_investigations:brush"
     ]
   },
-  "pioche": {
+  "pickaxe": {
     "sounds": [
-      "cobblemon_field_investigations:pioche"
+      "cobblemon_field_investigations:pickaxe"
     ]
   },
-  "platre": {
+  "plaster": {
     "sounds": [
-      "cobblemon_field_investigations:platre"
+      "cobblemon_field_investigations:plaster"
     ]
   },
   "pluck": {
@@ -144,9 +144,9 @@
       "cobblemon_field_investigations:pluck"
     ]
   },
-  "reussite": {
+  "success": {
     "sounds": [
-      "cobblemon_field_investigations:reussite"
+      "cobblemon_field_investigations:success"
     ]
   },
   "scan": {
@@ -154,19 +154,19 @@
       "cobblemon_field_investigations:scan"
     ]
   },
-  "sifflement": {
+  "whistle": {
     "sounds": [
-      "cobblemon_field_investigations:sifflement"
+      "cobblemon_field_investigations:whistle"
     ]
   },
-  "tamis": {
+  "sieve": {
     "sounds": [
-      "cobblemon_field_investigations:tamis"
+      "cobblemon_field_investigations:sieve"
     ]
   },
-  "tic": {
+  "tick": {
     "sounds": [
-      "cobblemon_field_investigations:tic"
+      "cobblemon_field_investigations:tick"
     ]
   }
 }

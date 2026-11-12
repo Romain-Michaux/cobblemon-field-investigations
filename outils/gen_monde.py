@@ -54,14 +54,14 @@ for x, y in [(5, 6), (10, 9), (7, 11)]:
         residu.putpixel((x + dx, y + dy), (132, 205, 196, 230))
     residu.putpixel((x, y), (214, 244, 238, 240))
 sauver(residu, "block", "trace_0")
-sauver(voile(ouvrir("monde_type2"), 0.85), "block", "trace_1")
-sauver(voile(ouvrir("monde_taille"), 0.8), "block", "trace_2")
-sauver(voile(ouvrir("monde_oeuf"), 0.92), "block", "trace_3")
-sauver(voile(ouvrir("monde_stat"), 0.85), "block", "trace_4")
+sauver(voile(ouvrir("world_type2"), 0.85), "block", "trace_1")
+sauver(voile(ouvrir("world_size"), 0.8), "block", "trace_2")
+sauver(voile(ouvrir("world_egg"), 0.92), "block", "trace_3")
+sauver(voile(ouvrir("world_stat"), 0.85), "block", "trace_4")
 # Indices dégagés du sol : os, coquilles, croc.
 # Les numéros suivent Genetique.blocEnfoui : os et dent (croissance), coquilles, plume et mue (lignée), croc, griffe et écaille (aptitude).
-ENFOUIS = ((5, "enfoui_os", "taille", 0), (6, "enfoui_coquille", "oeuf", 0), (7, "enfoui_croc", "stat", 0), (8, "enfoui_dent", "taille", 1),
-           (9, "enfoui_plume", "oeuf", 1), (10, "enfoui_mue", "oeuf", 2), (11, "enfoui_griffe", "stat", 1), (12, "enfoui_ecaille", "stat", 2))
+ENFOUIS = ((5, "buried_bone", "size", 0), (6, "buried_shell", "egg", 0), (7, "buried_fang", "stat", 0), (8, "buried_tooth", "size", 1),
+           (9, "buried_feather", "egg", 1), (10, "buried_moult", "egg", 2), (11, "buried_claw", "stat", 1), (12, "buried_scale", "stat", 2))
 for i, nom, _, _ in ENFOUIS:
     sauver(ouvrir(nom), "block", "trace_%d" % i)
 
@@ -86,24 +86,24 @@ for etape in range(4):
     if etape == 3:
         for x, y in [(6, 9), (7, 8), (8, 7), (9, 6), (9, 7), (6, 8)]:
             im.putpixel((x, y), (226, 214, 186, 255))
-    sauver(im, "block", "sol_%d" % etape)
+    sauver(im, "block", "soil_%d" % etape)
 
 BASES = ["minecraft:block/dirt", "minecraft:block/sand", "minecraft:block/gravel"]
 variantes = {}
 for m, base in enumerate(BASES):
     for k in range(4):
-        nom = "sol_remue_%d_%d" % (m, k)
+        nom = "disturbed_soil_%d_%d" % (m, k)
         ecrire_json(("assets", NS, "models", "block", nom + ".json"), {
             "parent": "minecraft:block/block",
-            "textures": {"base": base, "dessus": NS + ":block/sol_%d" % k, "particle": base},
+            "textures": {"base": base, "top": NS + ":block/soil_%d" % k, "particle": base},
             "elements": [
                 {"from": [0, 0, 0], "to": [16, 16, 16],
                  "faces": {d: {"texture": "#base", "cullface": d} for d in ("north", "south", "east", "west", "up", "down")}},
                 {"from": [-0.02, -0.02, -0.02], "to": [16.02, 16.02, 16.02], "shade": False,
-                 "faces": {d: {"texture": "#dessus"} for d in ("north", "south", "east", "west", "up", "down")}},
+                 "faces": {d: {"texture": "#top"} for d in ("north", "south", "east", "west", "up", "down")}},
             ]})
         variantes["degage=%d,matiere=%d" % (k, m)] = {"model": NS + ":block/" + nom}
-ecrire_json(("assets", NS, "blockstates", "sol_remue.json"), {"variants": variantes})
+ecrire_json(("assets", NS, "blockstates", "disturbed_soil.json"), {"variants": variantes})
 
 # ---------- Traces : treize genres (5 de surface + 8 indices dégagés) ----------
 variantes = {}
@@ -113,7 +113,7 @@ for i in range(13):
         "textures": {"t": NS + ":block/trace_%d" % i, "particle": NS + ":block/trace_%d" % i},
         "elements": [{"from": [0, 0.25, 0], "to": [16, 0.25, 16], "shade": False,
                       "faces": {"up": {"texture": "#t", "uv": [0, 0, 16, 16]}, "down": {"texture": "#t", "uv": [0, 0, 16, 16]}}}]})
-    ecrire_json(("assets", NS, "models", "block", "trace_%d_mur.json" % i), {
+    ecrire_json(("assets", NS, "models", "block", "trace_%d_wall.json" % i), {
         "ambientocclusion": False,
         "textures": {"t": NS + ":block/trace_%d" % i, "particle": NS + ":block/trace_%d" % i},
         "elements": [{"from": [0, 0, 15.75], "to": [16, 16, 15.75], "shade": False,
@@ -121,28 +121,28 @@ for i in range(13):
     for d in ("up", "down"):
         variantes["facing=%s,genre=%d" % (d, i)] = {"model": NS + ":block/trace_%d" % i}
     for d, r in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
-        v = {"model": NS + ":block/trace_%d_mur" % i}
+        v = {"model": NS + ":block/trace_%d_wall" % i}
         if r:
             v["y"] = r
         variantes["facing=%s,genre=%d" % (d, i)] = v
 ecrire_json(("assets", NS, "blockstates", "trace.json"), {"variants": variantes})
 
 # ---------- Objets ----------
-sauver(ouvrir("item_kit2"), "item", "kit_terrain")
-sauver(ouvrir("item_fiole"), "item", "fiole")
-sauver(ouvrir("item_echantillon"), "item", "echantillon")
+sauver(ouvrir("item_kit2"), "item", "field_kit")
+sauver(ouvrir("item_vial"), "item", "vial")
+sauver(ouvrir("item_sample"), "item", "sample")
 
 # ---------- Décors des mini-jeux (interface) ----------
-for nom in ("ecorce", "terre", "petri", "grand_os", "grand_coquille", "grand_croc",
-            "debris_coquille", "debris_brindille", "debris_feuille", "debris_caillou"):
+for nom in ("bark", "earth", "petri", "large_bone", "large_shell", "large_fang",
+            "debris_shell", "debris_twig", "debris_leaf", "debris_pebble"):
     sauver(ouvrir(nom), "gui", nom)
 for _, nom, genre, variante in ENFOUIS:
-    sauver(ouvrir(nom), "gui", "enfoui_" + genre + ("_%d" % variante if variante else ""))
+    sauver(ouvrir(nom), "gui", "buried_" + genre + ("_%d" % variante if variante else ""))
 # Accessoires et décors des mini-jeux ajoutés en 1.1.
-for nom in ("tamis", "pince", "ecouvillon", "burette", "glacon", "paroi", "fond_eau", "nuit", "sous_bois", "nid", "plateau"):
+for nom in ("sieve", "tweezers", "swab", "burette", "ice_cube", "rock_face", "bg_water", "night", "undergrowth", "nest", "plateau"):
     sauver(ouvrir(nom), "gui", nom)
 sauver(ouvrir("radar_b"), "gui", "radar")  # détecteur du HUD : sonar à gauche (centre 33,24), afficheur à droite (55..177 x 14..33)
-sauver(ouvrir("cristal_a"), "gui", "cristal")  # teinté en jeu : terne, turquoise (stable) ou rouge (instable)
+sauver(ouvrir("crystal_a"), "gui", "crystal")  # teinté en jeu : terne, turquoise (stable) ou rouge (instable)
 # Bac de gel de l'électrophorèse (240 x 104), dessiné ici : PixelLab le rend en perspective, il faut un fond bien à plat.
 h = random.Random(3)
 gel = Image.new("RGBA", (240, 104))
@@ -168,10 +168,10 @@ for y in range(104):
             c = (int(26 * v) + 10 + g, int(30 * v) + 14 + g, int(74 * v) + 30 + g)
         gel.putpixel((x, y), c + (255,))
 sauver(gel, "gui", "gel")
-sauver(ouvrir("viseur_a"), "gui", "viseur")  # viseur du scanner, teinté en jeu
-empreinte = ouvrir("empreinte")
+sauver(ouvrir("viewfinder_a"), "gui", "viewfinder")  # viseur du scanner, teinté en jeu
+empreinte = ouvrir("footprint")
 empreinte = empreinte.crop(empreinte.getbbox())
-sauver(empreinte, "gui", "empreinte")
+sauver(empreinte, "gui", "footprint")
 assert empreinte.size == (74, 70), "JeuMesure.EL / EH sont à mettre à jour"
 # Erlenmeyer de la colorimétrie : le verre garde ses couleurs ; le liquide (zone claire et chaude du bas) est séparé
 # dans une seconde texture en gris clair, la seule à être teintée en jeu.
@@ -186,7 +186,7 @@ for y in range(37, verre.height):
             liquide.putpixel((x, y), (v, v, v, 255))
             px[x, y] = (0, 0, 0, 0)
 sauver(verre, "gui", "erlenmeyer")
-sauver(liquide, "gui", "erlenmeyer_liquide")
+sauver(liquide, "gui", "erlenmeyer_liquid")
 
 # Les fichiers de langue sont écrits par outils/gen_langues.py.
 
@@ -227,9 +227,9 @@ def branche_morte(vivante):
     return im
 
 
-for nom in ("branche", "branche_morte"):
-    brut = ouvrir("branche")
-    if nom == "branche_morte":
+for nom in ("branch", "dead_branch"):
+    brut = ouvrir("branch")
+    if nom == "dead_branch":
         brut = branche_morte(brut)
     decoupe = brut.crop(brut.getbbox())
     im = Image.new("RGBA", (32, 32))
@@ -239,8 +239,8 @@ for nom in ("branche", "branche_morte"):
 
 # Décor de la grimpe : la forêt du fond est fixe ; le tronc est une bande droite de 56 px (la partie sans racines d'une
 # image PixelLab, raccordée par un fondu sur dix lignes) qui se répète sans couture et défile.
-for nom in ("tronc", "foret"):
+for nom in ("trunk", "forest"):
     sauver(ouvrir(nom), "gui", nom)
 
 # Insigne d'enquêteur du carnet (teinté en jeu à la couleur du rang).
-sauver(ouvrir("insigne"), "gui", "insigne")
+sauver(ouvrir("badge"), "gui", "badge")

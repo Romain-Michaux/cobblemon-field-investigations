@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:spyglass"
+    },
+    "title": {
+      "translate": "cobblemon_field_investigations.advancement.keen_nose.title"
+    },
+    "description": {
+      "translate": "cobblemon_field_investigations.advancement.keen_nose.text"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "parent": "cobblemon_field_investigations:first_analysis",
+  "criteria": {
+    "done": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

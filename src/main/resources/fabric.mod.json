@@ -11,10 +11,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "fr.cobblescout.traque.Traque"
+      "io.github.romainmichaux.fieldinvestigations.Traque"
     ],
     "client": [
-      "fr.cobblescout.traque.client.TraqueClient"
+      "io.github.romainmichaux.fieldinvestigations.client.TraqueClient"
     ]
   },
   "depends": {
