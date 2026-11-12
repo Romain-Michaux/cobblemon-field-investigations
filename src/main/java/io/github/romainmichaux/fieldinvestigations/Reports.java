@@ -60,7 +60,7 @@ final class Reports {
     private static final List<Habitat> HABITATS = List.of(
             new Habitat("dig_site", List.of("c:is_desert", "minecraft:is_badlands", "minecraft:is_beach", "c:is_sandy"), List.of("desert", "badlands", "beach", "dune")),
             new Habitat("canopy", List.of("minecraft:is_forest", "minecraft:is_jungle", "minecraft:is_taiga"), List.of("forest", "jungle", "taiga", "woods")),
-            new Habitat("altitude", List.of("minecraft:is_mountain", "minecraft:is_hill", "c:is_mountain"), List.of("mountain", "peak", "hills", "highland", "cliff")),
+            new Habitat("highlands", List.of("minecraft:is_mountain", "minecraft:is_hill", "c:is_mountain"), List.of("mountain", "peak", "hills", "highland", "cliff")),
             new Habitat("frost", List.of("c:is_snowy", "c:is_icy"), List.of("snow", "frozen", "ice", "glacier", "tundra")),
             new Habitat("mist", List.of("c:is_swamp"), List.of("swamp", "marsh", "bog", "bayou", "mangrove")));
 

@@ -5,22 +5,22 @@ run/
 *.log
 build_log.txt
 
-# Jars locaux (Cobblemon vient maintenant du dépôt Maven) et anciens prototypes
+# Local jars (Cobblemon now comes from the Maven repository) and old prototypes
 libs/
 prototype_plugin/
 
-# Captures de travail (la galerie publiée est dans docs/gallery)
+# Working screenshots (the published gallery is in docs/gallery)
 captures/
 
-# Divers
+# Misc
 __pycache__/
 *.pyc
 .idea/
 .vscode/
 *.iml
 
-# Gabarit officiel des icônes d'add-ons Cobblemon (téléchargé depuis leur Discord, non redistribué ici)
+# Official Cobblemon add-on icon template (downloaded from their Discord, not redistributed here)
 Cobblemon_Addon_Frames.zip
 
-# Fichiers personnels posés dans le dossier
+# Personal files dropped in the folder
 *.exe

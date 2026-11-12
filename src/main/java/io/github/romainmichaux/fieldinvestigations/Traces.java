@@ -78,7 +78,7 @@ final class Traces {
         // Canopy: everything is in the trees. Altitude: on rock walls.
         if (Engine.is(d, "canopy") && (h.nextBoolean() ? onTreetop(level, t, bx, bz) || onWall(level, t, bx, bz, true)
                 : onWall(level, t, bx, bz, true) || onTreetop(level, t, bx, bz))) return;
-        if (Engine.is(d, "altitude") && onWall(level, t, bx, bz, false)) return;
+        if (Engine.is(d, "highlands") && onWall(level, t, bx, bz, false)) return;
         boolean scratches = t.kind.equals("stat");
         boolean wall = scratches || (t.kind.equals("type2") && h.nextBoolean()) || (t.kind.equals("type1") && h.nextInt(3) == 0);
         boolean treetop = t.kind.equals("egg") && h.nextBoolean();

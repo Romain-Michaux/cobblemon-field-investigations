@@ -125,7 +125,7 @@ public class BoardScreen extends Screen {
             int cx = x + GRID_X + (i % 4) * STEP_X, cy = y + (i / 4) * STEP_Y;
             boolean ruledOut = s.getBoolean("ruled_out");
             String species = s.getString("species");
-            boolean chosen = species.equals(sampling ? choice : e.getString("pronostic"));
+            boolean chosen = species.equals(sampling ? choice : e.getString("guess"));
             if (!ruledOut) {
                 remaining++;
                 lastRemaining = species;
@@ -166,7 +166,7 @@ public class BoardScreen extends Screen {
             if (Draw.textFont().width(label) > 112) label = T.f("start_the_hunt");
             Draw.button(g, bx, by, 122, 18, label, Draw.in(mx, my, bx, by, 122, 18), ready, Draw.GREEN);
         } else {
-            Draw.write(g, T.f("guess") + Draw.speciesName(e.getString("pronostic")), bx, by, Draw.INK, false);
+            Draw.write(g, T.f("guess") + Draw.speciesName(e.getString("guess")), bx, by, Draw.INK, false);
             Draw.write(g, phase.equals("FLUSHED") ? T.f("target_flushed_out") : T.f("in_the_field_with_the"), bx, by + 10, Draw.INK_RED, false);
         }
         Draw.button(g, bx + 126, by, 72, 18, T.f("give_up"), Draw.in(mx, my, bx + 126, by, 72, 18), true, Draw.DARK_RED);
@@ -178,7 +178,7 @@ public class BoardScreen extends Screen {
             lines.add(Component.literal("§b" + T.iv(stars) + T.f("perfect_ivs_7on_the_caught")));
             lines.add(Component.literal(T.f("7and_richer_loot_with_each")));
             lines.add(Component.literal(T.f("8_one_star_no_perfect")));
-            lines.add(Component.literal(T.f("8mini_game_failure_half") + e.getInt("fautes") + ")"));
+            lines.add(Component.literal(T.f("8mini_game_failure_half") + e.getInt("faults") + ")"));
             lines.add(Component.literal(T.f("8target_ran_away_1") + e.getInt("leaks") + ")"));
             lines.add(Component.literal(T.f("8wrong_guess_2")));
             if (!special.isEmpty()) {
@@ -217,7 +217,7 @@ static String specialName(String special) {
             case "aquatic" -> T.f("aquatic");
             case "dig_site" -> T.f("dig_site");
             case "canopy" -> T.f("canopy");
-            case "altitude" -> T.f("highlands");
+            case "highlands" -> T.f("highlands");
             case "frost" -> T.f("frost");
             case "mist" -> T.f("mist");
             case "underground" -> T.f("underground");
@@ -234,7 +234,7 @@ static String specialName(String special) {
             case "aquatic" -> 0xFF5BB8F0;
             case "dig_site" -> 0xFFD9B36A;
             case "canopy" -> 0xFF7CC66A;
-            case "altitude" -> 0xFFC9B8AA;
+            case "highlands" -> 0xFFC9B8AA;
             case "frost" -> 0xFFA8E4F0;
             case "mist" -> 0xFFB7A8DC;
             case "underground" -> 0xFFD0A070;
@@ -251,7 +251,7 @@ static String specialName(String special) {
             case "aquatic" -> new String[] {T.f("7traces_on_the_bottom_target"), T.f("7the_water_be_ready_to")};
             case "dig_site" -> new String[] {T.f("7every_remain_is_buried"), T.f("7dig_and_brush_with_care")};
             case "canopy" -> new String[] {T.f("7traces_on_trunks_and_up"), T.f("7treetops_look_up")};
-            case "altitude" -> new String[] {T.f("7traces_on_rock_faces_across"), T.f("7a_much_wider_zone")};
+            case "highlands" -> new String[] {T.f("7traces_on_rock_faces_across"), T.f("7a_much_wider_zone")};
             case "frost" -> new String[] {T.f("7frozen_fragile_samples"), T.f("7one_dose_fewer_per_sample")};
             case "mist" -> new String[] {T.f("7cries_carry_poorly_bearings"), T.f("7are_much_less_precise")};
             case "underground" -> new String[] {T.f("7cave_species_traces_and_target"), T.f("7underground_bring_torches_and_a")};
@@ -267,7 +267,7 @@ static String specialName(String special) {
             case "aquatic" -> T.f("special_loot_water_items");
             case "dig_site" -> T.f("special_loot_fossils");
             case "canopy" -> T.f("special_loot_forest_items");
-            case "altitude" -> T.f("special_loot_rare_stones");
+            case "highlands" -> T.f("special_loot_rare_stones");
             case "frost" -> T.f("special_loot_ice_items");
             case "mist" -> T.f("special_loot_swamp_items");
             case "underground" -> T.f("special_loot_ores_and_stones");

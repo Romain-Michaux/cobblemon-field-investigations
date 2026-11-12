@@ -49,7 +49,7 @@ final class Draw {
     static final Backdrop BOARD = new Backdrop(texture("bg_board"), 378, 236, 20, 23, 336, 189);
     static final Backdrop SEQUENCER = new Backdrop(texture("bg_sequencer"), 324, 225, 18, 13, 288, 167);
     static final ResourceLocation PAPER = texture("paper"), POLAROID = texture("polaroid"), PIN = texture("pin"), BUTTON = texture("button"),
-            PLATE = texture("plaque"), DIAL = texture("dial"), ROTOR = texture("rotor"), VIAL = texture("vial"),
+            PLATE = texture("plate"), DIAL = texture("dial"), ROTOR = texture("rotor"), VIAL = texture("vial"),
             TILE = texture("tile"), RADAR = texture("radar"), VIEWFINDER = texture("viewfinder"), INSET_TEXTURE = texture("inset"), CROSS = texture("cross");
 
     private static final Map<String, ItemStack> PORTRAITS = new HashMap<>();
@@ -305,7 +305,7 @@ final class Draw {
     }
 
     static String wind(double bearing) {
-        return T.f("vents").split(",")[(int) Math.round((((bearing % 360) + 360) % 360) / 22.5) % 16];
+        return T.f("winds").split(",")[(int) Math.round((((bearing % 360) + 360) % 360) / 22.5) % 16];
     }
 
     // Compass bearing (0 = north, 90 = east) of point (x, z) seen from (ox, oz).

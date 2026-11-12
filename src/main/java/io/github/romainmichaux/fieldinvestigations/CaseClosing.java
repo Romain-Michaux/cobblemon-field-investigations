@@ -22,11 +22,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 // End of an investigation: capture or KO, rewards, experience, archives.
 final class CaseClosing {
-    // Loot table name per investigation kind (data/cobblemon_field_investigations/loot_table/investigation/kind_<name>).
-    static final Map<String, String> KIND_NAMES = Map.ofEntries(Map.entry("nocturnal", "nocturnal"), Map.entry("skittish", "skittish"),
-            Map.entry("exceptional", "exceptional"), Map.entry("restless", "restless"), Map.entry("aquatic", "aquatic"),
-            Map.entry("dig_site", "dig_site"), Map.entry("canopy", "canopy"), Map.entry("altitude", "highlands"), Map.entry("frost", "frost"),
-            Map.entry("mist", "mist"), Map.entry("underground", "underground"));
 
     private CaseClosing() {}
 
@@ -91,7 +86,7 @@ final class CaseClosing {
         if (d.special != null) {
             gains.addAll(loot(player, "investigation/special"));
             if (Engine.is(d, "skittish") || Engine.is(d, "restless")) gains.addAll(loot(player, "investigation/special"));
-            gains.addAll(loot(player, "investigation/kind_" + KIND_NAMES.getOrDefault(d.special, d.special))); // kind-specific table, empty if it does not exist
+            gains.addAll(loot(player, "investigation/kind_" + d.special)); // kind-specific table, empty if it does not exist
             Engine.grantAdvancement(player, "special_investigation");
         }
         Engine.grantAdvancement(player, "first_investigation");

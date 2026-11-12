@@ -230,7 +230,7 @@ public final class Engine {
     }
 
     static int radius(CaseFile d) {
-        return is(d, "altitude") ? (int) Math.round(settings.zoneRadius * 1.5) : settings.zoneRadius;
+        return is(d, "highlands") ? (int) Math.round(settings.zoneRadius * 1.5) : settings.zoneRadius;
     }
 
     // When the target relocates during the hunt (0 = never).

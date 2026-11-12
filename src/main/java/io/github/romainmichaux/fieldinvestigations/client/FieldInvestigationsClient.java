@@ -99,7 +99,7 @@ public class FieldInvestigationsClient implements ClientModInitializer {
                             case "board" -> mc.setScreen(new BoardScreen());
                             case "kit" -> mc.setScreen(new KitScreen());
 case "analyse" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("game"), d.getLong("seed"),
-                                    d.getInt("doses"), d.getBoolean("filet"), d.getBoolean("buried"), false, d.getInt("variant")), d, false);
+                                    d.getInt("doses"), d.getBoolean("mesh"), d.getBoolean("buried"), false, d.getInt("variant")), d, false);
                             case "sampling" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("game"), d.getLong("seed"),
                                     0, false, d.getBoolean("buried"), true, d.getInt("variant")), d, false);
                             case "attempt" -> {
@@ -309,8 +309,8 @@ case "analyse" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("
                 }
             }
             case "TRACKING" -> {
-                if (now - bearingReceived < 9000 && bearing.contains("cap")) {
-                    double heading = bearing.getDouble("cap");
+                if (now - bearingReceived < 9000 && bearing.contains("heading")) {
+                    double heading = bearing.getDouble("heading");
                     // Needle relative to where the player looks: it turns when they turn their head.
                     sweep = Math.toRadians(heading - (mc.player.getYRot() + 180));
                     needle = true;
@@ -339,7 +339,7 @@ case "analyse" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("
                 for (int i = 0; i < scan; i++) Draw.circle(g, cx - 0.5, cy - 0.5, 2 + i * 1.4, 1, 0xFF6CF0A0);
             }
             case "APPROACH" -> {
-                boolean course = signal.getBoolean("course");
+                boolean course = signal.getBoolean("sprinting");
                 boolean blink = (now / 250) % 2 == 0;
                 line1 = T.f("target_at") + signal.getInt("distance") + T.f("blocks_2");
                 colour1 = Draw.YELLOW;

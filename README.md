@@ -152,7 +152,7 @@ fang, claw or scale.
 ## Sounds
 
 Every mini-game has its own sound effects (no music, no ambience). They were made with [Bfxr](https://www.bfxr.net/)
-and are converted by `outils/gen_sons.py`; to replace one, drop a `.wav` with the same name in `outils/sons_perso`
+and are converted by `tools/gen_sounds.py`; to replace one, drop a `.wav` with the same name in `tools/custom_sounds`
 and run the script.
 
 ## Requirements
@@ -236,18 +236,18 @@ English and French are included. Everything goes through the language files
 
 The jar is written to `build/libs/`. Java 21 is required.
 
-The `outils/` folder holds the Python scripts (Pillow required) that turn the source images in `outils/pixellab/` into
-the textures of the mod, and that write the language files:
+The `tools/` folder holds the Python scripts (Pillow required) that turn the source images in `tools/pixellab/` into
+the textures of the mod, and that write the sounds and the language files:
 
 - `gen_interfaces.py` – screens, buttons and frames
-- `gen_monde.py` – world textures, block models, mini-game art
-- `gen_langues.py` – `en_us.json` and `fr_fr.json` (every text of the mod lives in this script)
-
-The source code and its comments are written in French.
+- `gen_world.py` – world textures, block models, mini-game art
+- `gen_sounds.py` – sound effects and `sounds.json` (numpy and soundfile required)
+- `gen_lang.py` – `en_us.json` and `fr_fr.json` (every text of the mod lives in this script)
+- `extract_texts.py` – lists the texts still hard-coded in the client screens
 
 ## Credits
 
-- Pixel art generated with [PixelLab](https://www.pixellab.ai/) and processed by the scripts in `outils/`.
+- Pixel art generated with [PixelLab](https://www.pixellab.ai/) and processed by the scripts in `tools/`.
 - The icon uses the official Cobblemon add-on frames shared by the Cobblemon team.
 - Not affiliated with Cobblemon, Mojang, Nintendo, Game Freak or The Pokémon Company.
 

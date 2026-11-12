@@ -19,7 +19,7 @@ public class KitScreen extends Screen {
     private static final int L = BG.il(), MAP = 148;
     static final ResourceLocation BADGE = Draw.texture("badge");
     static final int[] RANK_COLOURS = {0xFFB08D6A, 0xFFE0A060, 0xFFE8EEF2, 0xFFF2C93A, 0xFF6CCB5F, 0xFF4FD1C5, 0xFFC79CFF};
-    static final String[] TYPES = {"", "nocturnal", "skittish", "exceptional", "restless", "aquatic", "dig_site", "canopy", "altitude", "frost", "mist", "underground"};
+    static final String[] TYPES = {"", "nocturnal", "skittish", "exceptional", "restless", "aquatic", "dig_site", "canopy", "highlands", "frost", "mist", "underground"};
     // 0 = current case, 1 = investigator's logbook, 2 = archives, 3 = team.
     private int tab;
     private int scrolling;
@@ -236,7 +236,7 @@ public class KitScreen extends Screen {
     private void team(GuiGraphics g, CompoundTag e, int x, int y, int mx, int my) {
         ListTag members = e.getList("team", Tag.TAG_STRING);
         String invitation = e.getString("invitation");
-        boolean active = e.getBoolean("active"), leader = e.getBoolean("chef");
+        boolean active = e.getBoolean("active"), leader = e.getBoolean("lead");
         Draw.inset(g, x + 4, y + 18, 152, 148);
         g.drawString(Draw.textFont(), T.f("team_2"), x + 10, y + 23, Draw.YELLOW, false);
         if (!invitation.isEmpty()) {
@@ -291,7 +291,7 @@ public class KitScreen extends Screen {
     // The search is typed on the keyboard as soon as the Team tab is open.
     @Override
     public boolean charTyped(char c, int mods) {
-        if (tab == 3 && FieldInvestigationsClient.state.getBoolean("chef") && searchText.length() < 16 && (Character.isLetterOrDigit(c) || c == '_')) {
+        if (tab == 3 && FieldInvestigationsClient.state.getBoolean("lead") && searchText.length() < 16 && (Character.isLetterOrDigit(c) || c == '_')) {
             searchText += c;
             inviteScroll = 0;
             return true;
@@ -323,7 +323,7 @@ public class KitScreen extends Screen {
             return true;
         }
         if (!e.getBoolean("active")) return true;
-        if (!e.getBoolean("chef")) {
+        if (!e.getBoolean("lead")) {
             if (Draw.in(mx, my, x + 12, y + 141, 136, 18)) {
                 FieldInvestigationsClient.send(Packet.from("abandon"));
                 Draw.click(0.7f);
@@ -428,7 +428,7 @@ public class KitScreen extends Screen {
             double px = ccx + (r.getDouble("x") - mx0) * scale, py = ccy + (r.getDouble("z") - mz0) * scale;
             double length = MAP * 2;
             for (int side = -1; side <= 1; side++) {
-                double a = Math.toRadians(r.getDouble("cap") + side * r.getDouble("error"));
+                double a = Math.toRadians(r.getDouble("heading") + side * r.getDouble("error"));
                 Draw.segment(g, px, py, px + Math.sin(a) * length, py - Math.cos(a) * length, side == 0 ? 2 : 1, side == 0 ? Draw.ACCENT : 0xFF2C6F73);
             }
             g.fill((int) px - 2, (int) py - 2, (int) px + 3, (int) py + 3, Draw.TEXT);

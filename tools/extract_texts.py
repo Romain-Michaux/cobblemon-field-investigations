@@ -1,52 +1,50 @@
-# Recense les textes français encore écrits en dur dans les écrans du client (pour les passer dans les fichiers de langue).
-# Usage : python outils/extraire_textes.py   -> liste "fichier<TAB>texte"
+# Lists the texts still hard-coded in the client code (so they can be moved to the language files with gen_lang.py).
+# Usage: python tools/extract_texts.py   -> prints "file<TAB>text"
 import io
 import os
 import re
 import sys
 
-ICI = os.path.dirname(os.path.abspath(__file__))
-CLIENT = os.path.join(ICI, "..", "src", "main", "java", "io", "github", "romainmichaux", "fieldinvestigations", "client")
-FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "TraqueClient.java"]
-FICHIERS += sorted(f for f in os.listdir(CLIENT) if f.startswith("Jeu") and f != "Jeu.java")
-LITTERAL = re.compile(r'"((?:[^"\\]|\\.)*)"')
+HERE = os.path.dirname(os.path.abspath(__file__))
+CLIENT = os.path.join(HERE, "..", "src", "main", "java", "io", "github", "romainmichaux", "fieldinvestigations", "client")
+FILES = sorted(f for f in os.listdir(CLIENT) if f.endswith(".java"))
+LITERAL = re.compile(r'"((?:[^"\\]|\\.)*)"')
 PHASES = {"SAMPLING", "TRACKING", "APPROACH", "FLUSHED", "SPOTTING"}
 
 
-def humain(t):
+def is_human_text(t):
     if t in PHASES or len(t) == 0:
         return False
-    if re.fullmatch(r"[a-z0-9_:./%-]*", t):          # identifiants, clés NBT, noms de textures
+    if re.fullmatch(r"[a-z0-9_:./%-]*", t):          # ids, NBT keys, texture names
         return False
-    if not re.search(r"[A-Za-zÀ-ÿ]{2,}", t):           # symboles, chiffres, lettres isolées (A, T, C, G, N, 95°...)
+    if not re.search(r"[A-Za-zÀ-ÿ]{2,}", t):           # symbols, digits, single letters (A, T, C, G, N, 95°...)
         return False
     if t.startswith("cobblemon_field_investigations.") or t.startswith("§") and len(t) <= 3:
         return False
     return True
 
 
-def textes(fichier):
-    source = io.open(os.path.join(CLIENT, fichier), encoding="utf-8").read()
-    trouves = []
-    for ligne in source.split("\n"):
-        code = ligne.split("//")[0] if '"' not in ligne.split("//")[0][-1:] else ligne
-        if ligne.strip().startswith("//"):
+def texts(file):
+    source = io.open(os.path.join(CLIENT, file), encoding="utf-8").read()
+    found = []
+    for line in source.split("\n"):
+        if line.strip().startswith("//"):
             continue
-        for m in LITTERAL.finditer(ligne):
-            # un littéral placé après un // de commentaire n'est pas du code
-            avant = ligne[:m.start()]
-            if "//" in LITTERAL.sub('""', avant):
+        for m in LITERAL.finditer(line):
+            before = line[:m.start()]
+            # a literal after a // comment is not code
+            if "//" in LITERAL.sub('""', before):
                 continue
-            if humain(m.group(1)) and "T.f(" not in avant[-5:] and "T.t(" not in avant[-5:] and "T.c(" not in avant[-5:]:
-                trouves.append(m.group(1))
-    return trouves
+            if is_human_text(m.group(1)) and "T.f(" not in before[-5:] and "T.t(" not in before[-5:] and "T.c(" not in before[-5:]:
+                found.append(m.group(1))
+    return found
 
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
-    vus = set()
-    for f in FICHIERS:
-        for t in textes(f):
-            if t not in vus:
-                vus.add(t)
+    seen = set()
+    for f in FILES:
+        for t in texts(f):
+            if t not in seen:
+                seen.add(t)
                 print(f + "\t" + t)

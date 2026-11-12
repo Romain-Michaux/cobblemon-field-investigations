@@ -55,7 +55,7 @@
 ### Fixes
 - Investigation state (cases, ranks, solved count) is now saved in each world. Before, every single-player world
   shared the same file in `config/`, so a new world started with the cases and rank of the others. A dedicated
-  server takes over its old `config/cobblemon_field_investigations_state.json` once (kept as `.migre`).
+  server takes over its old `config/cobblemon_field_investigations_state.json` once (kept as `.migrated`).
 
 ### Server settings
 - Loot tables renamed in English: `traque/etoiles_N` → `investigation/stars_N`, `rarete_*` → `rarity_*`, `palier` → `milestone`.

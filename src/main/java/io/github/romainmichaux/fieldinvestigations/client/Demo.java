@@ -29,10 +29,10 @@ final class Demo {
         if (!Files.exists(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo"))) return;
         active = true;
         Minecraft mc = Minecraft.getInstance();
-        // Sound endurance test: if the file contains "ambiance", a single screen (the sequencer) stays open for two minutes,
+        // Sound endurance test: if the file contains "ambience", a single screen (the sequencer) stays open for two minutes,
         // reopened every two seconds on another game while UI sounds play, then the game closes.
         try {
-            if (Files.readString(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo")).contains("ambiance")) {
+            if (Files.readString(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo")).contains("ambience")) {
                 stepDuration = 2400;
                 step("sound_endurance", () -> mc.setScreen(new AnalysisScreen("stat", "colorimetry", 42L, 2, false, false, false, 0)));
                 ClientTickEvents.END_CLIENT_TICK.register(Demo::tick);
@@ -145,7 +145,7 @@ final class Demo {
             }
             t.put("team", members);
             t.put("close", nearby);
-            t.putBoolean("chef", true);
+            t.putBoolean("lead", true);
             t.putInt("teamMax", 4);
             FieldInvestigationsClient.state = t;
             mc.setScreen(new KitScreen(3));
@@ -230,9 +230,9 @@ final class Demo {
         double jx = mc.player.getX(), jz = mc.player.getZ();
         t.putDouble("zoneX", jx + 120);
         t.putDouble("zoneZ", jz - 75);
-        t.putInt("rayonZone", 45);
+        t.putInt("zoneRadius", 45);
         t.putInt("required", 3);
-        t.putString("pronostic", phase.equals("SAMPLING") ? "" : "vulpix");
+        t.putString("guess", phase.equals("SAMPLING") ? "" : "vulpix");
         if (phase.equals("TRACKING")) t.putString("special", "nocturnal");
         String[] target = {"fire", "none", "1", "FIELD", "speed"};
         ListTag traces = new ListTag();
@@ -279,7 +279,7 @@ final class Demo {
             CompoundTag c = new CompoundTag();
             c.putDouble("x", jx + p[0]);
             c.putDouble("z", jz + p[1]);
-            c.putDouble("cap", p[2]);
+            c.putDouble("heading", p[2]);
             c.putDouble("error", p[3]);
             bearings.add(c);
         }

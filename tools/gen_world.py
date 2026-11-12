@@ -1,39 +1,38 @@
-# Textures et modèles du monde (traces discrètes, indices enfouis, sol remué, objets) et décors des mini-jeux,
-# à partir des images PixelLab de outils/pixellab. À lancer APRÈS gen_ressources.py (qui écrit les anciennes textures
-# dessinées à la main) : ce script les remplace.
-# Usage : python outils/gen_monde.py   (nécessite Pillow)
+# World textures and models (discreet traces, buried clues, disturbed soil, items) and mini-game art, built from the
+# PixelLab images in tools/pixellab.
+# Usage: python tools/gen_world.py   (needs Pillow)
 import json
 import os
 import random
 
 from PIL import Image
 
-ICI = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(ICI, "pixellab")
-RES = os.path.join(ICI, "..", "src", "main", "resources")
+HERE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(HERE, "pixellab")
+RES = os.path.join(HERE, "..", "src", "main", "resources")
 NS = "cobblemon_field_investigations"
 
 
-def ouvrir(nom):
-    return Image.open(os.path.join(SRC, nom + ".png")).convert("RGBA")
+def load(name):
+    return Image.open(os.path.join(SRC, name + ".png")).convert("RGBA")
 
 
-def sauver(im, dossier, nom):
-    chemin = os.path.join(RES, "assets", NS, "textures", dossier)
-    os.makedirs(chemin, exist_ok=True)
-    im.save(os.path.join(chemin, nom + ".png"))
-    print(f"{dossier}/{nom}.png {im.size}")
+def save(im, folder, name):
+    path = os.path.join(RES, "assets", NS, "textures", folder)
+    os.makedirs(path, exist_ok=True)
+    im.save(os.path.join(path, name + ".png"))
+    print(f"{folder}/{name}.png {im.size}")
 
 
-def ecrire_json(parts, objet):
-    chemin = os.path.join(RES, *parts)
-    os.makedirs(os.path.dirname(chemin), exist_ok=True)
-    with open(chemin, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(objet, f, ensure_ascii=False, indent=2)
+def write_json(parts, obj):
+    path = os.path.join(RES, *parts)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=2)
 
 
-def voile(im, alpha):
-    """Rend une trace plus discrète : même dessin, un peu transparent."""
+def fade(im, alpha):
+    """Makes a trace more discreet: same drawing, slightly transparent."""
     im = im.copy()
     px = im.load()
     for y in range(im.height):
@@ -43,57 +42,58 @@ def voile(im, alpha):
     return im
 
 
-# ---------- Traces de surface (blocs) : discrètes, sans lueur ----------
+# ---------- Surface traces (blocks): discreet, no glow ----------
 h = random.Random(11)
-residu = Image.new("RGBA", (16, 16))
+residue = Image.new("RGBA", (16, 16))
 for _ in range(11):
     x, y = h.randint(2, 13), h.randint(2, 13)
-    residu.putpixel((x, y), h.choice([(111, 175, 168, 210), (150, 196, 190, 190), (74, 120, 118, 200)]))
+    residue.putpixel((x, y), h.choice([(111, 175, 168, 210), (150, 196, 190, 190), (74, 120, 118, 200)]))
 for x, y in [(5, 6), (10, 9), (7, 11)]:
     for dx, dy in [(0, 0), (1, 0), (0, 1)]:
-        residu.putpixel((x + dx, y + dy), (132, 205, 196, 230))
-    residu.putpixel((x, y), (214, 244, 238, 240))
-sauver(residu, "block", "trace_0")
-sauver(voile(ouvrir("world_type2"), 0.85), "block", "trace_1")
-sauver(voile(ouvrir("world_size"), 0.8), "block", "trace_2")
-sauver(voile(ouvrir("world_egg"), 0.92), "block", "trace_3")
-sauver(voile(ouvrir("world_stat"), 0.85), "block", "trace_4")
-# Indices dégagés du sol : os, coquilles, croc.
-# Les numéros suivent Genetique.blocEnfoui : os et dent (croissance), coquilles, plume et mue (lignée), croc, griffe et écaille (aptitude).
-ENFOUIS = ((5, "buried_bone", "size", 0), (6, "buried_shell", "egg", 0), (7, "buried_fang", "stat", 0), (8, "buried_tooth", "size", 1),
-           (9, "buried_feather", "egg", 1), (10, "buried_moult", "egg", 2), (11, "buried_claw", "stat", 1), (12, "buried_scale", "stat", 2))
-for i, nom, _, _ in ENFOUIS:
-    sauver(ouvrir(nom), "block", "trace_%d" % i)
+        residue.putpixel((x + dx, y + dy), (132, 205, 196, 230))
+    residue.putpixel((x, y), (214, 244, 238, 240))
+save(residue, "block", "trace_0")
+save(fade(load("world_type2"), 0.85), "block", "trace_1")
+save(fade(load("world_size"), 0.8), "block", "trace_2")
+save(fade(load("world_egg"), 0.92), "block", "trace_3")
+save(fade(load("world_stat"), 0.85), "block", "trace_4")
+# Clues uncovered from the ground: bones, shells, fang.
+# The numbers follow Genetics.buriedBlock: bone and tooth (growth), eggshells, feather and moult (lineage), fang, claw
+# and scale (aptitude).
+BURIED = ((5, "buried_bone", "size", 0), (6, "buried_shell", "egg", 0), (7, "buried_fang", "stat", 0), (8, "buried_tooth", "size", 1),
+          (9, "buried_feather", "egg", 1), (10, "buried_moult", "egg", 2), (11, "buried_claw", "stat", 1), (12, "buried_scale", "stat", 2))
+for i, name, _, _ in BURIED:
+    save(load(name), "block", "trace_%d" % i)
 
-# ---------- Sol remué : un voile posé sur le dessus du bloc d'origine, qui se creuse au fil du brossage ----------
-for etape in range(4):
+# ---------- Disturbed soil: an overlay on top of the original block, dug deeper as it is brushed ----------
+for step in range(4):
     h = random.Random(7)
     im = Image.new("RGBA", (16, 16))
-    rayon = [0, 3.0, 4.6, 6.2][etape]
+    radius = [0, 3.0, 4.6, 6.2][step]
     for y in range(16):
         for x in range(16):
             d = ((x - 7.5) ** 2 + (y - 7.5) ** 2) ** 0.5 + h.uniform(-0.9, 0.9)
-            if d <= rayon:
-                im.putpixel((x, y), (38, 27, 19, 215) if d <= rayon - 1.3 else (58, 42, 28, 170))
-            elif d <= rayon + 1.2 and h.random() < 0.45:
+            if d <= radius:
+                im.putpixel((x, y), (38, 27, 19, 215) if d <= radius - 1.3 else (58, 42, 28, 170))
+            elif d <= radius + 1.2 and h.random() < 0.45:
                 im.putpixel((x, y), (120, 94, 62, 150))
-    # Mottes et fissures autour : le signe que la terre a été retournée.
+    # Clods and cracks around it: the sign that the soil was turned over.
     for _ in range(12):
         a, r = h.uniform(0, 6.283), h.uniform(4.2, 7.2)
         x, y = int(7.5 + r * __import__("math").cos(a)), int(7.5 + r * __import__("math").sin(a))
         if 0 <= x < 16 and 0 <= y < 16 and im.getpixel((x, y))[3] == 0:
             im.putpixel((x, y), h.choice([(44, 31, 21, 150), (150, 120, 84, 130)]))
-    if etape == 3:
+    if step == 3:
         for x, y in [(6, 9), (7, 8), (8, 7), (9, 6), (9, 7), (6, 8)]:
             im.putpixel((x, y), (226, 214, 186, 255))
-    sauver(im, "block", "soil_%d" % etape)
+    save(im, "block", "soil_%d" % step)
 
 BASES = ["minecraft:block/dirt", "minecraft:block/sand", "minecraft:block/gravel"]
-variantes = {}
+variants = {}
 for m, base in enumerate(BASES):
     for k in range(4):
-        nom = "disturbed_soil_%d_%d" % (m, k)
-        ecrire_json(("assets", NS, "models", "block", nom + ".json"), {
+        name = "disturbed_soil_%d_%d" % (m, k)
+        write_json(("assets", NS, "models", "block", name + ".json"), {
             "parent": "minecraft:block/block",
             "textures": {"base": base, "top": NS + ":block/soil_%d" % k, "particle": base},
             "elements": [
@@ -102,123 +102,125 @@ for m, base in enumerate(BASES):
                 {"from": [-0.02, -0.02, -0.02], "to": [16.02, 16.02, 16.02], "shade": False,
                  "faces": {d: {"texture": "#top"} for d in ("north", "south", "east", "west", "up", "down")}},
             ]})
-        variantes["degage=%d,matiere=%d" % (k, m)] = {"model": NS + ":block/" + nom}
-ecrire_json(("assets", NS, "blockstates", "disturbed_soil.json"), {"variants": variantes})
+        # Property names as declared in ModContent (UNCOVERED, MATERIAL).
+        variants["uncovered=%d,material=%d" % (k, m)] = {"model": NS + ":block/" + name}
+write_json(("assets", NS, "blockstates", "disturbed_soil.json"), {"variants": variants})
 
-# ---------- Traces : treize genres (5 de surface + 8 indices dégagés) ----------
-variantes = {}
+# ---------- Traces: thirteen kinds (5 on the surface + 8 uncovered clues) ----------
+variants = {}
 for i in range(13):
-    ecrire_json(("assets", NS, "models", "block", "trace_%d.json" % i), {
+    write_json(("assets", NS, "models", "block", "trace_%d.json" % i), {
         "ambientocclusion": False,
         "textures": {"t": NS + ":block/trace_%d" % i, "particle": NS + ":block/trace_%d" % i},
         "elements": [{"from": [0, 0.25, 0], "to": [16, 0.25, 16], "shade": False,
                       "faces": {"up": {"texture": "#t", "uv": [0, 0, 16, 16]}, "down": {"texture": "#t", "uv": [0, 0, 16, 16]}}}]})
-    ecrire_json(("assets", NS, "models", "block", "trace_%d_wall.json" % i), {
+    write_json(("assets", NS, "models", "block", "trace_%d_wall.json" % i), {
         "ambientocclusion": False,
         "textures": {"t": NS + ":block/trace_%d" % i, "particle": NS + ":block/trace_%d" % i},
         "elements": [{"from": [0, 0, 15.75], "to": [16, 16, 15.75], "shade": False,
                       "faces": {"north": {"texture": "#t", "uv": [0, 0, 16, 16]}, "south": {"texture": "#t", "uv": [0, 0, 16, 16]}}}]})
+    # Property names as declared in ModContent (FACING, KIND).
     for d in ("up", "down"):
-        variantes["facing=%s,genre=%d" % (d, i)] = {"model": NS + ":block/trace_%d" % i}
+        variants["facing=%s,kind=%d" % (d, i)] = {"model": NS + ":block/trace_%d" % i}
     for d, r in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
         v = {"model": NS + ":block/trace_%d_wall" % i}
         if r:
             v["y"] = r
-        variantes["facing=%s,genre=%d" % (d, i)] = v
-ecrire_json(("assets", NS, "blockstates", "trace.json"), {"variants": variantes})
+        variants["facing=%s,kind=%d" % (d, i)] = v
+write_json(("assets", NS, "blockstates", "trace.json"), {"variants": variants})
 
-# ---------- Objets ----------
-sauver(ouvrir("item_kit2"), "item", "field_kit")
-sauver(ouvrir("item_vial"), "item", "vial")
-sauver(ouvrir("item_sample"), "item", "sample")
+# ---------- Items ----------
+save(load("item_kit2"), "item", "field_kit")
+save(load("item_vial"), "item", "vial")
+save(load("item_sample"), "item", "sample")
 
-# ---------- Décors des mini-jeux (interface) ----------
-for nom in ("bark", "earth", "petri", "large_bone", "large_shell", "large_fang",
-            "debris_shell", "debris_twig", "debris_leaf", "debris_pebble"):
-    sauver(ouvrir(nom), "gui", nom)
-for _, nom, genre, variante in ENFOUIS:
-    sauver(ouvrir(nom), "gui", "buried_" + genre + ("_%d" % variante if variante else ""))
-# Accessoires et décors des mini-jeux ajoutés en 1.1.
-for nom in ("sieve", "tweezers", "swab", "burette", "ice_cube", "rock_face", "bg_water", "night", "undergrowth", "nest", "plateau"):
-    sauver(ouvrir(nom), "gui", nom)
-sauver(ouvrir("radar_b"), "gui", "radar")  # détecteur du HUD : sonar à gauche (centre 33,24), afficheur à droite (55..177 x 14..33)
-sauver(ouvrir("crystal_a"), "gui", "crystal")  # teinté en jeu : terne, turquoise (stable) ou rouge (instable)
-# Bac de gel de l'électrophorèse (240 x 104), dessiné ici : PixelLab le rend en perspective, il faut un fond bien à plat.
+# ---------- Mini-game art (GUI) ----------
+for name in ("bark", "earth", "petri", "large_bone", "large_shell", "large_fang",
+             "debris_shell", "debris_twig", "debris_leaf", "debris_pebble"):
+    save(load(name), "gui", name)
+for _, name, kind, variant in BURIED:
+    save(load(name), "gui", "buried_" + kind + ("_%d" % variant if variant else ""))
+# Props and backgrounds of the mini-games added in 1.1.
+for name in ("sieve", "tweezers", "swab", "burette", "ice_cube", "rock_face", "bg_water", "night", "undergrowth", "nest", "tray"):
+    save(load(name), "gui", name)
+save(load("radar_b"), "gui", "radar")  # HUD detector: sonar on the left (centre 33,24), display on the right (55..177 x 14..33)
+save(load("crystal_a"), "gui", "crystal")  # tinted in game: dull, teal (stable) or red (unstable)
+# Electrophoresis gel tray (240 x 104), drawn here: PixelLab draws it in perspective, and it has to be perfectly flat.
 h = random.Random(3)
 gel = Image.new("RGBA", (240, 104))
 for y in range(104):
     for x in range(240):
-        bord = min(x, y, 239 - x, 103 - y)
-        coin = (x < 3 or x > 236) and (y < 3 or y > 100) and (min(x, 239 - x) + min(y, 103 - y) < 3)
-        if coin:
+        edge = min(x, y, 239 - x, 103 - y)
+        corner = (x < 3 or x > 236) and (y < 3 or y > 100) and (min(x, 239 - x) + min(y, 103 - y) < 3)
+        if corner:
             continue
-        if bord == 0:
+        if edge == 0:
             c = (11, 17, 24)
-        elif bord <= 3:
-            c = (226, 232, 238) if bord < 3 else (150, 160, 176)
-            if y > 99 and bord < 3:
+        elif edge <= 3:
+            c = (226, 232, 238) if edge < 3 else (150, 160, 176)
+            if y > 99 and edge < 3:
                 c = (176, 186, 200)
-        elif bord == 4:
+        elif edge == 4:
             c = (11, 17, 24)
         else:
-            # gel bleu nuit, un peu plus violet et clair au centre (lampe UV), avec un grain léger
+            # midnight blue gel, a little more violet and lighter in the middle (UV lamp), with a light grain
             d = abs(x - 120) / 120
             v = 1 - d * 0.45
             g = h.choice((0, 0, 0, 3, -3))
             c = (int(26 * v) + 10 + g, int(30 * v) + 14 + g, int(74 * v) + 30 + g)
         gel.putpixel((x, y), c + (255,))
-sauver(gel, "gui", "gel")
-sauver(ouvrir("viewfinder_a"), "gui", "viewfinder")  # viseur du scanner, teinté en jeu
-empreinte = ouvrir("footprint")
-empreinte = empreinte.crop(empreinte.getbbox())
-sauver(empreinte, "gui", "footprint")
-assert empreinte.size == (74, 70), "JeuMesure.EL / EH sont à mettre à jour"
-# Erlenmeyer de la colorimétrie : le verre garde ses couleurs ; le liquide (zone claire et chaude du bas) est séparé
-# dans une seconde texture en gris clair, la seule à être teintée en jeu.
-verre = ouvrir("erlenmeyer")
-liquide = Image.new("RGBA", verre.size)
-px = verre.load()
-for y in range(37, verre.height):
-    for x in range(verre.width):
+save(gel, "gui", "gel")
+save(load("viewfinder_a"), "gui", "viewfinder")  # scanner viewfinder, tinted in game
+footprint = load("footprint")
+footprint = footprint.crop(footprint.getbbox())
+save(footprint, "gui", "footprint")
+assert footprint.size == (74, 70), "MeasureGame.EL / EH must be updated"
+# Colorimetry Erlenmeyer flask: the glass keeps its colours; the liquid (light, warm area at the bottom) goes into a
+# second texture in light grey, the only one tinted in game.
+glass = load("erlenmeyer")
+liquid = Image.new("RGBA", glass.size)
+px = glass.load()
+for y in range(37, glass.height):
+    for x in range(glass.width):
         r, g, b, a = px[x, y]
         if a and r * 3 + g * 6 + b >= 450 and not b > r + 8:
             v = min(255, int(max(r, g, b) * 1.08) + 8)
-            liquide.putpixel((x, y), (v, v, v, 255))
+            liquid.putpixel((x, y), (v, v, v, 255))
             px[x, y] = (0, 0, 0, 0)
-sauver(verre, "gui", "erlenmeyer")
-sauver(liquide, "gui", "erlenmeyer_liquid")
+save(glass, "gui", "erlenmeyer")
+save(liquid, "gui", "erlenmeyer_liquid")
 
-# Les fichiers de langue sont écrits par outils/gen_langues.py.
+# The language files are written by tools/gen_lang.py.
 
-# Branches de la grimpe : l'image PixelLab pointe vers la droite ; celle de gauche est son miroir.
-# La branche morte est tirée de la branche vivante, pour qu'elles aient la même forme et la même écorce : on lui retire
-# son feuillage, on casse son extrémité, on ternit son bois et on y ouvre une fente.
+# Tree climb branches: the PixelLab image points to the right; the left one is its mirror image.
+# The dead branch is made from the living one, so they share the same shape and bark: its leaves are removed, its tip
+# broken, its wood dulled and a split opened along it.
 from PIL import ImageOps
 
 
-def branche_morte(vivante):
-    im = vivante.copy()
+def dead_branch(living):
+    im = living.copy()
     px = im.load()
-    ecorce = lambda c: c[3] > 0 and c[0] > c[1] * 1.15 and c[0] > 60
-    bout = max(x for x in range(im.width) for y in range(im.height) if ecorce(px[x, y]))
-    lignes = [y for y in range(im.height) if any(ecorce(px[x, y]) for x in range(im.width))]
-    milieu = (min(lignes) + max(lignes)) // 2
+    is_bark = lambda c: c[3] > 0 and c[0] > c[1] * 1.15 and c[0] > 60
+    tip = max(x for x in range(im.width) for y in range(im.height) if is_bark(px[x, y]))
+    bark_rows = [y for y in range(im.height) if any(is_bark(px[x, y]) for x in range(im.width))]
+    middle = (min(bark_rows) + max(bark_rows)) // 2
     for y in range(im.height):
-        # L'extrémité est cassée net, en dents de scie.
-        limite = bout - (2 if (y - milieu) % 3 == 0 else 0) - abs(y - milieu) // 3
+        # The tip is snapped off clean, in a jagged line.
+        limit = tip - (2 if (y - middle) % 3 == 0 else 0) - abs(y - middle) // 3
         for x in range(im.width):
             r, v, b, a = px[x, y]
             if a == 0:
                 continue
-            if x > limite or (v > r * 1.05 and v > b):
-                px[x, y] = (0, 0, 0, 0)  # feuillage et bout de branche
-            elif ecorce((r, v, b, a)):
-                gris = (r * 3 + v * 6 + b) // 10
-                px[x, y] = ((r + gris * 2) * 26 // 100, (v + gris * 2) * 27 // 100, (b + gris * 2) * 29 // 100, a)
-    # Une fente sombre le long du bois, et un liseré noir sur la cassure.
+            if x > limit or (v > r * 1.05 and v > b):
+                px[x, y] = (0, 0, 0, 0)  # leaves and end of the branch
+            elif is_bark((r, v, b, a)):
+                grey = (r * 3 + v * 6 + b) // 10
+                px[x, y] = ((r + grey * 2) * 26 // 100, (v + grey * 2) * 27 // 100, (b + grey * 2) * 29 // 100, a)
+    # A dark split along the wood, and a black edge on the break.
     for x in range(im.width):
-        if x % 7 != 3 and px[x, milieu][3] > 0 and px[x, milieu][0] > 30:
-            px[x, milieu] = (28, 24, 24, 255)
+        if x % 7 != 3 and px[x, middle][3] > 0 and px[x, middle][0] > 30:
+            px[x, middle] = (28, 24, 24, 255)
     for y in range(im.height):
         for x in range(im.width - 1, -1, -1):
             if px[x, y][3] > 0:
@@ -227,20 +229,20 @@ def branche_morte(vivante):
     return im
 
 
-for nom in ("branch", "dead_branch"):
-    brut = ouvrir("branch")
-    if nom == "dead_branch":
-        brut = branche_morte(brut)
-    decoupe = brut.crop(brut.getbbox())
+for name in ("branch", "dead_branch"):
+    raw = load("branch")
+    if name == "dead_branch":
+        raw = dead_branch(raw)
+    cropped = raw.crop(raw.getbbox())
     im = Image.new("RGBA", (32, 32))
-    im.alpha_composite(decoupe, (0, (32 - decoupe.height) // 2))  # calée à gauche : c'est le côté qui touche le tronc
-    sauver(im, "gui", nom + "_d")
-    sauver(ImageOps.mirror(im), "gui", nom + "_g")
+    im.alpha_composite(cropped, (0, (32 - cropped.height) // 2))  # flush left: that side touches the trunk
+    save(im, "gui", name + "_right")
+    save(ImageOps.mirror(im), "gui", name + "_left")
 
-# Décor de la grimpe : la forêt du fond est fixe ; le tronc est une bande droite de 56 px (la partie sans racines d'une
-# image PixelLab, raccordée par un fondu sur dix lignes) qui se répète sans couture et défile.
-for nom in ("trunk", "forest"):
-    sauver(ouvrir(nom), "gui", nom)
+# Tree climb scenery: the forest in the background is fixed; the trunk is a straight 56 px strip (the part of a PixelLab
+# image without roots, joined by a ten-row fade) that tiles seamlessly and scrolls.
+for name in ("trunk", "forest"):
+    save(load(name), "gui", name)
 
-# Insigne d'enquêteur du carnet (teinté en jeu à la couleur du rang).
-sauver(ouvrir("badge"), "gui", "badge")
+# Investigator badge of the logbook (tinted in game with the rank colour).
+save(load("badge"), "gui", "badge")

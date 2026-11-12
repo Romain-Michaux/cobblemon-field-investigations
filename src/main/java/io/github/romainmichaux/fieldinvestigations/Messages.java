@@ -137,7 +137,7 @@ final class Messages {
         UUID inviter = d == null ? Team.invitation(player) : null;
         t.put("team", team);
         t.put("close", nearby);
-        t.putBoolean("chef", leader);
+        t.putBoolean("lead", leader);
         t.putInt("teamMax", Engine.settings.maxTeamSize);
         t.putString("invitation", inviter == null ? "" : Engine.name(player.server, inviter));
         List<CaseFile> leads = d == null ? Reports.leads(player) : null;
@@ -163,10 +163,10 @@ final class Messages {
             t.putBoolean("new", d.newSpecies);
             t.putDouble("zoneX", d.zoneX);
             t.putDouble("zoneZ", d.zoneZ);
-            t.putInt("rayonZone", Engine.radius(d));
+            t.putInt("zoneRadius", Engine.radius(d));
             t.putInt("required", Engine.required(d));
             t.putString("special", d.special == null ? "" : d.special);
-            t.putString("pronostic", d.guess == null ? "" : d.guess);
+            t.putString("guess", d.guess == null ? "" : d.guess);
             ListTag traces = new ListTag();
             for (Trace trace : d.traces) {
                 CompoundTag c = new CompoundTag();
@@ -201,7 +201,7 @@ final class Messages {
                 CompoundTag c = new CompoundTag();
                 c.putDouble("x", r.x);
                 c.putDouble("z", r.z);
-                c.putDouble("cap", r.heading);
+                c.putDouble("heading", r.heading);
                 c.putDouble("error", r.error);
                 c.putBoolean("expired", r.expired);
                 bearings.add(c);
@@ -219,7 +219,7 @@ final class Messages {
             if (identified) t.putString("species", d.species);
             // Until the target is identified, the client must not be able to tell whether the guess is right.
             t.putInt("stars", Engine.stars(d, identified));
-            t.putInt("fautes", d.faults);
+            t.putInt("faults", d.faults);
             t.putInt("leaks", d.flees);
         }
         send(player, p);

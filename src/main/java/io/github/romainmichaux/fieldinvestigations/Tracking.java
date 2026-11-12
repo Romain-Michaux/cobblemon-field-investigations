@@ -125,7 +125,7 @@ final class Tracking {
         player.connection.send(new ClientboundSoundPacket(Holder.direct(cry), SoundSource.NEUTRAL,
                 player.getX() + ux * 14, player.getEyeY(), player.getZ() + uz * 14, volume * 2.5f, 1f, Engine.RANDOM.nextLong()));
         Packet p = Packet.from("bearing");
-        p.data().putDouble("cap", r.heading);
+        p.data().putDouble("heading", r.heading);
         p.data().putDouble("error", error);
         p.data().putInt("force", dist > 260 ? 0 : dist > 170 ? 1 : dist > 100 ? 2 : 3);
         Messages.send(player, p);

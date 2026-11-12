@@ -1,69 +1,69 @@
-# Fiche de publication — Cobblemon: Field Investigations
+# Publishing checklist — Cobblemon: Field Investigations
 
-Tout ce qu'il faut saisir sur Modrinth et CurseForge. Les textes à coller sont en anglais (langue des deux plateformes).
+Everything to fill in on Modrinth and CurseForge. The texts to paste are in English (the language of both platforms).
 
-## Fichiers à téléverser
+## Files to upload
 
-| Quoi | Fichier |
+| What | File |
 | --- | --- |
-| Le mod | `build/libs/cobblemon-field-investigations-1.1.0.jar` |
-| Icône (carrée, 768 px) | `icon.png` |
-| Description longue | `docs/publication/description.md` (Markdown, accepté par les deux sites) |
-| Galerie | `docs/gallery/*.png` : 24 captures en anglais, numérotées dans l'ordre du jeu. Image vedette conseillée : `02_case_board.png` ou `23_scanner.png` |
+| The mod | `build/libs/cobblemon-field-investigations-1.1.0.jar` |
+| Icon (square, 768 px) | `icon.png` |
+| Long description | `docs/publication/description.md` (Markdown, accepted by both sites) |
+| Gallery | `docs/gallery/*.png`: 24 screenshots in English, numbered in game order. Suggested featured image: `02_case_board.png` or `23_scanner.png` |
 
-## Champs communs
+## Common fields
 
-| Champ | Valeur |
+| Field | Value |
 | --- | --- |
-| Nom | `Cobblemon: Field Investigations` |
-| Identifiant / slug | `cobblemon-field-investigations` |
-| Résumé (une ligne) | `Investigate traces, analyse DNA in mini-games, rule out suspects, then track, scan and catch an unknown Pokémon. A detective add-on for Cobblemon.` |
-| Version du mod | `1.1.0` |
-| Type de version | Release |
+| Name | `Cobblemon: Field Investigations` |
+| Identifier / slug | `cobblemon-field-investigations` |
+| Summary (one line) | `Investigate traces, analyse DNA in mini-games, rule out suspects, then track, scan and catch an unknown Pokémon. A detective add-on for Cobblemon.` |
+| Mod version | `1.1.0` |
+| Release type | Release |
 | Minecraft | `1.21.1` |
-| Chargeur | Fabric |
-| Côté | Client **et** serveur (requis des deux côtés) |
-| Licence | MIT |
-| Code source | https://github.com/Romain-Michaux/cobblemon-field-investigations |
-| Suivi des bugs | https://github.com/Romain-Michaux/cobblemon-field-investigations/issues |
+| Loader | Fabric |
+| Side | Client **and** server (required on both) |
+| License | MIT |
+| Source code | https://github.com/Romain-Michaux/cobblemon-field-investigations |
+| Issue tracker | https://github.com/Romain-Michaux/cobblemon-field-investigations/issues |
 | Java | 21 |
 
-## Dépendances à déclarer
+## Dependencies to declare
 
 | Mod | Type |
 | --- | --- |
-| Fabric API | Requise |
-| Cobblemon (1.8 ou plus récent) | Requise |
+| Fabric API | Required |
+| Cobblemon (1.8 or newer) | Required |
 
-Fabric Language Kotlin arrive avec Cobblemon : inutile de la déclarer.
+Fabric Language Kotlin comes with Cobblemon: no need to declare it.
 
 ## Modrinth
 
-- Type de projet : Mod.
-- Catégories conseillées : Adventure, Game Mechanics, Minigame (trois au plus en catégories principales).
-- Environnement : « Client and server », requis des deux côtés.
-- Dans « Links », renseigner Source et Issues.
-- Dans la version : chargeur Fabric, jeu 1.21.1, dépendances ci-dessus.
-- Monétisation : rien à activer par projet, c'est au niveau du compte (Revenue → informations de paiement).
+- Project type: Mod.
+- Suggested categories: Adventure, Game Mechanics, Minigame (three at most as main categories).
+- Environment: "Client and server", required on both sides.
+- Under "Links", fill in Source and Issues.
+- In the version: Fabric loader, game 1.21.1, dependencies above.
+- Monetisation: nothing to enable per project, it is set at account level (Revenue → payment details).
 
 ## CurseForge
 
-- Jeu : Minecraft ; classe : Mods.
-- Catégories conseillées : Adventure and RPG (principale), Miscellaneous ; cocher Fabric.
-- Licence : MIT License.
-- Dans le fichier : version du jeu 1.21.1, Fabric, Java 21, environnement Client + Server, relations « Required Dependency » pour Fabric API et Cobblemon.
-- Laisser « Allow 3rd party launchers / API downloads » activé : c'est ce qui permet aux lanceurs (Prism, Modrinth App…) de télécharger le mod, et ces téléchargements comptent pour le programme de récompenses.
-- Le premier projet passe par une modération manuelle (souvent un à deux jours).
+- Game: Minecraft; class: Mods.
+- Suggested categories: Adventure and RPG (main), Miscellaneous; tick Fabric.
+- License: MIT License.
+- In the file: game version 1.21.1, Fabric, Java 21, environment Client + Server, "Required Dependency" relations for Fabric API and Cobblemon.
+- Leave "Allow 3rd party launchers / API downloads" enabled: it lets launchers (Prism, Modrinth App…) download the mod, and those downloads count for the rewards programme.
+- The first project goes through manual moderation (often one or two days).
 
-## Notes de version
+## Release notes
 
-- 1.1.0 : coller `docs/publication/changelog_1.1.0.md` (choisir le format Markdown dans le champ changelog de CurseForge).
-- 1.0.0 (historique) : « First public release » + boucle complète, 15 mini-jeux, note 5 étoiles, loot en data pack, anglais et français.
+- 1.1.0: paste `docs/publication/changelog_1.1.0.md` (pick the Markdown format in CurseForge's changelog field).
+- 1.0.0 (history): "First public release" + full loop, 15 mini-games, 5-star rating, data-pack loot, English and French.
 
-## À vérifier avant de cliquer sur « Publier »
+## Check before clicking "Publish"
 
-- [x] Une enquête complète jouée de bout en bout (testé sur le serveur CobbleScout le 10/11/2026).
-- [x] Le mod testé sur un serveur dédié.
-- [x] Conditions de PixelLab relues (version du 30/10/2026) : l'article 1.3 autorise l'usage commercial des créations
-      et l'article 3.3 leur libre distribution ; seule interdiction, entraîner d'autres modèles avec.
-- [x] Icône composée avec le gabarit officiel `Cobblemon_Addon_Frames` (couches bg, border et mod) partagé sur le Discord de Cobblemon.
+- [x] One full investigation played from start to finish (tested on the CobbleScout server on 2026-11-10).
+- [x] The mod tested on a dedicated server.
+- [x] PixelLab terms reread (version of 2026-10-30): section 1.3 allows commercial use of the creations and section 3.3
+      their free distribution; the only restriction is training other models with them.
+- [x] Icon made with the official `Cobblemon_Addon_Frames` template (bg, border and mod layers) shared on the Cobblemon Discord.

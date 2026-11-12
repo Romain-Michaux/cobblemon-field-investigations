@@ -86,7 +86,7 @@ public final class Genetics {
             switch (special) {
                 case "aquatic": return "dive";
                 case "canopy": return "climb";
-                case "altitude": return "abseil";
+                case "highlands": return "abseil";
                 case "nocturnal": return "lamp";
                 case "underground": return "rockfall";
                 default:

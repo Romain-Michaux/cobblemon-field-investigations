@@ -2,7 +2,7 @@ plugins {
     id 'fabric-loom' version '1.13.6'
 }
 version = project.mod_version
-group = 'fr.cobblescout'
+group = 'io.github.romainmichaux'
 base { archivesName = 'cobblemon-field-investigations' }
 
 repositories {

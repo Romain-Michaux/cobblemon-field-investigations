@@ -189,7 +189,7 @@ final class Pursuit {
                         return;
                     }
                     signal.data().putInt("distance", (int) Math.round(dist));
-                    signal.data().putBoolean("course", player.isSprinting());
+                    signal.data().putBoolean("sprinting", player.isSprinting());
                     Messages.send(player, signal);
                 } else if (d.glowEnd > 0 && now > d.glowEnd) {
                     d.glowEnd = 0;

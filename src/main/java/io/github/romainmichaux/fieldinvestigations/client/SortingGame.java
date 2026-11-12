@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 
 // Sorting (nest): fling each shell into the box, quickly, without the collisions scattering everything else.
 final class SortingGame extends MiniGame {
-    static final ResourceLocation TRAY = Draw.texture("plateau");
+    static final ResourceLocation TRAY = Draw.texture("tray");
     static final ResourceLocation[] DEBRIS = {Draw.texture("debris_shell"), Draw.texture("debris_twig"),
             Draw.texture("debris_leaf"), Draw.texture("debris_pebble")};
     static final int N = 13, SHELLS = 5, DURATION = 260, RADIUS = 7, DISCARD = 26, BOX = L - 26;
