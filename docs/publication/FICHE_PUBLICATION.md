@@ -6,7 +6,7 @@ Tout ce qu'il faut saisir sur Modrinth et CurseForge. Les textes à coller sont 
 
 | Quoi | Fichier |
 | --- | --- |
-| Le mod | `build/libs/cobblemon-field-investigations-1.0.0.jar` |
+| Le mod | `build/libs/cobblemon-field-investigations-1.1.0.jar` |
 | Icône (carrée, 768 px) | `icon.png` |
 | Description longue | `docs/publication/description.md` (Markdown, accepté par les deux sites) |
 | Galerie | `docs/gallery/*.png` : 24 captures en anglais, numérotées dans l'ordre du jeu. Image vedette conseillée : `02_case_board.png` ou `23_scanner.png` |
@@ -18,7 +18,7 @@ Tout ce qu'il faut saisir sur Modrinth et CurseForge. Les textes à coller sont 
 | Nom | `Cobblemon: Field Investigations` |
 | Identifiant / slug | `cobblemon-field-investigations` |
 | Résumé (une ligne) | `Investigate traces, analyse DNA in mini-games, rule out suspects, then track, scan and catch an unknown Pokémon. A detective add-on for Cobblemon.` |
-| Version du mod | `1.0.0` |
+| Version du mod | `1.1.0` |
 | Type de version | Release |
 | Minecraft | `1.21.1` |
 | Chargeur | Fabric |
@@ -55,17 +55,10 @@ Fabric Language Kotlin arrive avec Cobblemon : inutile de la déclarer.
 - Laisser « Allow 3rd party launchers / API downloads » activé : c'est ce qui permet aux lanceurs (Prism, Modrinth App…) de télécharger le mod, et ces téléchargements comptent pour le programme de récompenses.
 - Le premier projet passe par une modération manuelle (souvent un à deux jours).
 
-## Notes de version (à coller dans le changelog de la 1.0.0)
+## Notes de version
 
-```
-First public release.
-
-- Full investigation loop: trace sampling, buried clues, DNA analysis, case board, cry tracking, scanner, capture.
-- 15 mini-games (6 in the field, 9 in the lab).
-- 5-star case rating driving perfect IVs, shiny odds and loot.
-- Data-driven loot tables.
-- English and French.
-```
+- 1.1.0 : coller `docs/publication/changelog_1.1.0.md` (choisir le format Markdown dans le champ changelog de CurseForge).
+- 1.0.0 (historique) : « First public release » + boucle complète, 15 mini-jeux, note 5 étoiles, loot en data pack, anglais et français.
 
 ## À vérifier avant de cliquer sur « Publier »
 
