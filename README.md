@@ -76,7 +76,7 @@ Tied to the biome of the trace zone (biome tags, with a fallback on the biome na
 | Mist | Swamps | Cries carry poorly: bearings 1.8× less precise | Swamp items |
 
 Every special case rolls the `traque/speciale` loot table; biome kinds also roll `traque/type_<kind>`. Half of the
-extra leads are special by default (`chanceEnqueteSpeciale`).
+extra leads are special by default (`specialCaseChance`).
 
 ## Rank, kit upgrades and archives
 
@@ -91,7 +91,7 @@ Everything lives in the Field Kit, in four tabs: **Case** (the current investiga
 ## Team investigations
 
 The player who opened a case is its lead investigator. From the kit's **Team** tab they can invite players standing
-within 64 blocks who have no case of their own (four investigators at most by default, `tailleEquipe`): type a name to
+within 64 blocks who have no case of their own (four investigators at most by default, `maxTeamSize`): type a name to
 search, and the players you have solved the most cases with come first. Everyone then
 samples, analyses, tracks and scans for the same case. Stars are shared; when the case is solved, every member who is
 online gets their own loot and experience. A teammate can leave at any time; only the lead can close the case.
@@ -106,7 +106,7 @@ your best work (a five-star case, a special case, ten solved cases).
 ## Accessibility
 
 - **Colour aid** (bottom left of the case board, per player): the colorimetry mini-game shows how close your mix is.
-- **Mini-game pace** (server config `difficulteMiniJeux`): `easy` slows every mini-game by a third, `hard` speeds them up
+- **Mini-game pace** (server config `miniGameDifficulty`): `easy` slows every mini-game by a third, `hard` speeds them up
   by a quarter.
 
 ## Mini-games
@@ -183,6 +183,33 @@ Required on **both** the client and the server.
 `config/cobblemon_field_investigations.json` is created on first launch: distances, number of suspects, markers needed
 before the hunt, cooldown between cases, bearing accuracy, flee and scan distances, shiny multiplier, rarity weights,
 excluded labels (legendary, mythical, ultra beast and paradox by default).
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `dimensions` | `["minecraft:overworld"]` | Dimensions where cases can open |
+| `zoneMinDistance` / `zoneMaxDistance` | 100 / 180 | Distance from the player to the trace zone |
+| `zoneRadius` | 45 | Radius of the trace zone |
+| `lairMinDistance` / `lairMaxDistance` | 150 / 280 | Distance from the zone to the target's lair |
+| `dosesPerSample` | 2 | Analysis attempts from a successful sampling (+1 if perfect) |
+| `suspectCount` | 12 | Suspects on the case board |
+| `pinsToStartHunt` | 3 | Analysed samples pinned before naming a suspect |
+| `minutesBetweenCases` | 10 | Wait between two cases |
+| `secondsBetweenBearings` / `distanceBetweenBearings` | 6 / 20 | Spacing of two cry bearings |
+| `bearingErrorMinDegrees` / `bearingErrorMaxDegrees` | 4 / 14 | Bearing accuracy |
+| `minutesBeforeTargetMoves` | 8 | The target moves its lair after this (0 = never) |
+| `approachRadius` / `alertRadius` / `flushOutRadius` | 48 / 18 / 7 | The target appears within this distance of its lair; it flees if you come within the alert radius before scanning it; flushed out (battle can start) within the last one |
+| `shinyMultiplierPerStar` | 3.0 | Shiny odds = 1 + this × stars |
+| `rarityWeights` | common 1, uncommon 2.5, rare 3, ultra-rare 2 | Weight of each rarity when picking the target |
+| `newSpeciesWeight` | 2.0 | Weight multiplier for species the player does not own |
+| `excludedLabels` | legendary, mythical, ultra_beast, paradox | Species labels never investigated |
+| `milestoneEveryCases` | 5 | Every N solved cases, the `palier` loot table is added |
+| `leadCount` | 3 | Leads to choose from (1 = no choice) |
+| `leadValidityMinutes` | 10 | How long the offered leads stay valid |
+| `specialCaseChance` | 0.5 | Chance that an extra lead is a special investigation |
+| `miniGameDifficulty` | `normal` | `easy`, `normal` or `hard` pace for every mini-game |
+| `maxTeamSize` | 4 | Investigators per case (1 = no teams) |
+
+Files written by 1.0 or early 1.1 builds used French key names; they are still read and rewritten in English.
 
 Loot is data-driven. Override these loot tables with a data pack:
 

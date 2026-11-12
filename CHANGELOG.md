@@ -15,7 +15,7 @@
   - New loot tables: `traque/speciale` for every special case, `traque/type_<kind>` for each kind.
   - Traces can now sit under water.
 - **Team investigations**: the lead investigator invites players within 64 blocks from the kit's Team tab (search by
-  name, usual partners listed first, up to `tailleEquipe` members, 4 by default). One shared case, shared stars,
+  name, usual partners listed first, up to `maxTeamSize` members, 4 by default). One shared case, shared stars,
   loot and experience for every member.
 - **Cave traces**: one trace per case can sit in a shallow cave, 3 to 15 blocks below the surface, always reachable
   on foot from the outside. The kit radar then counts height and shows the distance and height difference
@@ -50,7 +50,7 @@
 - Texts never get cut: long lines scroll inside their box.
 - Case board: the tooltip is drawn above the item icons.
 - **Accessibility**: per-player colour aid (colorimetry shows the match percentage while you mix); server setting
-  `difficulteMiniJeux` (`easy`, `normal`, `hard`) for the pace of every mini-game.
+  `miniGameDifficulty` (`easy`, `normal`, `hard`) for the pace of every mini-game.
 
 ### Fixes
 - Investigation state (cases, ranks, solved count) is now saved in each world. Before, every single-player world
@@ -58,8 +58,9 @@
   server takes over its old `config/cobblemon_field_investigations_state.json` once (kept as `.migre`).
 
 ### Server settings
-- New: `nombrePistes` (1 to 3; 1 = no choice, as in 1.0), `minutesValiditePistes`, `chanceEnqueteSpeciale`,
-  `tailleEquipe`, `difficulteMiniJeux`.
+- Config keys are now in English (`leadCount`, `maxTeamSize`…). An existing `config/cobblemon_field_investigations.json` is read as before and rewritten with the new names on first start.
+- New: `leadCount` (1 to 3; 1 = no choice, as in 1.0), `leadValidityMinutes`, `specialCaseChance`,
+  `maxTeamSize`, `miniGameDifficulty`.
 
 ## 1.0.0 (2026-11-10)
 
