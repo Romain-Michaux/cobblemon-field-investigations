@@ -11,10 +11,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "io.github.romainmichaux.fieldinvestigations.Traque"
+      "io.github.romainmichaux.fieldinvestigations.FieldInvestigations"
     ],
     "client": [
-      "io.github.romainmichaux.fieldinvestigations.client.TraqueClient"
+      "io.github.romainmichaux.fieldinvestigations.client.FieldInvestigationsClient"
     ]
   },
   "depends": {
