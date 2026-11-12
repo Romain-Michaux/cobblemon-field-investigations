@@ -18,9 +18,11 @@ import net.minecraft.nbt.StringTag;
 // screenshots/demo_*.png puis quitte le jeu.
 final class Demo {
     static boolean active, scan;
+    // Position de souris simulée pour une étape de la démo (null = la vraie souris).
+    static int[] souris;
     private static final List<String> NOMS = new ArrayList<>();
     private static final List<Runnable> ETAPES = new ArrayList<>();
-    private static int attente = 120, etape = -1, depuis;
+    private static int attente = 120, etape = -1, depuis, dureeEtape = 20;
 
     private Demo() {}
 
@@ -28,30 +30,83 @@ final class Demo {
         if (!Files.exists(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo"))) return;
         active = true;
         Minecraft mc = Minecraft.getInstance();
+        // Essai d'endurance du son : si le fichier contient « ambiance », un seul écran, le séquenceur, reste ouvert deux
+        // minutes, rouvert toutes les deux secondes sur un autre jeu pendant que des sons d'interface sont joués, puis le jeu se ferme.
+        try {
+            if (Files.readString(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo")).contains("ambiance")) {
+                dureeEtape = 2400;
+                etape("endurance_son", () -> mc.setScreen(new EcranAnalyse("stat", "titrage", 42L, 2, false, false, false, 0)));
+                ClientTickEvents.END_CLIENT_TICK.register(Demo::tick);
+                ClientTickEvents.END_CLIENT_TICK.register(c -> {
+                    if (etape == 0 && depuis % 7 == 0) Dessin.son(0.9f + (depuis % 5) * 0.12f);
+                    if (etape == 0 && depuis % 31 == 0) Dessin.note(0.5f + (depuis % 4) * 0.25f);
+                    if (etape == 0 && depuis % 40 == 20) c.setScreen(null);
+                    if (etape == 0 && depuis % 40 == 0 && depuis > 0) {
+                        String[] jeux = {"titrage", "gel", "microscope", "dosage", "parente", "chromatographie"};
+                        c.setScreen(new EcranAnalyse("stat", jeux[(depuis / 40) % jeux.length], depuis, 2, false, false, false, 0));
+                    }
+                });
+                return;
+            }
+        } catch (Exception e) {
+            // fichier illisible : démo ordinaire
+        }
         etape("tableau_vide", () -> {
             CompoundTag t = new CompoundTag();
             t.putInt("reussies", 3);
             TraqueClient.etat = t;
             mc.setScreen(new EcranTableau());
         });
+        etape("tableau_pistes", () -> {
+            CompoundTag t = new CompoundTag();
+            t.putInt("reussies", 3);
+            ListTag pistes = new ListTag();
+            String[] speciaux = {"", "souterraine", "fouille"};
+            for (int i = 0; i < 3; i++) {
+                CompoundTag c = new CompoundTag();
+                c.putInt("rang", i);
+                c.putString("special", speciaux[i]);
+                c.putBoolean("nouvelle", i != 0);
+                c.putDouble("zoneX", mc.player.getX() + 110 - i * 90);
+                c.putDouble("zoneZ", mc.player.getZ() - 60 + i * 70);
+                pistes.add(c);
+            }
+            t.put("pistes", pistes);
+            t.putLong("pistesFin", 540_000);
+            TraqueClient.etat = t;
+            TraqueClient.etatRecu = System.currentTimeMillis();
+            mc.setScreen(new EcranTableau());
+        });
         etape("tableau", () -> {
             TraqueClient.etat = etat("PRELEVEMENTS", 3);
             mc.setScreen(new EcranTableau());
         });
+        etape("tableau_infobulle", () -> {
+            TraqueClient.etat = etat("PRELEVEMENTS", 3);
+            mc.setScreen(new EcranTableau());
+            // La souris est simulée sur un suspect entouré de Poké Ball : l'infobulle doit passer devant elles.
+            souris = new int[] {(mc.getWindow().getGuiScaledWidth() - 336) / 2 + 134 + 50 + 20, (mc.getWindow().getGuiScaledHeight() - 189) / 2 + 24};
+        });
         etape("tableau_traque", () -> {
+            souris = null;
             TraqueClient.etat = etat("TRAQUE", 5);
             mc.setScreen(new EcranTableau());
         });
         String[][] analyses = {{"type1", "sequencage"}, {"type1", "gel"}, {"type2", "appariement"}, {"type2", "pcr"}, {"taille", "centrifugation"},
-                {"taille", "comptage"}, {"oeuf", "fragments"}, {"stat", "spectre"}, {"stat", "titrage"}};
+                {"taille", "comptage"}, {"oeuf", "fragments"}, {"stat", "spectre"}, {"stat", "titrage"}, {"type1", "chromatographie"},
+                {"type2", "microscope"}, {"taille", "morsure"}, {"oeuf", "parente"}, {"stat", "dosage"}, {"stat", "degel"}};
         for (String[] a : analyses) {
-            etape("analyse_" + a[1], () -> mc.setScreen(new EcranAnalyse(a[0], a[1], 42L, 2, a[1].equals("sequencage"), false, false)));
+            etape("analyse_" + a[1], () -> mc.setScreen(new EcranAnalyse(a[0], a[1], 42L, 2, a[1].equals("sequencage"), false, false, 0)));
         }
         String[][] prelevements = {{"type1", "memoire"}, {"type2", "pipette"}, {"taille", "mesure"}, {"oeuf", "tri"}, {"stat", "trace"},
-                {"taille", "degagement"}, {"oeuf", "degagement"}, {"stat", "degagement"}};
+                {"taille", "degagement"}, {"oeuf", "degagement"}, {"stat", "degagement"}, {"oeuf", "tamisage"}, {"type1", "photo"},
+                {"type2", "ecouvillon"}, {"taille", "moulage"}, {"oeuf", "pince"}, {"type1", "apnee"}, {"stat", "grimpe"}, {"stat", "rappel"},
+                {"type1", "lampe"}, {"type2", "eboulis"}, {"", "filtrage"}};
         for (String[] a : prelevements) {
-            boolean enfoui = a[1].equals("degagement");
-            etape("prelevement_" + a[1] + (enfoui ? "_" + a[0] : ""), () -> mc.setScreen(new EcranAnalyse(a[0], a[1], 7L, 0, false, enfoui, true)));
+            boolean enfoui = a[1].equals("degagement") || a[1].equals("tamisage");
+            // Les dégagements montrent les objets de base ; le tamisage, un objet ajouté en 1.1 (la plume).
+            etape("prelevement_" + a[1] + (enfoui ? "_" + a[0] : ""), () -> mc.setScreen(new EcranAnalyse(a[0], a[1], 7L, 0, false, enfoui, true,
+                    a[1].equals("tamisage") ? 1 : 0)));
         }
         etape("kit_prelevements", () -> {
             TraqueClient.etat = etat("PRELEVEMENTS", 2);
@@ -69,6 +124,38 @@ final class Demo {
             TraqueClient.etat = etat("DEBUSQUE", 5);
             mc.setScreen(new EcranKit());
         });
+        etape("kit_carnet", () -> {
+            TraqueClient.etat = etat("PRELEVEMENTS", 2);
+            mc.setScreen(new EcranKit(1));
+        });
+        etape("kit_archives", () -> {
+            TraqueClient.etat = etat("PRELEVEMENTS", 2);
+            mc.setScreen(new EcranKit(2));
+        });
+        etape("kit_equipe", () -> {
+            CompoundTag t = etat("PRELEVEMENTS", 2);
+            ListTag membres = new ListTag(), proches = new ListTag();
+            membres.add(StringTag.valueOf("Romain"));
+            membres.add(StringTag.valueOf("Camille"));
+            String[][] libres = {{"Sacha", "7"}, {"Alex", "3"}, {"Billie", "0"}, {"Charlie", "0"}, {"Dominique", "0"}, {"Eden", "0"}, {"Noa", "0"}};
+            for (String[] l : libres) {
+                CompoundTag c = new CompoundTag();
+                c.putString("nom", l[0]);
+                c.putInt("ensemble", Integer.parseInt(l[1]));
+                proches.add(c);
+            }
+            t.put("equipe", membres);
+            t.put("proches", proches);
+            t.putBoolean("chef", true);
+            t.putInt("equipeMax", 4);
+            TraqueClient.etat = t;
+            mc.setScreen(new EcranKit(3));
+        });
+        etape("premiere_fois", () -> {
+            EcranAnalyse ecran = new EcranAnalyse("oeuf", "tri", 7L, 0, false, false, true, 0);
+            ecran.intro = true;
+            mc.setScreen(ecran);
+        });
         etape("hud", () -> {
             mc.setScreen(null);
             TraqueClient.annonceTitre = net.minecraft.network.chat.Component.translatable("cobblemon_field_investigations.annonce.nouvelle_enquete.titre");
@@ -81,6 +168,13 @@ final class Demo {
             scan = true;
         });
         ClientTickEvents.END_CLIENT_TICK.register(Demo::tick);
+    }
+
+    // Textes trop longs pour leur cadre, relevés pendant la démo (ils défilent en jeu) : écran -> textes et pixels en trop.
+    private static final java.util.Map<String, Integer> DEBORDEMENTS = new java.util.LinkedHashMap<>();
+
+    static void debordement(String texte, int pixels) {
+        if (active && etape >= 0 && etape < NOMS.size()) DEBORDEMENTS.merge(NOMS.get(etape) + "\t" + texte, pixels, Math::max);
     }
 
     private static void etape(String nom, Runnable action) {
@@ -107,10 +201,17 @@ final class Demo {
             return;
         }
         depuis++;
-        if (etape < 0 || depuis == 20) {
+        if (etape < 0 || depuis == dureeEtape) {
             etape++;
             depuis = 0;
             if (etape >= ETAPES.size()) {
+                try {
+                    StringBuilder sb = new StringBuilder();
+                    DEBORDEMENTS.forEach((cle, px) -> sb.append(cle).append("\t+").append(px).append(" px\n"));
+                    Files.writeString(mc.gameDirectory.toPath().resolve("screenshots").resolve("demo_debordements.txt"), sb.toString());
+                } catch (Exception e) {
+                    // ce relevé n'est qu'une aide à la mise au point
+                }
                 mc.stop();
                 return;
             }
@@ -133,6 +234,7 @@ final class Demo {
         t.putInt("rayonZone", 45);
         t.putInt("requis", 3);
         t.putString("pronostic", phase.equals("PRELEVEMENTS") ? "" : "vulpix");
+        if (phase.equals("TRAQUE")) t.putString("special", "nocturne");
         String[] cible = {"fire", "aucun", "1", "FIELD", "speed"};
         ListTag traces = new ListTag();
         for (int i = 0; i < 5; i++) {
@@ -143,6 +245,7 @@ final class Demo {
             if (i < epingles) c.putString("valeur", cible[i]);
             if (i >= 3 && epingles < 5) {
                 c.putBoolean("enfoui", true);
+                c.putInt("variante", 1);
                 c.putBoolean("perdue", i == 4);
             }
             traces.add(c);
@@ -189,6 +292,34 @@ final class Demo {
         t.putDouble("recIncertitude", 60);
         t.putString("espece", "vulpix");
         t.putInt("etoiles", phase.equals("PRELEVEMENTS") ? 4 : 3);
+        CompoundTag carriere = new CompoundTag();
+        carriere.putInt("xp", 395);
+        carriere.putInt("rang", 3);
+        carriere.putInt("seuil", 320);
+        carriere.putInt("suivant", 560);
+        carriere.putInt("parfaites", 2);
+        carriere.putInt("speciales", 3);
+        carriere.putInt("especes", 6);
+        CompoundTag types = new CompoundTag();
+        types.putInt("ordinaire", 4);
+        types.putInt("nocturne", 1);
+        types.putInt("aquatique", 1);
+        types.putInt("cimes", 1);
+        carriere.put("types", types);
+        ListTag archives = new ListTag();
+        String[][] dossiers = {{"vulpix", "", "5"}, {"magikarp", "aquatique", "4"}, {"zubat", "nocturne", "3"}, {"oddish", "", "5"},
+                {"pikachu", "cimes", "2"}, {"geodude", "", "4"}, {"eevee", "", "3"}};
+        for (int i = 0; i < dossiers.length; i++) {
+            CompoundTag c = new CompoundTag();
+            c.putString("espece", dossiers[i][0]);
+            c.putString("special", dossiers[i][1]);
+            c.putInt("etoiles", Integer.parseInt(dossiers[i][2]));
+            c.putBoolean("capture", i % 3 != 2);
+            c.putLong("date", System.currentTimeMillis() - i * 86_400_000L);
+            archives.add(c);
+        }
+        carriere.put("archives", archives);
+        t.put("carriere", carriere);
         return t;
     }
 }

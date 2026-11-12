@@ -76,9 +76,11 @@ public final class Contenu {
     }
 
     // Trace laissée par le Pokémon : un décalque posé au sol, qu'on prélève avec le kit de terrain.
-    public static class BlocTrace extends Block {
-        // 0 à 4 : les cinq traces de surface ; 5 à 7 : les indices dégagés du sol (os, coquilles, croc).
-        public static final IntegerProperty GENRE = IntegerProperty.create("genre", 0, 7);
+    public static class BlocTrace extends Block implements net.minecraft.world.level.block.SimpleWaterloggedBlock {
+        // Vrai quand la trace est au fond de l'eau (enquêtes aquatiques) : l'eau reste en place autour d'elle.
+        public static final net.minecraft.world.level.block.state.properties.BooleanProperty EAU = BlockStateProperties.WATERLOGGED;
+        // 0 à 4 : les cinq traces de surface ; 5 à 12 : les indices dégagés du sol (os, coquilles, croc, dent, plume, mue, griffe, écaille).
+        public static final IntegerProperty GENRE = IntegerProperty.create("genre", 0, 12);
         // UP = posée au sol (ou sur un feuillage) ; sinon plaquée contre le bloc situé derrière elle (tronc, falaise).
         public static final DirectionProperty APPUI = BlockStateProperties.FACING;
         private static final VoxelShape FORME = Block.box(1, 0, 1, 15, 2, 15);
@@ -87,12 +89,23 @@ public final class Contenu {
 
         public BlocTrace(Properties p) {
             super(p);
-            registerDefaultState(stateDefinition.any().setValue(GENRE, 0).setValue(APPUI, Direction.UP));
+            registerDefaultState(stateDefinition.any().setValue(GENRE, 0).setValue(APPUI, Direction.UP).setValue(EAU, false));
         }
 
         @Override
         protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> b) {
-            b.add(GENRE, APPUI);
+            b.add(GENRE, APPUI, EAU);
+        }
+
+        @Override
+        protected net.minecraft.world.level.material.FluidState getFluidState(BlockState etat) {
+            return etat.getValue(EAU) ? net.minecraft.world.level.material.Fluids.WATER.getSource(false) : super.getFluidState(etat);
+        }
+
+        @Override
+        protected BlockState updateShape(BlockState etat, Direction dir, BlockState voisin, net.minecraft.world.level.LevelAccessor monde, BlockPos pos, BlockPos posVoisin) {
+            if (etat.getValue(EAU)) monde.scheduleTick(pos, net.minecraft.world.level.material.Fluids.WATER, net.minecraft.world.level.material.Fluids.WATER.getTickDelay(monde));
+            return super.updateShape(etat, dir, voisin, monde, pos, posVoisin);
         }
 
         @Override
@@ -109,7 +122,7 @@ public final class Contenu {
         @Override
         protected InteractionResult useWithoutItem(BlockState etat, Level monde, BlockPos pos, Player joueur, BlockHitResult coup) {
             if (!monde.isClientSide && joueur instanceof ServerPlayer j) {
-                Moteur.annonce(j, "kit_requis", 0xF2C93A);
+                Messages.annonce(j, "kit_requis", 0xF2C93A);
             }
             return InteractionResult.sidedSuccess(monde.isClientSide);
         }
@@ -133,7 +146,7 @@ public final class Contenu {
         @Override
         protected InteractionResult useWithoutItem(BlockState etat, Level monde, BlockPos pos, Player joueur, BlockHitResult coup) {
             if (!monde.isClientSide && joueur instanceof ServerPlayer j) {
-                Moteur.annonce(j, "sol_remue", 0xF2C93A);
+                Messages.annonce(j, "sol_remue", 0xF2C93A);
             }
             return InteractionResult.sidedSuccess(monde.isClientSide);
         }
@@ -147,7 +160,7 @@ public final class Contenu {
 
         @Override
         protected void onRemove(BlockState etat, Level monde, BlockPos pos, BlockState nouvel, boolean deplace) {
-            if (!monde.isClientSide && !nouvel.is(this)) Moteur.solDetruit(monde, pos);
+            if (!monde.isClientSide && !nouvel.is(this)) Traces.solDetruit(monde, pos);
             super.onRemove(etat, monde, pos, nouvel, deplace);
         }
     }
@@ -162,12 +175,12 @@ public final class Contenu {
         public InteractionResult useOn(UseOnContext ctx) {
             if (ctx.getLevel().getBlockState(ctx.getClickedPos()).is(SOL)) {
                 if (!ctx.getLevel().isClientSide && ctx.getPlayer() instanceof ServerPlayer j) {
-                    Moteur.annonce(j, "sol_remue", 0xF2C93A);
+                    Messages.annonce(j, "sol_remue", 0xF2C93A);
                 }
                 return InteractionResult.sidedSuccess(ctx.getLevel().isClientSide);
             }
             if (!ctx.getLevel().getBlockState(ctx.getClickedPos()).is(TRACE)) return InteractionResult.PASS;
-            if (!ctx.getLevel().isClientSide && ctx.getPlayer() instanceof ServerPlayer j) Moteur.prelever(j, ctx.getClickedPos());
+            if (!ctx.getLevel().isClientSide && ctx.getPlayer() instanceof ServerPlayer j) Echantillons.prelever(j, ctx.getClickedPos());
             return InteractionResult.sidedSuccess(ctx.getLevel().isClientSide);
         }
 
@@ -175,12 +188,12 @@ public final class Contenu {
         @Override
         public InteractionResultHolder<ItemStack> use(Level monde, Player joueur, InteractionHand main) {
             ItemStack pile = joueur.getItemInHand(main);
-            boolean scan = !joueur.isShiftKeyDown() && (monde.isClientSide ? scanCoteClient : joueur instanceof ServerPlayer j && Moteur.enReperage(j));
+            boolean scan = !joueur.isShiftKeyDown() && (monde.isClientSide ? scanCoteClient : joueur instanceof ServerPlayer j && Pistage.enReperage(j));
             if (scan) {
                 joueur.startUsingItem(main);
                 return InteractionResultHolder.consume(pile);
             }
-            if (!monde.isClientSide && joueur instanceof ServerPlayer j) Moteur.utiliserKit(j, j.isShiftKeyDown());
+            if (!monde.isClientSide && joueur instanceof ServerPlayer j) Pistage.utiliserKit(j, j.isShiftKeyDown());
             return InteractionResultHolder.sidedSuccess(pile, monde.isClientSide);
         }
 
@@ -209,7 +222,7 @@ public final class Contenu {
 
         @Override
         public InteractionResultHolder<ItemStack> use(Level monde, Player joueur, InteractionHand main) {
-            if (main == InteractionHand.MAIN_HAND && !monde.isClientSide && joueur instanceof ServerPlayer j) Moteur.analyser(j);
+            if (main == InteractionHand.MAIN_HAND && !monde.isClientSide && joueur instanceof ServerPlayer j) Echantillons.analyser(j);
             return InteractionResultHolder.sidedSuccess(joueur.getItemInHand(main), monde.isClientSide);
         }
 
@@ -217,7 +230,7 @@ public final class Contenu {
         public Component getName(ItemStack pile) {
             CompoundTag d = donnees(pile);
             return Component.translatable(d.getBoolean("analyse") ? "cobblemon_field_investigations.echantillon.nom_analyse" : "cobblemon_field_investigations.echantillon.nom",
-                    Component.translatable(Genetique.nomTrace(d.getString("genre"), d.getBoolean("enfoui"))));
+                    Component.translatable(Genetique.nomTrace(d.getString("genre"), d.getBoolean("enfoui"), d.getInt("variante"))));
         }
 
         @Override

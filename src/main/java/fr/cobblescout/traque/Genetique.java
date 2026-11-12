@@ -14,44 +14,92 @@ import net.minecraft.network.chat.MutableComponent;
 // Chaque marqueur a une valeur (une clé courte), un libellé et une couleur ; le client ne reçoit que les clés.
 public final class Genetique {
     public static final List<String> MARQUEURS = List.of("type1", "type2", "taille", "oeuf", "stat");
-    // Tous les noms sont des clés de traduction (assets/cobblescout/lang) : l'anglais par défaut, le français fourni avec le mod.
+    // Tous les noms sont des clés de traduction : l'anglais par défaut, le français fourni avec le mod.
     public static final Map<String, String> NOMS_MARQUEURS = Map.of(
             "type1", "cobblemon_field_investigations.marqueur.type1", "type2", "cobblemon_field_investigations.marqueur.type2", "taille", "cobblemon_field_investigations.marqueur.taille",
             "oeuf", "cobblemon_field_investigations.marqueur.oeuf", "stat", "cobblemon_field_investigations.marqueur.stat");
     public static final Map<String, String> NOMS_TRACES = Map.of(
             "type1", "cobblemon_field_investigations.trace.type1", "type2", "cobblemon_field_investigations.trace.type2", "taille", "cobblemon_field_investigations.trace.taille",
             "oeuf", "cobblemon_field_investigations.trace.oeuf", "stat", "cobblemon_field_investigations.trace.stat");
-    // Certains indices sont enfouis : il faut d'abord les dégager au pinceau.
     public static final Map<String, String> NOMS_ENFOUIS = Map.of(
             "taille", "cobblemon_field_investigations.enfoui.taille", "oeuf", "cobblemon_field_investigations.enfoui.oeuf", "stat", "cobblemon_field_investigations.enfoui.stat");
+// Ce qu'on déterre varie : nombre d'objets possibles pour chaque marqueur enfouissable (os ou dent ; coquilles,
+    // plume ou mue ; croc, griffe ou écaille).
+    public static final Map<String, Integer> VARIANTES = Map.of("taille", 2, "oeuf", 3, "stat", 3);
     // Mini-jeux d'analyse possibles pour chaque marqueur (tiré au sort à la création de l'échantillon).
     public static final Map<String, List<String>> JEUX_ANALYSE = Map.of(
-            "type1", List.of("sequencage", "gel"), "type2", List.of("appariement", "pcr"), "taille", List.of("centrifugation", "comptage"),
-            "oeuf", List.of("fragments", "gel"), "stat", List.of("spectre", "titrage"));
-    // Clé de traduction du nom d'un mini-jeu.
+            "type1", List.of("sequencage", "gel", "chromatographie"), "type2", List.of("appariement", "pcr", "microscope"),
+            "taille", List.of("centrifugation", "comptage", "morsure"), "oeuf", List.of("fragments", "gel", "parente"),
+            "stat", List.of("spectre", "titrage", "dosage"));
+    public static final Map<String, List<String>> JEUX_PRELEVEMENT = Map.of(
+            "type1", List.of("memoire", "photo"), "type2", List.of("pipette", "ecouvillon"), "taille", List.of("mesure", "moulage"),
+            "oeuf", List.of("tri", "pince"), "stat", List.of("trace", "photo"));
+    // Tous les mini-jeux, pour la commande d'essai /hunt game : prélèvements, puis analyses.
+    public static final List<String> JEUX_TERRAIN = List.of("memoire", "pipette", "mesure", "tri", "trace", "degagement", "tamisage", "moulage",
+            "pince", "photo", "ecouvillon", "apnee", "grimpe", "rappel", "lampe", "eboulis", "filtrage");
+    public static final List<String> JEUX_LABO = List.of("sequencage", "appariement", "centrifugation", "fragments", "spectre", "gel", "titrage",
+            "pcr", "comptage", "microscope", "chromatographie", "parente", "dosage", "morsure", "degel");
+
+    // Noms anglais des mini-jeux pour la commande /hunt game (les identifiants internes restent ceux du code, en français).
+    public static final Map<String, String> NOMS_COMMANDE = new java.util.LinkedHashMap<>();
+    static {
+        String[][] noms = {{"crystals", "memoire"}, {"pipette", "pipette"}, {"measure", "mesure"}, {"sorting", "tri"}, {"tracing", "trace"},
+                {"brush", "degagement"}, {"sieve", "tamisage"}, {"cast", "moulage"}, {"tweezers", "pince"}, {"photo", "photo"}, {"swab", "ecouvillon"},
+                {"dive", "apnee"}, {"climb", "grimpe"}, {"abseil", "rappel"}, {"uvlamp", "lampe"}, {"rockfall", "eboulis"}, {"filter", "filtrage"},
+                {"sequencing", "sequencage"}, {"pairing", "appariement"}, {"centrifuge", "centrifugation"}, {"fragments", "fragments"},
+                {"spectrum", "spectre"}, {"gel", "gel"}, {"colour", "titrage"}, {"pcr", "pcr"}, {"count", "comptage"}, {"microscope", "microscope"},
+                {"chromatography", "chromatographie"}, {"tree", "parente"}, {"titration", "dosage"}, {"bite", "morsure"}, {"thaw", "degel"}};
+        for (String[] n : noms) NOMS_COMMANDE.put(n[0], n[1]);
+    }
+
+    public static String nomCommande(String jeu) {
+        for (Map.Entry<String, String> e : NOMS_COMMANDE.entrySet()) {
+            if (e.getValue().equals(jeu)) return e.getKey();
+        }
+        return jeu;
+    }
+
     public static String nomJeu(String jeu) {
         return "cobblemon_field_investigations.jeu." + jeu;
     }
 
-    public static String nomTrace(String genre, boolean enfoui) {
-        return enfoui ? NOMS_ENFOUIS.getOrDefault(genre, "cobblemon_field_investigations.enfoui.taille") : NOMS_TRACES.getOrDefault(genre, "cobblemon_field_investigations.trace.type1");
+    public static String nomTrace(String genre, boolean enfoui, int variante) {
+        if (!enfoui) return NOMS_TRACES.getOrDefault(genre, "cobblemon_field_investigations.trace.type1");
+        String cle = NOMS_ENFOUIS.getOrDefault(genre, "cobblemon_field_investigations.enfoui.taille");
+        return variante > 0 && variante < VARIANTES.getOrDefault(genre, 1) ? cle + "_" + variante : cle;
     }
 
-    // Le geste de prélèvement dépend de ce qu'on prélève.
-    public static String jeuPrelevement(String genre, boolean enfoui) {
-        if (enfoui) return "degagement";
-        return switch (genre) {
-            case "type2" -> "pipette";
-            case "taille" -> "mesure";
-            case "oeuf" -> "tri";
-            case "stat" -> "trace";
-            default -> "memoire";
+    // Numéro de bloc (propriété « genre » de la trace) de l'objet dégagé du sol.
+    public static int blocEnfoui(String genre, int variante) {
+        int[] blocs = switch (genre) {
+            case "taille" -> new int[] {5, 8};
+            case "oeuf" -> new int[] {6, 9, 10};
+            default -> new int[] {7, 11, 12};
         };
+        return blocs[Math.max(0, Math.min(blocs.length - 1, variante))];
+    }
+
+    // Le geste de prélèvement dépend de ce qu'on prélève, et parfois du type d'enquête : en apnée pour une enquête
+    // aquatique, en grimpant dans les cimes, en rappel en altitude, à la lampe UV de nuit. Le tirage est fixe pour une trace.
+    public static String jeuPrelevement(String genre, boolean enfoui, String special, java.util.Random h) {
+        if (enfoui) return h.nextBoolean() ? "degagement" : "tamisage";
+        if (special != null && h.nextInt(3) != 0) {
+            switch (special) {
+                case "aquatique": return "apnee";
+                case "cimes": return "grimpe";
+                case "altitude": return "rappel";
+                case "nocturne": return "lampe";
+                case "souterraine": return "eboulis";
+                default:
+            }
+        }
+        List<String> possibles = JEUX_PRELEVEMENT.getOrDefault(genre, List.of("memoire"));
+        return possibles.get(h.nextInt(possibles.size()));
     }
 
     public static String jeuAnalyse(String genre, String jeu) {
         List<String> possibles = JEUX_ANALYSE.getOrDefault(genre, List.of("sequencage"));
-        return possibles.contains(jeu) ? jeu : possibles.get(0);
+        return possibles.contains(jeu) || "degel".equals(jeu) ? jeu : possibles.get(0);
     }
 
     private static final Map<String, Integer> COULEURS_TYPES = Map.ofEntries(

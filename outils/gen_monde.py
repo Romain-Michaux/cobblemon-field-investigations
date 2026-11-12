@@ -59,7 +59,10 @@ sauver(voile(ouvrir("monde_taille"), 0.8), "block", "trace_2")
 sauver(voile(ouvrir("monde_oeuf"), 0.92), "block", "trace_3")
 sauver(voile(ouvrir("monde_stat"), 0.85), "block", "trace_4")
 # Indices dégagés du sol : os, coquilles, croc.
-for i, nom in ((5, "enfoui_os"), (6, "enfoui_coquille"), (7, "enfoui_croc")):
+# Les numéros suivent Genetique.blocEnfoui : os et dent (croissance), coquilles, plume et mue (lignée), croc, griffe et écaille (aptitude).
+ENFOUIS = ((5, "enfoui_os", "taille", 0), (6, "enfoui_coquille", "oeuf", 0), (7, "enfoui_croc", "stat", 0), (8, "enfoui_dent", "taille", 1),
+           (9, "enfoui_plume", "oeuf", 1), (10, "enfoui_mue", "oeuf", 2), (11, "enfoui_griffe", "stat", 1), (12, "enfoui_ecaille", "stat", 2))
+for i, nom, _, _ in ENFOUIS:
     sauver(ouvrir(nom), "block", "trace_%d" % i)
 
 # ---------- Sol remué : un voile posé sur le dessus du bloc d'origine, qui se creuse au fil du brossage ----------
@@ -102,9 +105,9 @@ for m, base in enumerate(BASES):
         variantes["degage=%d,matiere=%d" % (k, m)] = {"model": NS + ":block/" + nom}
 ecrire_json(("assets", NS, "blockstates", "sol_remue.json"), {"variants": variantes})
 
-# ---------- Traces : huit genres (5 de surface + 3 indices dégagés) ----------
+# ---------- Traces : treize genres (5 de surface + 8 indices dégagés) ----------
 variantes = {}
-for i in range(8):
+for i in range(13):
     ecrire_json(("assets", NS, "models", "block", "trace_%d.json" % i), {
         "ambientocclusion": False,
         "textures": {"t": NS + ":block/trace_%d" % i, "particle": NS + ":block/trace_%d" % i},
@@ -133,8 +136,11 @@ sauver(ouvrir("item_echantillon"), "item", "echantillon")
 for nom in ("ecorce", "terre", "petri", "grand_os", "grand_coquille", "grand_croc",
             "debris_coquille", "debris_brindille", "debris_feuille", "debris_caillou"):
     sauver(ouvrir(nom), "gui", nom)
-for genre, nom in (("taille", "enfoui_os"), ("oeuf", "enfoui_coquille"), ("stat", "enfoui_croc")):
-    sauver(ouvrir(nom), "gui", "enfoui_" + genre)
+for _, nom, genre, variante in ENFOUIS:
+    sauver(ouvrir(nom), "gui", "enfoui_" + genre + ("_%d" % variante if variante else ""))
+# Accessoires et décors des mini-jeux ajoutés en 1.1.
+for nom in ("tamis", "pince", "ecouvillon", "burette", "glacon", "paroi", "fond_eau", "nuit", "sous_bois", "nid", "plateau"):
+    sauver(ouvrir(nom), "gui", nom)
 sauver(ouvrir("radar_b"), "gui", "radar")  # détecteur du HUD : sonar à gauche (centre 33,24), afficheur à droite (55..177 x 14..33)
 sauver(ouvrir("cristal_a"), "gui", "cristal")  # teinté en jeu : terne, turquoise (stable) ou rouge (instable)
 # Bac de gel de l'électrophorèse (240 x 104), dessiné ici : PixelLab le rend en perspective, il faut un fond bien à plat.
@@ -166,7 +172,7 @@ sauver(ouvrir("viseur_a"), "gui", "viseur")  # viseur du scanner, teinté en jeu
 empreinte = ouvrir("empreinte")
 empreinte = empreinte.crop(empreinte.getbbox())
 sauver(empreinte, "gui", "empreinte")
-assert empreinte.size == (74, 70), "JeuxTerrain.Mesure.EL / EH sont à mettre à jour"
+assert empreinte.size == (74, 70), "JeuMesure.EL / EH sont à mettre à jour"
 # Erlenmeyer de la colorimétrie : le verre garde ses couleurs ; le liquide (zone claire et chaude du bas) est séparé
 # dans une seconde texture en gris clair, la seule à être teintée en jeu.
 verre = ouvrir("erlenmeyer")
@@ -183,3 +189,58 @@ sauver(verre, "gui", "erlenmeyer")
 sauver(liquide, "gui", "erlenmeyer_liquide")
 
 # Les fichiers de langue sont écrits par outils/gen_langues.py.
+
+# Branches de la grimpe : l'image PixelLab pointe vers la droite ; celle de gauche est son miroir.
+# La branche morte est tirée de la branche vivante, pour qu'elles aient la même forme et la même écorce : on lui retire
+# son feuillage, on casse son extrémité, on ternit son bois et on y ouvre une fente.
+from PIL import ImageOps
+
+
+def branche_morte(vivante):
+    im = vivante.copy()
+    px = im.load()
+    ecorce = lambda c: c[3] > 0 and c[0] > c[1] * 1.15 and c[0] > 60
+    bout = max(x for x in range(im.width) for y in range(im.height) if ecorce(px[x, y]))
+    lignes = [y for y in range(im.height) if any(ecorce(px[x, y]) for x in range(im.width))]
+    milieu = (min(lignes) + max(lignes)) // 2
+    for y in range(im.height):
+        # L'extrémité est cassée net, en dents de scie.
+        limite = bout - (2 if (y - milieu) % 3 == 0 else 0) - abs(y - milieu) // 3
+        for x in range(im.width):
+            r, v, b, a = px[x, y]
+            if a == 0:
+                continue
+            if x > limite or (v > r * 1.05 and v > b):
+                px[x, y] = (0, 0, 0, 0)  # feuillage et bout de branche
+            elif ecorce((r, v, b, a)):
+                gris = (r * 3 + v * 6 + b) // 10
+                px[x, y] = ((r + gris * 2) * 26 // 100, (v + gris * 2) * 27 // 100, (b + gris * 2) * 29 // 100, a)
+    # Une fente sombre le long du bois, et un liseré noir sur la cassure.
+    for x in range(im.width):
+        if x % 7 != 3 and px[x, milieu][3] > 0 and px[x, milieu][0] > 30:
+            px[x, milieu] = (28, 24, 24, 255)
+    for y in range(im.height):
+        for x in range(im.width - 1, -1, -1):
+            if px[x, y][3] > 0:
+                px[x, y] = (20, 16, 16, 255)
+                break
+    return im
+
+
+for nom in ("branche", "branche_morte"):
+    brut = ouvrir("branche")
+    if nom == "branche_morte":
+        brut = branche_morte(brut)
+    decoupe = brut.crop(brut.getbbox())
+    im = Image.new("RGBA", (32, 32))
+    im.alpha_composite(decoupe, (0, (32 - decoupe.height) // 2))  # calée à gauche : c'est le côté qui touche le tronc
+    sauver(im, "gui", nom + "_d")
+    sauver(ImageOps.mirror(im), "gui", nom + "_g")
+
+# Décor de la grimpe : la forêt du fond est fixe ; le tronc est une bande droite de 56 px (la partie sans racines d'une
+# image PixelLab, raccordée par un fondu sur dix lignes) qui se répète sans couture et défile.
+for nom in ("tronc", "foret"):
+    sauver(ouvrir(nom), "gui", nom)
+
+# Insigne d'enquêteur du carnet (teinté en jeu à la couleur du rang).
+sauver(ouvrir("insigne"), "gui", "insigne")

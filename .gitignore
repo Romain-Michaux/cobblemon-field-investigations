@@ -21,3 +21,6 @@ __pycache__/
 
 # Gabarit officiel des icônes d'add-ons Cobblemon (téléchargé depuis leur Discord, non redistribué ici)
 Cobblemon_Addon_Frames.zip
+
+# Fichiers personnels posés dans le dossier
+*.exe

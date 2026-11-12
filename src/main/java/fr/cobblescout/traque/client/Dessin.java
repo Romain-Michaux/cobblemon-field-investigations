@@ -1,5 +1,7 @@
 package fr.cobblescout.traque.client;
 
+import fr.cobblescout.traque.Genetique;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,19 +77,16 @@ final class Dessin {
         return ResourceLocation.fromNamespaceAndPath("cobblemon_field_investigations", "textures/gui/" + nom + ".png");
     }
 
-    // Texture entière, un texel par pixel d'interface.
     static void image(GuiGraphics g, ResourceLocation texture, int x, int y, int l, int h) {
         RenderSystem.enableBlend();
         g.blit(texture, x, y, 0, 0, l, h, l, h);
     }
 
-    // Un morceau (u, v, l, h) d'une texture de tl x th.
     static void morceau(GuiGraphics g, ResourceLocation texture, int x, int y, int u, int v, int l, int h, int tl, int th) {
         RenderSystem.enableBlend();
         g.blit(texture, x, y, u, v, l, h, tl, th);
     }
 
-    // Un morceau (u, v, ul, vh) d'une texture de tl x th, agrandi à l x h.
     static void morceauAgrandi(GuiGraphics g, ResourceLocation texture, int x, int y, int l, int h, int u, int v, int ul, int vh, int tl, int th) {
         RenderSystem.enableBlend();
         g.blit(texture, x, y, l, h, u, v, ul, vh, tl, th);
@@ -111,6 +110,7 @@ final class Dessin {
 
     // Fond d'un écran, centré ; l'intérieur utile commence en (fond.x(largeur), fond.y(hauteur)).
     static void fond(GuiGraphics g, Fond fond, int largeurEcran, int hauteurEcran) {
+        zone(fond.x(largeurEcran) + 2, fond.x(largeurEcran) + fond.il() - 2);
         image(g, fond.texture(), (largeurEcran - fond.l()) / 2, (hauteurEcran - fond.h()) / 2, fond.l(), fond.h());
     }
 
@@ -119,17 +119,68 @@ final class Dessin {
         neufCases(g, PLAQUE, x, y, l, h, 128, 40, 8, 8, 8, 8);
     }
 
-    // Bandeau de titre en haut de l'écran d'un appareil.
+    // ---------- Texte borné ----------
+    // Chaque cadre (fond d'écran, encart, carte) déclare la zone où l'on écrit ensuite. Un texte qui tiendrait en dehors
+    // n'est jamais coupé : il défile de lui-même, en aller-retour, dans la largeur qui lui reste.
+    private static int zoneGauche = Integer.MIN_VALUE, zoneDroite = Integer.MAX_VALUE;
+
+    static void zone(int gauche, int droite) {
+        zoneGauche = gauche;
+        zoneDroite = droite;
+    }
+
+    static void sansZone() {
+        zoneGauche = Integer.MIN_VALUE;
+        zoneDroite = Integer.MAX_VALUE;
+    }
+
+    // Écrit un texte dans une largeur donnée ; s'il est trop long, il défile (une seconde de pause à chaque bout).
+    static void defile(GuiGraphics g, String texte, int x, int y, int largeur, int couleur) {
+        int l = police().width(texte);
+        if (l <= largeur || largeur < 12) {
+            g.drawString(police(), texte, x, y, couleur, false);
+            return;
+        }
+        Demo.debordement(texte, l - largeur);
+        int exces = l - largeur + 2, trajet = exces * 45;
+        long t = System.currentTimeMillis() % (2000L + 2L * trajet);
+        double pos = t < 1000 ? 0 : t < 1000 + trajet ? (t - 1000) / 45.0 : t < 2000 + trajet ? exces : exces - (t - 2000 - trajet) / 45.0;
+        g.enableScissor(x, y - 1, x + largeur, y + 10);
+        g.drawString(police(), texte, x - (int) Math.round(pos), y, couleur, false);
+        g.disableScissor();
+    }
+
+    // Écrit un texte à cet endroit ; s'il sort de la zone courante par la droite, il défile.
+    static void ecrire(GuiGraphics g, String texte, int x, int y, int couleur, boolean ombre) {
+        if (x >= zoneGauche && x < zoneDroite) defile(g, texte, x, y, zoneDroite - x, couleur);
+        else g.drawString(police(), texte, x, y, couleur, false);
+    }
+
+    static void ecrire(GuiGraphics g, net.minecraft.util.FormattedCharSequence texte, int x, int y, int couleur, boolean ombre) {
+        g.drawString(police(), texte, x, y, couleur, false);
+    }
+
+    static void ecrire(GuiGraphics g, Component texte, int x, int y, int couleur, boolean ombre) {
+        g.drawString(police(), texte, x, y, couleur, false);
+    }
+
     static void bandeau(GuiGraphics g, int x, int y, int l, String titre, String droite) {
         g.fill(x + 5, y + 4, x + 11, y + 10, ROUGE);
         g.fill(x + 6, y + 5, x + 8, y + 7, 0xFFFFB0A8);
         g.drawString(police(), titre, x + 15, y + 3, TEXTE, false);
         if (droite != null) g.drawString(police(), droite, x + l - 6 - police().width(droite), y + 3, GRIS, false);
+        zone(x + 4, x + l - 4);
         g.fill(x + 4, y + 14, x + l - 4, y + 15, BORD_CLAIR);
     }
 
     static void encart(GuiGraphics g, int x, int y, int w, int h) {
+        zone(x + 4, x + w - 4);
         neufCases(g, ENCART_TEXTURE, x, y, w, h, 88, 54, 5, 5, 5, 5);
+    }
+
+    // Dessin de l'objet enfoui : enfoui_<marqueur>.png pour le premier, enfoui_<marqueur>_<n>.png pour les autres.
+    static ResourceLocation iconeEnfoui(String genre, int variante) {
+        return texture("enfoui_" + genre + (variante > 0 && variante < Genetique.VARIANTES.getOrDefault(genre, 1) ? "_" + variante : ""));
     }
 
     static ResourceLocation iconeTrace(String genre, boolean enfoui) {
@@ -141,8 +192,9 @@ final class Dessin {
         teinte(g, fond);
         neufCases(g, BOUTON, x, y, w, h, 32, 20, 9, 3, 9, 4);
         g.setColor(1f, 1f, 1f, 1f);
-        int lt = police().width(libelle);
-        g.drawString(police(), libelle, x + (w - lt) / 2, y + 3 + (h - 14) / 2, actif ? (clair(fond) ? BORD : TEXTE) : 0xFFAEBBC8, false);
+        int lt = police().width(libelle), teinteTexte = actif ? (clair(fond) ? BORD : TEXTE) : 0xFFAEBBC8;
+        if (lt > w - 8) defile(g, libelle, x + 4, y + 3 + (h - 14) / 2, w - 8, teinteTexte);
+        else g.drawString(police(), libelle, x + (w - lt) / 2, y + 3 + (h - 14) / 2, teinteTexte, false);
     }
 
     private static boolean clair(int c) {
@@ -155,7 +207,7 @@ final class Dessin {
         g.fill(x, y, x + w, y + h, assombrir(c, 0.45));
         g.fill(x + 1, y + 1, x + w - 1, y + h - 1, c);
         g.fill(x + 1, y + 1, x + w - 1, y + 2, assombrir(c, 1.25));
-        if (libelle != null) g.drawString(police(), libelle, x + 4, y + (h - 8) / 2, clair(c) ? BORD : TEXTE, false);
+        if (libelle != null) defile(g, libelle, x + 4, y + (h - 8) / 2, w - 7, clair(c) ? BORD : TEXTE);
     }
 
     // Une base (A, T, C, G) : une touche teintée à sa couleur ; -1 = case encore vide.
@@ -167,8 +219,12 @@ final class Dessin {
         g.drawString(police(), b < 0 ? "?" : BASES[b], x + (taille - 5) / 2, y + (taille - 9) / 2, b < 0 ? 0xFFB4C0CC : BORD, false);
     }
 
+    // Texte centré ; s'il déborde de la zone courante, il défile sur toute sa largeur.
     static void centre(GuiGraphics g, String texte, int cx, int y, int couleur) {
-        g.drawString(police(), texte, cx - police().width(texte) / 2, y, couleur, false);
+        int l = police().width(texte);
+        boolean dedans = cx >= zoneGauche && cx < zoneDroite;
+        if (dedans && (cx - l / 2 < zoneGauche || cx + (l + 1) / 2 > zoneDroite)) defile(g, texte, zoneGauche, y, zoneDroite - zoneGauche, couleur);
+        else g.drawString(police(), texte, cx - l / 2, y, couleur, false);
     }
 
     static void point(GuiGraphics g, double x, double y, int taille, int couleur) {
@@ -230,8 +286,11 @@ final class Dessin {
         for (Component c : lignes) w = Math.max(w, police().width(c));
         int x = Math.min(mx + 10, largeurEcran - w - 10), y = my - 6;
         int h = lignes.size() * 10 + 5;
+        // L'infobulle passe devant tout, y compris les objets dessinés en relief (portraits, Poké Ball), qui se trouvent
+        // entre 400 et 600 de profondeur sur le tableau.
+        g.flush();
         g.pose().pushPose();
-        g.pose().translate(0, 0, 400);
+        g.pose().translate(0, 0, 900);
         plaque(g, x - 7, y - 8, w + 14, h + 12);
         for (int i = 0; i < lignes.size(); i++) g.drawString(police(), lignes.get(i), x, y + i * 10, TEXTE, false);
         g.pose().popPose();
@@ -255,15 +314,14 @@ final class Dessin {
     }
 
     static void son(float hauteur) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, hauteur));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sons.CLIC, hauteur, 0.8f));
     }
 
-    // Un son d'interface quelconque, à la hauteur et au volume voulus.
     static void bip(net.minecraft.sounds.SoundEvent son, float hauteur, float volume) {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(son, hauteur, volume));
     }
 
     static void note(float hauteur) {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, hauteur, 0.6f));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(Sons.CARILLON, hauteur, 0.6f));
     }
 }

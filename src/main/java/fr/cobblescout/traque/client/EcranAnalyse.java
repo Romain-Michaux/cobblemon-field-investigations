@@ -16,14 +16,18 @@ import net.minecraft.sounds.SoundEvents;
 public class EcranAnalyse extends Screen {
     private static final int ZL = 280, ZH = 118;
     private final String genre, idJeu;
-    private final boolean prelevement, filet, enfoui;
-    private final int doses;
+    private final boolean prelevement, filet, enfoui, filtrage;
+    private final int doses, variante;
     private final Jeu jeu;
+    // Partie d'essai (commande /hunt game) : rien n'est envoyé au serveur à la fin.
+    boolean essai;
+    // Première fois que le joueur voit ce mini-jeu : les règles s'affichent, et rien ne démarre avant qu'il clique « Commencer ».
+    boolean intro;
     private boolean envoye;
     private int finDepuis = -1;
     private int ticks;
 
-    public EcranAnalyse(String genre, String idJeu, long graine, int doses, boolean filet, boolean enfoui, boolean prelevement) {
+    public EcranAnalyse(String genre, String idJeu, long graine, int doses, boolean filet, boolean enfoui, boolean prelevement, int variante) {
         super(Component.literal(T.f("dna_sequencer")));
         this.genre = genre;
         this.idJeu = idJeu;
@@ -31,22 +35,42 @@ public class EcranAnalyse extends Screen {
         this.enfoui = enfoui;
         this.doses = doses;
         this.filet = filet;
+        this.variante = variante;
+        // Le filtrage du cri se joue pendant la traque, avant un relevé : ni fiole ni étoile en jeu.
+        this.filtrage = idJeu.equals("filtrage");
         Random h = new Random(graine);
         this.jeu = switch (idJeu) {
-            case "memoire" -> new JeuxTerrain.Cristaux(h);
-            case "pipette" -> new JeuxTerrain.Pipette(h);
-            case "mesure" -> new JeuxTerrain.Mesure(h);
-            case "tri" -> new JeuxTerrain.Tri(h);
-            case "trace" -> new JeuxTerrain.Trace(h);
-            case "degagement" -> new JeuxTerrain.Degagement(h, genre);
+            case "memoire" -> new JeuCristaux(h);
+            case "pipette" -> new JeuPipette(h);
+            case "mesure" -> new JeuMesure(h);
+            case "tri" -> new JeuTri(h);
+            case "trace" -> new JeuTrace(h);
+            case "degagement" -> new JeuDegagement(h, genre, variante);
+            case "tamisage" -> new JeuTamis(h, genre, variante);
+            case "moulage" -> new JeuMoulage(h);
+            case "pince" -> new JeuPince(h);
+            case "photo" -> new JeuPhoto(h);
+            case "ecouvillon" -> new JeuEcouvillon(h);
+            case "apnee" -> new JeuApnee(h);
+            case "grimpe" -> new JeuGrimpe(h);
+            case "rappel" -> new JeuRappel(h);
+            case "lampe" -> new JeuLampeUV(h);
+            case "eboulis" -> new JeuEboulis(h);
+            case "filtrage" -> new JeuFiltrage(h);
+            case "microscope" -> new JeuMicroscope(h);
+            case "chromatographie" -> new JeuChromato(h);
+            case "parente" -> new JeuParente(h);
+            case "dosage" -> new JeuDosage(h);
+            case "morsure" -> new JeuMorsure(h);
+            case "degel" -> new JeuDegel(h);
             case "appariement" -> new Appariement(h);
             case "centrifugation" -> new Centrifugeuse(h);
             case "fragments" -> new Fragments(h);
             case "spectre" -> new Spectre(h);
-            case "gel" -> new JeuxLabo.Gel(h);
-            case "titrage" -> new JeuxLabo.Titrage(h);
-            case "pcr" -> new JeuxLabo.Pcr(h);
-            case "comptage" -> new JeuxLabo.Comptage(h);
+            case "gel" -> new JeuGel(h);
+            case "titrage" -> new JeuTitrage(h);
+            case "pcr" -> new JeuPcr(h);
+            case "comptage" -> new JeuComptage(h);
             default -> new Sequencage(h);
         };
     }
@@ -63,23 +87,29 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public void tick() {
+        if (intro) return;
         ticks++;
-        if (!jeu.fini) jeu.tick();
+        // Rythme réglé par le serveur : en facile, le jeu saute un tic sur trois ; en difficile, il en joue un de plus sur quatre.
+        int rythme = TraqueClient.etat.getInt("difficulte");
+        if (!jeu.fini && !(rythme < 0 && ticks % 3 == 0)) {
+            jeu.tick();
+            if (rythme > 0 && ticks % 4 == 0 && !jeu.fini) jeu.tick();
+        }
         if (jeu.fini && finDepuis < 0) {
             finDepuis = ticks;
-            // Fin de partie : carillon et petite fanfare si c'est réussi, note grave sinon.
             Dessin.note(jeu.succes ? 1.6f : 0.6f);
-            if (jeu.succes) Dessin.bip(SoundEvents.EXPERIENCE_ORB_PICKUP, jeu.parfait ? 1.4f : 1f, 0.6f);
-            else Dessin.bip(SoundEvents.NOTE_BLOCK_BASS.value(), 0.5f, 0.9f);
+            if (jeu.succes) Dessin.bip(Sons.REUSSITE, jeu.parfait ? 1.4f : 1f, 0.6f);
+            else Dessin.bip(Sons.ECHEC, 0.5f, 0.9f);
         }
         if (finDepuis >= 0 && ticks - finDepuis > 32) onClose();
     }
 
     @Override
     public void removed() {
-        if (!envoye) {
+        // Fermer l'écran pendant l'explication ne coûte rien : la partie n'a pas commencé.
+        if (!envoye && !essai && !intro) {
             envoye = true;
-            Paquet p = Paquet.de(prelevement ? "prelevement" : "analyse");
+            Paquet p = Paquet.de(filtrage ? "filtrage" : prelevement ? "prelevement" : "analyse");
             p.donnees().putBoolean("succes", jeu.fini && jeu.succes);
             p.donnees().putBoolean("parfait", jeu.fini && jeu.succes && jeu.parfait);
             TraqueClient.envoyer(p);
@@ -95,15 +125,14 @@ public class EcranAnalyse extends Screen {
         Dessin.fond(g, f, width, height);
         int zx = x + (l - ZL) / 2, zy;
         if (prelevement) {
-            Dessin.bandeau(g, x, y, l, T.c(Genetique.nomJeu(idJeu)).toUpperCase(), T.c(Genetique.nomTrace(genre, enfoui)));
+            Dessin.bandeau(g, x, y, l, T.c(Genetique.nomJeu(idJeu)).toUpperCase(), filtrage ? T.f("cry_bearing") : T.c(Genetique.nomTrace(genre, enfoui, variante)));
             zy = y + 18;
         } else {
-            // Le titre s'affiche sur le bandeau turquoise de la machine, sous l'écran.
             String nomJeu = T.c(Genetique.nomJeu(idJeu)).toUpperCase();
             String titre = T.f("dna_sequencer_2") + nomJeu;
             if (Dessin.police().width(titre) > 220) titre = nomJeu;
             Dessin.centre(g, titre, x + l / 2, y + 176, 0xFF0E3B3A);
-            g.drawString(Dessin.police(), T.c(Genetique.nomTrace(genre, enfoui)) + T.f("doses") + doses + (filet ? T.f("first_mistake_is_free") : ""),
+            Dessin.ecrire(g, T.c(Genetique.nomTrace(genre, enfoui, variante)) + T.f("doses") + doses + (filet ? T.f("first_mistake_is_free") : ""),
                     zx, y + 3, Dessin.GRIS, false);
             zy = y + 15;
         }
@@ -111,13 +140,29 @@ public class EcranAnalyse extends Screen {
         jeu.ox = zx;
         jeu.oy = zy;
         jeu.dessiner(g, mx, my, pt);
-        Dessin.paragraphe(g, jeu.consigne(), zx, zy + ZH + 3, ZL, Dessin.GRIS);
+        if (!intro) Dessin.paragraphe(g, jeu.consigne(), zx, zy + ZH + 3, ZL, Dessin.GRIS);
+        if (intro) {
+            g.pose().pushPose();
+            g.pose().translate(0, 0, 350);
+            g.fill(zx, zy, zx + ZL, zy + ZH, 0xEA0C141C);
+            Dessin.centre(g, T.f("first_time") + T.c(Genetique.nomJeu(idJeu)).toUpperCase(), zx + ZL / 2, zy + 8, Dessin.JAUNE);
+            int ly = Dessin.paragraphe(g, jeu.consigne(), zx + 16, zy + 24, ZL - 32, Dessin.TEXTE);
+            Dessin.paragraphe(g, filtrage ? T.f("a_failure_costs_no_star")
+                    : prelevement ? T.f("a_failure_damages_the_sample")
+                    : T.f("a_failure_loses_one_dose"), zx + 16, ly + 4, ZL - 32, Dessin.GRIS);
+            boolean survol = Dessin.dans(mx, my, zx + ZL / 2 - 60, zy + ZH - 26, 120, 20);
+            Dessin.bouton(g, zx + ZL / 2 - 60, zy + ZH - 26, 120, 20, T.f("start"), survol, true, Dessin.VERT);
+            g.pose().popPose();
+        }
         if (finDepuis >= 0) {
             g.pose().pushPose();
             g.pose().translate(0, 0, 300);
             g.fill(zx + 40, zy + 40, zx + ZL - 40, zy + 78, Dessin.BORD);
             g.fill(zx + 42, zy + 42, zx + ZL - 42, zy + 76, jeu.succes ? 0xFF245C3A : 0xFF6B2420);
-            if (prelevement) {
+            if (filtrage) {
+                Dessin.centre(g, jeu.succes ? T.f("cry_isolated") : T.f("cry_lost_in_noise"), zx + ZL / 2, zy + 49, Dessin.TEXTE);
+                Dessin.centre(g, jeu.succes ? T.f("precise_bearing") : T.f("less_precise_bearing"), zx + ZL / 2, zy + 62, Dessin.GRIS);
+            } else if (prelevement) {
                 Dessin.centre(g, jeu.succes ? (jeu.parfait ? T.f("perfect_sample") : T.f("sample_taken")) : T.f("sample_damaged"), zx + ZL / 2, zy + 49, Dessin.TEXTE);
                 Dessin.centre(g, jeu.succes ? (jeu.parfait ? T.f("one_extra_dose") : T.f("full_sample")) : T.f("a_single_dose_half_star"), zx + ZL / 2, zy + 62, Dessin.GRIS);
             } else {
@@ -131,6 +176,15 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int bouton) {
+        if (intro) {
+            Dessin.Fond f = prelevement ? Dessin.KIT : Dessin.SEQUENCEUR;
+            int zx = f.x(width) + (f.il() - ZL) / 2, zy = f.y(height) + (prelevement ? 18 : 15);
+            if (Dessin.dans(mx, my, zx + ZL / 2 - 60, zy + ZH - 26, 120, 20)) {
+                intro = false;
+                Dessin.son(1.2f);
+            }
+            return true;
+        }
         jeu.appui = true;
         if (!jeu.fini) jeu.clic(mx, my);
         return true;
@@ -145,6 +199,12 @@ public class EcranAnalyse extends Screen {
 
     @Override
     public boolean keyPressed(int touche, int scan, int mods) {
+        if (intro && (touche == 257 || touche == 32)) {
+            intro = false;
+            Dessin.son(1.2f);
+            return true;
+        }
+        if (intro) return super.keyPressed(touche, scan, mods);
         if (!jeu.fini && jeu.touche(touche)) return true;
         return super.keyPressed(touche, scan, mods);
     }
@@ -166,7 +226,7 @@ public class EcranAnalyse extends Screen {
         void dessiner(GuiGraphics g, int mx, int my, float pt) {
             for (int l = 0; l < 6; l++) {
                 int y = oy + 6 + l * 18;
-                g.drawString(Dessin.police(), String.valueOf(l + 1), ox + 8, y + 4, l == ligne ? Dessin.JAUNE : Dessin.SOMBRE, false);
+                Dessin.ecrire(g, String.valueOf(l + 1), ox + 8, y + 4, l == ligne ? Dessin.JAUNE : Dessin.SOMBRE, false);
                 for (int k = 0; k < 4; k++) Dessin.base(g, ox + 22 + k * 20, y, 15, essais[l][k], l == ligne && Dessin.dans(mx, my, ox + 22 + k * 20, y, 15, 15));
                 if (l < ligne) {
                     for (int k = 0; k < 4; k++) {
@@ -179,10 +239,10 @@ public class EcranAnalyse extends Screen {
                 }
             }
             g.fill(ox + 190, oy + 10, ox + 198, oy + 18, Dessin.VERT);
-            g.drawString(Dessin.police(), T.f("right_place"), ox + 202, oy + 10, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("right_place"), ox + 202, oy + 10, Dessin.GRIS, false);
             g.fill(ox + 190, oy + 24, ox + 198, oy + 32, Dessin.JAUNE);
-            g.drawString(Dessin.police(), T.f("wrong_place"), ox + 202, oy + 24, Dessin.GRIS, false);
-            g.drawString(Dessin.police(), T.f("reads_left") + (6 - ligne), ox + 190, oy + 46, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("wrong_place"), ox + 202, oy + 24, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("reads_left") + (6 - ligne), ox + 190, oy + 46, Dessin.TEXTE, false);
         }
 
         boolean complet() {
@@ -249,7 +309,7 @@ public class EcranAnalyse extends Screen {
         void tick() {
             if (flash > 0) flash--;
             if (++temps > duree()) faute();
-            else if (temps == duree() * 2 / 3) Dessin.bip(SoundEvents.NOTE_BLOCK_HAT.value(), 1.6f, 0.5f);
+            else if (temps == duree() * 2 / 3) Dessin.bip(Sons.TIC, 1.6f, 0.5f);
         }
 
         void faute() {
@@ -279,7 +339,7 @@ public class EcranAnalyse extends Screen {
 
         @Override
         void dessiner(GuiGraphics g, int mx, int my, float pt) {
-            g.drawString(Dessin.police(), T.f("strand_to_complete"), ox + 10, oy + 8, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("strand_to_complete"), ox + 10, oy + 8, Dessin.GRIS, false);
             for (int k = position; k < Math.min(brin.length, position + 6); k++) {
                 int i = k - position;
                 int taille = i == 0 ? 28 : 16;
@@ -296,9 +356,9 @@ public class EcranAnalyse extends Screen {
                 boolean survol = Dessin.dans(mx, my, bx, oy + 74, 48, 24);
                 Dessin.bouton(g, bx, oy + 74, 48, 24, Dessin.BASES[b], survol, true, Dessin.COULEURS_BASES[b]);
             }
-            g.drawString(Dessin.police(), (position) + " / " + brin.length, ox + ZL - 60, oy + 8, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("mistakes") + erreurs + " / 3", ox + ZL - 84, oy + 104, erreurs > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
-            g.drawString(Dessin.police(), "A↔T   C↔G", ox + 10, oy + 104, Dessin.JAUNE, false);
+            Dessin.ecrire(g, (position) + " / " + brin.length, ox + ZL - 60, oy + 8, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("mistakes") + erreurs + " / 3", ox + ZL - 84, oy + 104, erreurs > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, "A↔T   C↔G", ox + 10, oy + 104, Dessin.JAUNE, false);
         }
 
         @Override
@@ -341,7 +401,7 @@ public class EcranAnalyse extends Screen {
         void tick() {
             double avant = angle;
             angle = (angle + vitesse) % 360;
-            if (angle < avant) Dessin.bip(SoundEvents.NOTE_BLOCK_HAT.value(), (float) (0.7 + vitesse * 0.07), 0.5f);
+            if (angle < avant) Dessin.bip(Sons.TIC, (float) (0.7 + vitesse * 0.07), 0.5f);
             if (flash > 0) flash--;
         }
 
@@ -387,8 +447,8 @@ public class EcranAnalyse extends Screen {
                 g.fill(ox + 150 + i * 30, oy + 20, ox + 172 + i * 30, oy + 42, Dessin.BORD);
                 g.fill(ox + 152 + i * 30, oy + 22, ox + 170 + i * 30, oy + 40, i < reussites ? Dessin.VERT : Dessin.ENCART_CLAIR);
             }
-            g.drawString(Dessin.police(), T.f("phases_separated") + reussites + " / 3", ox + 150, oy + 50, Dessin.TEXTE, false);
-            g.drawString(Dessin.police(), T.f("misses") + rates + " / 3", ox + 150, oy + 62, rates > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("phases_separated") + reussites + " / 3", ox + 150, oy + 50, Dessin.TEXTE, false);
+            Dessin.ecrire(g, T.f("misses") + rates + " / 3", ox + 150, oy + 62, rates > 1 ? Dessin.ALERTE : Dessin.GRIS, false);
             Dessin.bouton(g, ox + 150, oy + 82, 110, 24, T.f("stop_space"), Dessin.dans(mx, my, ox + 150, oy + 82, 110, 24), true, Dessin.ACCENT);
         }
 
@@ -454,15 +514,15 @@ public class EcranAnalyse extends Screen {
                 boolean survol = Dessin.dans(mx, my, ox + 16, y - 1, 100, 18);
                 if (l == selection || survol) g.fill(ox + 14, y - 2, ox + 118, y + 17, l == selection ? Dessin.JAUNE : Dessin.BORD_CLAIR);
                 g.fill(ox + 15, y - 1, ox + 117, y + 16, Dessin.ENCART);
-                g.drawString(Dessin.police(), String.valueOf(l + 1), ox + 20, y + 4, Dessin.SOMBRE, false);
+                Dessin.ecrire(g, String.valueOf(l + 1), ox + 20, y + 4, Dessin.SOMBRE, false);
                 for (int k = 0; k < 4; k++) Dessin.base(g, ox + 34 + k * 20, y, 15, fragments[ordre[l]][k], false);
             }
-            g.drawString(Dessin.police(), T.f("the_end_of_a_fragment"), ox + 132, oy + 10, Dessin.GRIS, false);
-            g.drawString(Dessin.police(), T.f("the_start_of_the_next"), ox + 132, oy + 20, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("the_end_of_a_fragment"), ox + 132, oy + 10, Dessin.GRIS, false);
+            Dessin.ecrire(g, T.f("the_start_of_the_next"), ox + 132, oy + 20, Dessin.GRIS, false);
             for (int k = 0; k < 4; k++) Dessin.base(g, ox + 132 + k * 13, oy + 36, 11, k < 2 ? -1 : k - 2, false);
             for (int k = 0; k < 4; k++) Dessin.base(g, ox + 158 + k * 13, oy + 50, 11, k < 2 ? k : -1, false);
-            if (jonctions >= 0) g.drawString(Dessin.police(), T.f("correct_joints") + jonctions + " / 4", ox + 132, oy + 68, Dessin.JAUNE, false);
-            g.drawString(Dessin.police(), T.f("tries") + essais, ox + 132, oy + 80, essais == 1 ? Dessin.ALERTE : Dessin.TEXTE, false);
+            if (jonctions >= 0) Dessin.ecrire(g, T.f("correct_joints") + jonctions + " / 4", ox + 132, oy + 68, Dessin.JAUNE, false);
+            Dessin.ecrire(g, T.f("tries") + essais, ox + 132, oy + 80, essais == 1 ? Dessin.ALERTE : Dessin.TEXTE, false);
             Dessin.bouton(g, ox + 132, oy + 92, 110, 20, T.f("assemble"), Dessin.dans(mx, my, ox + 132, oy + 92, 110, 20), true, Dessin.ACCENT);
         }
 
@@ -534,7 +594,7 @@ public class EcranAnalyse extends Screen {
             if (--temps <= 0) terminer(false);
             presser(temps, 900);
             if (ecart() == 0) {
-                if (accord == 0) Dessin.bip(SoundEvents.NOTE_BLOCK_CHIME.value(), 1.5f, 0.6f);
+                if (accord == 0) Dessin.bip(Sons.CARILLON, 1.5f, 0.6f);
                 if (++accord > 6) terminer(true);
             }
         }
@@ -550,14 +610,14 @@ public class EcranAnalyse extends Screen {
                 Dessin.point(g, px + i, py + ph / 2 - courbe(cible, t), 2, 0xFF7A8A99);
                 Dessin.point(g, px + i, py + ph / 2 - courbe(reglage, t), 2, ecart() == 0 ? Dessin.VERT : Dessin.ACCENT);
             }
-            g.drawString(Dessin.police(), T.f("grey_sample"), px, py + ph + 3, Dessin.SOMBRE, false);
+            Dessin.ecrire(g, T.f("grey_sample"), px, py + ph + 3, Dessin.SOMBRE, false);
             int pourcent = (int) Math.round(ressemblance() * 100);
-            g.drawString(Dessin.police(), T.f("match") + pourcent + " %", px, py + ph + 14, pourcent > 85 ? Dessin.VERT : Dessin.JAUNE, false);
+            Dessin.ecrire(g, T.f("match") + pourcent + " %", px, py + ph + 14, pourcent > 85 ? Dessin.VERT : Dessin.JAUNE, false);
             g.fill(px, oy + ZH - 12, px + pl, oy + ZH - 6, Dessin.BORD);
             g.fill(px + 1, oy + ZH - 11, px + 1 + (int) ((pl - 2) * temps / 900.0), oy + ZH - 7, temps > 200 ? Dessin.ACCENT : Dessin.ALERTE);
             for (int k = 0; k < 3; k++) {
                 int y = oy + 8 + k * 34;
-                g.drawString(Dessin.police(), NOMS[k], ox + 170, y, Dessin.TEXTE, false);
+                Dessin.ecrire(g, NOMS[k], ox + 170, y, Dessin.TEXTE, false);
                 Dessin.bouton(g, ox + 168, y + 10, 22, 18, "-", Dessin.dans(mx, my, ox + 168, y + 10, 22, 18), reglage[k] > 0, 0xFF5E7890);
                 for (int i = 0; i < 7; i++) g.fill(ox + 194 + i * 8, y + 15, ox + 200 + i * 8, y + 23, i == reglage[k] ? Dessin.ACCENT : Dessin.BORD);
                 Dessin.bouton(g, ox + 252, y + 10, 22, 18, "+", Dessin.dans(mx, my, ox + 252, y + 10, 22, 18), reglage[k] < 6, 0xFF5E7890);

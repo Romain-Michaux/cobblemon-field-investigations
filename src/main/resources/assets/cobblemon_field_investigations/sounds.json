@@ -1,0 +1,172 @@
+{
+  "branche": {
+    "sounds": [
+      "cobblemon_field_investigations:branche"
+    ]
+  },
+  "bulle": {
+    "sounds": [
+      "cobblemon_field_investigations:bulle"
+    ]
+  },
+  "carillon": {
+    "sounds": [
+      "cobblemon_field_investigations:carillon"
+    ]
+  },
+  "choc": {
+    "sounds": [
+      "cobblemon_field_investigations:choc"
+    ]
+  },
+  "clic": {
+    "sounds": [
+      "cobblemon_field_investigations:clic"
+    ]
+  },
+  "coeur": {
+    "sounds": [
+      "cobblemon_field_investigations:coeur"
+    ]
+  },
+  "corde": {
+    "sounds": [
+      "cobblemon_field_investigations:corde"
+    ]
+  },
+  "craquement": {
+    "sounds": [
+      "cobblemon_field_investigations:craquement"
+    ]
+  },
+  "debordement": {
+    "sounds": [
+      "cobblemon_field_investigations:debordement"
+    ]
+  },
+  "eboulement": {
+    "sounds": [
+      "cobblemon_field_investigations:eboulement"
+    ]
+  },
+  "echec": {
+    "sounds": [
+      "cobblemon_field_investigations:echec"
+    ]
+  },
+  "fiole": {
+    "sounds": [
+      "cobblemon_field_investigations:fiole"
+    ]
+  },
+  "flamme": {
+    "sounds": [
+      "cobblemon_field_investigations:flamme"
+    ]
+  },
+  "frottement": {
+    "sounds": [
+      "cobblemon_field_investigations:frottement"
+    ]
+  },
+  "glace": {
+    "sounds": [
+      "cobblemon_field_investigations:glace"
+    ]
+  },
+  "goutte": {
+    "sounds": [
+      "cobblemon_field_investigations:goutte"
+    ]
+  },
+  "grade": {
+    "sounds": [
+      "cobblemon_field_investigations:grade"
+    ]
+  },
+  "identifie": {
+    "sounds": [
+      "cobblemon_field_investigations:identifie"
+    ]
+  },
+  "lampe": {
+    "sounds": [
+      "cobblemon_field_investigations:lampe"
+    ]
+  },
+  "molette": {
+    "sounds": [
+      "cobblemon_field_investigations:molette"
+    ]
+  },
+  "mousqueton": {
+    "sounds": [
+      "cobblemon_field_investigations:mousqueton"
+    ]
+  },
+  "obturateur": {
+    "sounds": [
+      "cobblemon_field_investigations:obturateur"
+    ]
+  },
+  "papier": {
+    "sounds": [
+      "cobblemon_field_investigations:papier"
+    ]
+  },
+  "pierre": {
+    "sounds": [
+      "cobblemon_field_investigations:pierre"
+    ]
+  },
+  "pince": {
+    "sounds": [
+      "cobblemon_field_investigations:pince"
+    ]
+  },
+  "pinceau": {
+    "sounds": [
+      "cobblemon_field_investigations:pinceau"
+    ]
+  },
+  "pioche": {
+    "sounds": [
+      "cobblemon_field_investigations:pioche"
+    ]
+  },
+  "platre": {
+    "sounds": [
+      "cobblemon_field_investigations:platre"
+    ]
+  },
+  "pluck": {
+    "sounds": [
+      "cobblemon_field_investigations:pluck"
+    ]
+  },
+  "reussite": {
+    "sounds": [
+      "cobblemon_field_investigations:reussite"
+    ]
+  },
+  "scan": {
+    "sounds": [
+      "cobblemon_field_investigations:scan"
+    ]
+  },
+  "sifflement": {
+    "sounds": [
+      "cobblemon_field_investigations:sifflement"
+    ]
+  },
+  "tamis": {
+    "sounds": [
+      "cobblemon_field_investigations:tamis"
+    ]
+  },
+  "tic": {
+    "sounds": [
+      "cobblemon_field_investigations:tic"
+    ]
+  }
+}

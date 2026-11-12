@@ -11,7 +11,8 @@ import re
 ICI = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.join(ICI, "..", "src", "main", "resources", "assets", "cobblemon_field_investigations", "lang")
 CLIENT = os.path.join(ICI, "..", "src", "main", "java", "fr", "cobblescout", "traque", "client")
-FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "JeuxLabo.java", "JeuxTerrain.java", "TraqueClient.java"]
+FICHIERS = ["Dessin.java", "EcranAnalyse.java", "EcranKit.java", "EcranTableau.java", "TraqueClient.java"]
+FICHIERS += sorted(f for f in os.listdir(CLIENT) if f.startswith("Jeu") and f != "Jeu.java")
 
 UI = [
     # --- commun ---
@@ -286,6 +287,241 @@ UI = [
      "Brush the soil (hold the click) slowly: it comes off bit by bit. Uncover the three fragments before the bar runs out; three rough strokes ruin them."),
 ]
 
+UI += [
+    # --- 1.1 : signalements ---
+    ("Consulter les signalements", "Check the reports"),
+    ("Choisis ton enquête", "Pick your investigation"),
+    ("Piste ", "Lead "),
+    ("Nocturne", "Nocturnal"),
+    ("Craintive", "Skittish"),
+    ("Exceptionnelle", "Exceptional"),
+    ("Ordinaire", "Standard"),
+    ("Espèce", "Species"),
+    ("Zone", "Zone"),
+    ("Jamais capturée", "Never caught"),
+    ("Déjà capturée", "Already caught"),
+    ("Signalements valables encore ", "Reports valid for another "),
+    ("Enquête ", "Investigation: "),
+    ("§7Traces et cris seulement la nuit.", "§7Traces and cries only at night."),
+    ("§7La cible ne se montre que de nuit.", "§7The target only comes out after dark."),
+    ("§7Elle te repère de bien plus loin :", "§7It senses you from much farther:"),
+    ("§7scanne-la à grande distance.", "§7scan it from a long distance."),
+    ("§7Un résultat d'analyse de plus exigé,", "§7One more analysis result required,"),
+    ("§7et des suspects très ressemblants.", "§7and suspects that all look alike."),
+    ("§7Une enquête classique.", "§7A regular investigation."),
+    ("Chromatique : chance ×2 · butin spécial", "Shiny odds ×2 · special loot"),
+    ("Butin spécial doublé", "Double special loot"),
+    ("Talent caché garanti · butin spécial", "Hidden ability · special loot"),
+    ("IV et butin selon tes étoiles", "IVs and loot by your stars"),
+    ("§8Clic : ouvrir cette enquête", "§8Click: open this investigation"),
+    ("Aide couleurs : ", "Colour aid: "),
+    ("oui", "on"),
+    ("non", "off"),
+    ("Attends la nuit", "Wait for nightfall"),
+    ("traces invisibles de jour", "no traces by day"),
+    ("la cible dort : aucun cri", "target asleep: no cry"),
+    # --- 1.1 : types liés au biome ---
+    ("Migratrice", "Restless"),
+    ("Aquatique", "Aquatic"),
+    ("Fouille", "Dig site"),
+    ("Cimes", "Canopy"),
+    ("Altitude", "Highlands"),
+    ("Givre", "Frost"),
+    ("Brume", "Mist"),
+    ("§7Elle change d'endroit deux fois", "§7It moves twice as often,"),
+    ("§7plus souvent, et part plus loin.", "§7and its lair is farther away."),
+    ("§7Traces au fond de l'eau, cible", "§7Traces on the bottom, target in"),
+    ("§7dans l'eau : prévois de quoi plonger.", "§7the water: be ready to dive."),
+    ("§7Tous les restes sont enfouis :", "§7Every remain is buried:"),
+    ("§7creuse et brosse avec soin.", "§7dig and brush with care."),
+    ("§7Traces sur les troncs et à la", "§7Traces on trunks and up in the"),
+    ("§7cime des arbres : lève les yeux.", "§7treetops: look up."),
+    ("§7Traces sur les parois rocheuses,", "§7Traces on rock faces, across"),
+    ("§7dans une zone bien plus vaste.", "§7a much wider zone."),
+    ("§7Échantillons gelés et fragiles :", "§7Frozen, fragile samples:"),
+    ("§7une dose de moins par prélèvement.", "§7one dose fewer per sample."),
+    ("§7Les cris portent mal : relevés", "§7Cries carry poorly: bearings"),
+    ("§7nettement moins précis.", "§7are much less precise."),
+    ("Butin spécial · objets aquatiques", "Special loot · water items"),
+    ("Butin spécial · fossiles", "Special loot · fossils"),
+    ("Butin spécial · objets de forêt", "Special loot · forest items"),
+    ("Butin spécial · pierres rares", "Special loot · rare stones"),
+    ("Butin spécial · objets de glace", "Special loot · ice items"),
+    ("Butin spécial · objets des marais", "Special loot · swamp items"),
+]
+
+# --- 1.1 : nouveaux mini-jeux (les textes déjà connus plus haut ne sont pas répétés) ---
+NOUVEAUX = [
+    ("Relevé de cri", "Cry bearing"), ("CRI ISOLÉ", "CRY ISOLATED"), ("CRI BROUILLÉ", "CRY LOST IN NOISE"),
+    ("relevé précis", "precise bearing"), ("relevé moins précis", "less precise bearing"),
+    # tamisage
+    ("Sable : ", "Sand: "), ("Perdus : ", "Lost: "), ("Secousse", "Shaking"),
+    ("Relâche avant que la jauge soit pleine.", "Let go before the gauge is full."),
+    ("Maintiens le clic pour secouer le tamis, par à-coups : si la jauge de secousse se remplit, un fragment passe à travers.",
+     "Hold the click to shake the sieve, in bursts: if the shaking gauge fills up, a fragment falls through."),
+    # moulage
+    ("Creux remplis : ", "Hollows filled: "), ("Débordés : ", "Spilled: "),
+    ("Arrête-toi dans la bande verte, juste sous le trait.", "Stop in the green band, just under the line."),
+    ("Place le bec sur un creux et maintiens le clic pour couler le plâtre. Remplis chaque creux jusqu'à la bande verte, sans dépasser le trait.",
+     "Put the spout over a hollow and hold the click to pour plaster. Fill each hollow up to the green band without going over the line."),
+    # pince
+    ("Fibres : ", "Fibres: "), ("Ratés : ", "Misses: "), ("Pince fermée", "Tweezers closed"), ("Pince ouverte", "Tweezers open"),
+    ("Les pointes passent au vert quand elles serrent.", "The tips turn green when they grip."),
+    ("Aligne la pince sur une fibre et clique à l'instant où elle se referme. Elle bat de plus en plus vite.",
+     "Line the tweezers up with a fibre and click the moment they close. They beat faster and faster."),
+    # photo
+    ("Photo nette", "Sharp photo"), ("Photo floue", "Blurry photo"), ("Mal cadrée", "Badly framed"), ("Photos : ", "Photos: "),
+    ("Ratées : ", "Failed: "), ("Netteté", "Sharpness"), ("Lumière", "Light"),
+    ("Suis la trace avec le viseur et clique quand elle est nette (viseur vert). Trois photos avant que la lumière baisse.",
+     "Follow the trace with the viewfinder and click when it is sharp (green viewfinder). Three photos before the light fades."),
+    # écouvillon
+    ("Prélevé : ", "Swabbed: "), ("Souillé : ", "Soiled: "),
+    ("Tu peux lever l'écouvillon pour reprendre ailleurs.", "You may lift the swab and start again elsewhere."),
+    ("Maintiens le clic et frotte toute la tache violette. Ne repasse pas sur une zone déjà claire : l'écouvillon serait contaminé.",
+     "Hold the click and rub the whole purple stain. Do not go back over a spot that is already clear: the swab would be contaminated."),
+    # microscope
+    ("Lame ", "Slide "), ("Erreurs : ", "Mistakes: "),
+    ("Règle la mise au point avec les molettes (<< >> grossière, < > fine). Une fois l'image nette, clique la cellule à deux noyaux.",
+     "Focus with the knobs (<< >> coarse, < > fine). Once the image is sharp, click the cell that has two nuclei."),
+    # chromatographie
+    ("Bandelettes : ", "Strips: "),
+    ("Le petit repère gris donne l'écart minimal entre deux bandes.", "The small grey mark shows the minimum gap between two bands."),
+    ("Clique une bandelette pour l'arrêter quand ses trois bandes sont bien séparées, mais avant que le solvant atteigne le haut.",
+     "Click a strip to stop it once its three bands are well apart, but before the solvent reaches the top."),
+    # parenté
+    ("Lignée ", "Lineage "), ("Échantillon", "Sample"),
+    ("À chaque nœud, prends la branche qui ressemble à l'échantillon.", "At each node, take the branch that matches the sample."),
+    ("Pars du haut : à chaque embranchement, suis la branche dont le symbole correspond à l'échantillon, puis clique la case où tu arrives.",
+     "Start at the top: at each fork, follow the branch whose symbol matches the sample, then click the box you end up on."),
+    # dosage
+    ("Trop lent", "Too slow"), ("Virage net", "Clean endpoint"), ("Virage dépassé", "Endpoint overshot"), ("Dosage ", "Titration "),
+    ("Gouttes : ", "Drops: "), ("Goutte", "Drop"), ("Jet ×3", "Squirt ×3"),
+    ("Verse jusqu'au virage au rose vif. Va vite au jet, puis goutte à goutte dès que le liquide rosit : dépasser de deux gouttes rate le dosage.",
+     "Pour until the liquid turns bright pink. Squirt at first, then go drop by drop as soon as it blushes: two drops too many and it fails."),
+    # morsure
+    ("Morsure ", "Bite "), ("Moulage ", "Cast "), ("Glisser le moulage", "Slide the cast"), ("Emboîter", "Fit"),
+    ("Un seul des trois moulages épouse la morsure. Choisis-le, fais-le glisser pour mettre chaque dent face à son creux, puis emboîte.",
+     "Only one of the three casts matches the bite. Pick it, slide it until every tooth faces its hollow, then fit it."),
+    # apnée
+    ("Air", "Air"), ("Fiole", "Vial"),
+    ("Suis la trace sans la lâcher. 40 % d'air restant : une dose de plus.", "Stay on the trace. 40% air left at the end: one extra dose."),
+    ("Maintiens le clic sur la trace lumineuse pour remplir la fiole. Le courant la déplace, et ta réserve d'air baisse.",
+     "Hold the click on the glowing trace to fill the vial. The current moves it, and your air is running out."),
+    # dégel
+    ("Dégel : ", "Thawed: "), ("Surchauffes : ", "Overheats: "),
+    ("La glace ne fond que dans la plage verte. Elle se déplace : accompagne-la.", "The ice only melts in the green range. It drifts: follow it."),
+    ("Maintiens le clic pour chauffer, relâche pour laisser refroidir. Garde la température dans la plage verte sans atteindre le rouge.",
+     "Hold the click to heat, let go to cool down. Keep the temperature in the green range without reaching the red."),
+    # filtrage
+    ("Clarté", "Clarity"), ("Cri isolé", "Cry isolated"),
+    ("Fie-toi au son : plus il est aigu, plus tu es près.", "Trust the sound: the higher it gets, the closer you are."),
+    ("Déplace la souris de gauche à droite pour régler le filtre. Garde le cri net assez longtemps : la bonne fréquence dérive.",
+     "Move the mouse left and right to tune the filter. Keep the cry clear long enough: the right frequency drifts."),
+    # grimpe
+    ("Prises : ", "Holds: "), ("Glissades : ", "Slips: "),
+    ("Clique du côté de la prise quand elle traverse la bande claire. Le rythme s'accélère.",
+     "Click on the side of the hold as it crosses the light band. The pace picks up."),
+    ("Les prises défilent le long du tronc. Clique à gauche ou à droite, du côté de la prise, quand elle passe dans la bande claire.",
+     "Holds scroll down the trunk. Click left or right, on the side of the hold, when it passes through the light band."),
+    # rappel
+    ("Traces : ", "Traces: "), ("Trop bas : ", "Too low: "), ("Vitesse", "Speed"),
+    ("La corde met du temps à freiner : relâche avant la bande.", "The rope takes a while to brake: let go before the band."),
+    ("Maintiens le clic pour laisser filer la corde, relâche pour freiner. Arrête-toi dans la bande jaune de chaque trace, sans la dépasser.",
+     "Hold the click to let the rope run, let go to brake. Stop in the yellow band of each trace without going past it."),
+    # lampe UV
+    ("Taches : ", "Stains: "), ("Batterie", "Battery"),
+    ("Les taches ne brillent que sous le faisceau. Un clic dans le vide use la batterie.",
+     "Stains only glow under the beam. A click on nothing drains the battery."),
+    ("Balaie le sol avec la lampe : les taches n'apparaissent que dans le faisceau. Clique chacune avant que la batterie soit vide.",
+     "Sweep the ground with the lamp: stains only show inside the beam. Click each one before the battery runs out."),
+]
+NOUVEAUX += [
+    # moulage (mâchoire)
+    ("Alvéoles : ", "Sockets: "),
+    ("Remplis jusqu'aux repères verts, puis relève le bec. Les alvéoles n'ont pas toutes la même profondeur.",
+     "Fill up to the green marks, then lift the spout. The sockets are not all the same depth."),
+    ("Place le bec sur une alvéole et maintiens le clic pour couler le plâtre. Remplis-les toutes à ras bord sans déborder, puis relâche.",
+     "Put the spout over a socket and hold the click to pour plaster. Fill them all to the brim without overflowing, then let go."),
+    # photo
+    ("Un Pokémon du coin passe près de la trace. Suis-le avec le viseur et clique quand il est net (viseur vert). Trois photos avant la nuit.",
+     "A local Pokémon walks past the trace. Follow it with the viewfinder and click when it is sharp (green viewfinder). Three photos before dark."),
+    # empreinte dentaire
+    ("Emboîté !", "It fits!"), ("Ça bute en rouge", "Red teeth are blocking"), ("Glisser la réglette", "Slide the strip"), ("Presser", "Press"),
+    ("Fais glisser la réglette orange (boutons ou flèches) pour que chaque dent arrive sous son creux, puis presse-la : elle doit toucher partout à la fois.",
+     "Slide the orange strip (buttons or arrow keys) until every tooth sits under its hollow, then press it: it must touch everywhere at once."),
+    # grimpe
+    ("Les branches grises et fendues sont mortes : laisse-les passer sans cliquer.", "Grey, split branches are dead: let them go by without clicking."),
+    ("Clique à gauche ou à droite, du côté de la prise, quand elle passe dans la bande claire. Ne touche pas aux branches mortes. Ça accélère.",
+     "Click left or right, on the side of the hold, when it crosses the light band. Leave the dead branches alone. It speeds up."),
+    # tri
+    ("Coquilles : ", "Shells: "),
+    ("Les objets se poussent : dégage le passage avant d'amener une coquille.", "Objects push each other: clear the way before bringing a shell over."),
+    ("Fais glisser les coquilles dans la boîte de droite. Un débris qui y tombe, ou une coquille poussée au rebut à gauche, compte comme une erreur.",
+     "Drag the shells into the box on the right. Debris falling into it, or a shell pushed into the bin on the left, counts as a mistake."),
+]
+NOUVEAUX += [
+    ("Lance les coquilles : elles gardent leur élan, et cognent ce qu'elles croisent.",
+     "Throw the shells: they keep their momentum and knock into whatever is in the way."),
+    ("Attrape une coquille et lance-la dans la boîte de droite. Le temps presse, mais un débris cogné dans la boîte ou une coquille au rebut est une erreur.",
+     "Grab a shell and throw it into the box on the right. Time is short, but debris knocked into the box or a shell in the bin is a mistake."),
+]
+NOUVEAUX += [
+    ("Plumes", "Feathers"), ("Écailles", "Scales"), ("Ailes", "Wings"), ("Nageoires", "Fins"), ("Griffes", "Claws"), ("Crocs", "Fangs"),
+    ("L'échantillon a :", "The sample has:"),
+    ("Descends l'arbre : à chaque embranchement, clique la branche qui porte un caractère de l'échantillon (sa fiche est à droite).",
+     "Go down the tree: at each fork, click the branch that carries one of the sample's traits (its card is on the right)."),
+]
+NOUVEAUX += [
+    # carnet et archives du kit
+    ("Enquête", "Case"), ("Carnet", "Logbook"), ("Archives", "Archives"), ("rang maximal", "top rank"),
+    ("Enquêtes : ", "Cases: "), ("Cinq étoiles : ", "Five stars: "), ("Espèces : ", "Species: "),
+    ("AMÉLIORATIONS DU KIT", "KIT UPGRADES"),
+    ("Radar affiné", "Sharper radar"), ("Fiole de secours", "Spare vial"), ("Scan rapide", "Quick scan"), ("Sang-froid", "Cool head"),
+    ("Oreille fine", "Keen ear"), ("Réseau d'informateurs", "Informant network"),
+    ("détecte de plus loin", "detects from farther away"), ("§aDébloqué au rang : ", "§aUnlocked at rank: "), ("§7Se débloque au rang : ", "§7Unlocks at rank: "), ("1er prélèvement sans fiole", "first sample needs no vial"),
+    ("cible identifiée en 2 s", "target identified in 2 s"), ("un raté de plus pardonné", "one more failure forgiven"),
+    ("relevés de cri plus précis", "more precise cry bearings"), ("attente entre enquêtes ÷ 2", "wait between cases ÷ 2"),
+    ("DOSSIERS CLASSÉS", "CLOSED CASES"),
+    ("Aucun dossier classé pour l'instant. Chaque enquête résolue sera consignée ici.", "No closed case yet. Every solved investigation will be filed here."),
+    ("capturé", "caught"), ("vaincu", "defeated"), ("TYPES  ", "KINDS  "),
+    # première partie d'un mini-jeu
+    ("PREMIÈRE FOIS · ", "FIRST TIME · "), ("Commencer", "Start"),
+    ("Un raté ne coûte pas d'étoile : le relevé est seulement moins précis.", "A failure costs no star: the bearing is only less precise."),
+    ("Un raté abîme le prélèvement : une seule dose, et une demi-étoile en moins.", "A failure damages the sample: a single dose, and half a star lost."),
+    ("Un raté fait perdre une dose de l'échantillon, et une demi-étoile.", "A failure loses one dose of the sample, and half a star."),
+]
+NOUVEAUX += [
+    # équipe
+    ("Équipe", "Team"), ("ÉQUIPE", "TEAM"), ("INVITER", "INVITE"), ("Rejoindre", "Join"), ("Refuser", "Decline"), ("Quitter l'équipe", "Leave the team"),
+    ("Actualiser", "Refresh"),
+    (" t'invite à rejoindre son enquête.", " invites you to join their investigation."),
+    ("Tu travailleras sur son dossier, et tu recevras ton butin et ton expérience.", "You will work on their case, and get your own loot and experience."),
+    ("Ouvre une enquête pour inviter des coéquipiers, ou attends qu'un chef d'enquête t'invite.", "Open a case to invite teammates, or wait for a lead investigator to invite you."),
+    ("Seul le chef d'enquête (★) peut inviter.", "Only the lead investigator (★) can invite."),
+    ("Chacun prélève et analyse pour le même dossier. Les étoiles sont communes ; le butin et l'expérience vont à chacun.",
+     "Everyone samples and analyses for the same case. Stars are shared; loot and experience go to each player."),
+    ("L'équipe est au complet.", "The team is full."),
+    ("Chercher un joueur…", "Search for a player…"),
+    ("Aucun joueur sans enquête à moins de 64 blocs.", "No player without a case within 64 blocks."),
+    ("Aucun joueur libre ne correspond.", "No free player matches."),
+    (" t'invite : voir l'onglet Équipe", " invites you: see the Team tab"),
+]
+NOUVEAUX += [
+    # enquête souterraine et son mini-jeu
+    ("Souterraine", "Underground"),
+    ("§7Espèces des grottes : traces et cible", "§7Cave species: traces and target are"),
+    ("§7sous terre. Prévois torches et pioche.", "§7underground. Bring torches and a pickaxe."),
+    ("Butin spécial · minerais et pierres", "Special loot · ores and stones"),
+    ("Sous terre : ", "Underground: "),
+    ("Pierres retirées : ", "Stones removed: "), ("Éboulements : ", "Rockslides: "),
+    ("Les pierres assombries portent encore du poids. Les sombres à entailles demandent trois coups.",
+     "Darkened stones still carry weight. Dark notched ones take three hits."),
+    ("Dégage la pierre qui luit, tout en bas. On ne peut retirer qu'une pierre sur laquelle rien ne repose : commence par le haut.",
+     "Free the glowing stone at the very bottom. You can only pull a stone nothing rests on: start from the top."),
+]
+_deja = {f for f, _ in UI}
+UI += [t for t in NOUVEAUX if t[0] not in _deja]
+
 # Clés qui ne viennent pas d'un littéral du code : (clé sans le préfixe cobblemon_field_investigations., anglais, français)
 CLES = [
     ("ui.vents", "N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW,NW,NNW", "N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSO,SO,OSO,O,ONO,NO,NNO"),
@@ -295,6 +531,15 @@ CLES = [
     ("trace.type1", "Elemental residue", "Résidu élémentaire"), ("trace.type2", "Strange deposit", "Dépôt étrange"), ("trace.taille", "Footprint", "Empreinte"),
     ("trace.oeuf", "Abandoned nest", "Nid abandonné"), ("trace.stat", "Signs of a struggle", "Traces de lutte"),
     ("enfoui.taille", "Buried bone", "Ossement enfoui"), ("enfoui.oeuf", "Buried eggshells", "Coquilles enfouies"), ("enfoui.stat", "Broken fang", "Croc brisé"),
+    ("enfoui.taille_1", "Buried tooth", "Dent enfouie"), ("enfoui.oeuf_1", "Buried feather", "Plume enfouie"), ("enfoui.oeuf_2", "Buried moult", "Mue enfouie"),
+    ("enfoui.stat_1", "Broken claw", "Griffe brisée"), ("enfoui.stat_2", "Torn-off scale", "Écaille arrachée"),
+    ("jeu.eboulis", "Rockfall", "Éboulis"),
+    ("jeu.tamisage", "Sieving", "Tamisage"), ("jeu.moulage", "Plaster cast", "Moulage au plâtre"), ("jeu.pince", "Tweezers", "Pince à épiler"),
+    ("jeu.photo", "Field photo", "Photo de terrain"), ("jeu.ecouvillon", "Swabbing", "Écouvillonnage"), ("jeu.apnee", "Free dive", "Apnée"),
+    ("jeu.grimpe", "Tree climb", "Grimpe"), ("jeu.rappel", "Abseil", "Rappel"), ("jeu.lampe", "UV lamp", "Lampe UV"),
+    ("jeu.filtrage", "Cry filter", "Filtrage du cri"), ("jeu.microscope", "Microscope", "Microscope"),
+    ("jeu.chromatographie", "Chromatography", "Chromatographie"), ("jeu.parente", "Family tree", "Arbre de parenté"),
+    ("jeu.dosage", "Drop titration", "Dosage au goutte-à-goutte"), ("jeu.morsure", "Bite cast", "Empreinte dentaire"), ("jeu.degel", "Thawing", "Dégel"),
     ("jeu.sequencage", "Sequencing", "Séquençage"), ("jeu.appariement", "Strand pairing", "Appariement des brins"), ("jeu.centrifugation", "Centrifugation", "Centrifugation"),
     ("jeu.fragments", "Fragment assembly", "Assemblage de fragments"), ("jeu.spectre", "Spectrum tuning", "Accord du spectre"),
     ("jeu.gel", "Electrophoresis", "Électrophorèse"), ("jeu.titrage", "Colorimetry", "Colorimétrie"), ("jeu.pcr", "PCR cycles", "Cycles PCR"),
@@ -373,9 +618,80 @@ CLES = [
     ("annonce.annulee.titre", "Investigation cancelled", "Enquête annulée"), ("annonce.annulee.texte", "This species no longer exists", "Cette espèce n'existe plus"),
     ("annonce.trop_tard.titre", "Too late", "Trop tard"), ("annonce.trop_tard.texte", "Someone else caught your target", "Quelqu'un d'autre a capturé ta cible"),
     ("annonce.resolue.titre", "Case solved! %s", "Enquête résolue ! %s"),
-    ("annonce.resolue.texte", "%s %s · case no. %s%s%s", "%s %s · dossier n° %s%s%s"),
+    ("annonce.resolue.texte", "%s %s · case no. %s%s%s%s", "%s %s · dossier n° %s%s%s%s"),
+    ("annonce.resolue.xp", " · +%s XP", " · +%s XP"),
+    ("annonce.resolue.rang", " · +%s XP · Promoted: %s!", " · +%s XP · Promotion : %s !"),
+    ("annonce.invitation.titre", "Team invitation", "Invitation"),
+    ("annonce.invitation.texte", "%s invites you to join their investigation: open your kit, Team tab", "%s t'invite à rejoindre son enquête : ouvre ton kit, onglet Équipe"),
+    ("annonce.invitation_envoyee.titre", "Invitation sent", "Invitation envoyée"),
+    ("annonce.invitation_envoyee.texte", "%s has two minutes to answer", "%s a deux minutes pour répondre"),
+    ("annonce.invitation_impossible.titre", "Invitation impossible", "Invitation impossible"),
+    ("annonce.invitation_impossible.texte", "That player is offline, already on a case, or the target is already flushed out", "Ce joueur est déconnecté, déjà sur une enquête, ou la cible est déjà débusquée"),
+    ("annonce.equipe_pleine.titre", "Team is full", "Équipe au complet"),
+    ("annonce.equipe_pleine.texte", "No more than %s investigators on one case", "Pas plus de %s enquêteurs sur un même dossier"),
+    ("annonce.equipe_rejoint.titre", "New teammate", "Nouveau coéquipier"),
+    ("annonce.equipe_rejoint.texte", "%s joins the investigation", "%s rejoint l'enquête"),
+    ("annonce.equipe_quittee.titre", "Team left", "Équipe quittée"),
+    ("annonce.equipe_quittee.texte", "You are off the case", "Tu ne travailles plus sur ce dossier"),
+    ("annonce.equipe_depart.titre", "Teammate gone", "Départ"),
+    ("annonce.equipe_depart.texte", "%s left the team", "%s a quitté l'équipe"),
+    ("rang.0", "Trainee", "Stagiaire"), ("rang.1", "Junior Investigator", "Enquêteur adjoint"), ("rang.2", "Investigator", "Enquêteur"),
+    ("rang.3", "Inspector", "Inspecteur"), ("rang.4", "Chief Inspector", "Inspecteur principal"), ("rang.5", "Commissioner", "Commissaire"),
+    ("rang.6", "Legend", "Légende"),
+    ("progres.rang_inspecteur.titre", "Inspector", "Inspecteur"),
+    ("progres.rang_inspecteur.texte", "Reach the rank of Inspector", "Atteins le rang d'inspecteur"),
     ("annonce.resolue.capture", "caught", "capturé"), ("annonce.resolue.vaincu", "defeated", "vaincu"),
     ("annonce.resolue.palier", " (milestone!)", " (palier !)"), ("annonce.resolue.butin", " · Loot: %s", " · Butin : %s"),
+    # --- 1.1 : signalements, enquêtes spéciales ---
+    ("annonce.enquete_nocturne.titre", "Nocturnal investigation", "Enquête nocturne"),
+    ("annonce.enquete_nocturne.texte", "Its traces only show at night, and it only cries and comes out after dark. Head to the zone with your kit, vials and a brush",
+     "Ses traces ne se voient que la nuit, et elle ne crie et ne sort qu'à la nuit tombée. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_craintive.titre", "Skittish target", "Cible craintive"),
+    ("annonce.enquete_craintive.texte", "This one senses you from much farther away: you will have to scan it from a long distance. Head to the zone with your kit, vials and a brush",
+     "Celle-ci te repère de bien plus loin : il faudra la scanner à grande distance. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_exceptionnel.titre", "Exceptional specimen", "Spécimen exceptionnel"),
+    ("annonce.enquete_exceptionnel.texte", "The suspects all look alike and one more analysis result is required, but the specimen has its hidden ability. Head to the zone with your kit, vials and a brush",
+     "Les suspects se ressemblent tous et il faut un résultat d'analyse de plus, mais le spécimen a son talent caché. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.nocturne_trace.titre", "Wait for nightfall", "Attends la nuit"),
+    ("annonce.nocturne_trace.texte", "The traces of a nocturnal target can only be sampled at night", "Les traces d'une cible nocturne ne se prélèvent que de nuit"),
+    ("annonce.nocturne_silence.titre", "Not a sound", "Aucun cri"),
+    ("annonce.nocturne_silence.texte", "The target sleeps during the day: take your bearings at night", "La cible dort le jour : fais tes relevés de nuit"),
+    ("annonce.enquete_migratrice.titre", "Restless target", "Cible migratrice"),
+    ("annonce.enquete_migratrice.texte", "This one never stays long: it moves twice as often during the hunt, and its lair is farther away. Head to the zone with your kit, vials and a brush", "Celle-ci ne tient pas en place : elle se déplace deux fois plus souvent pendant la traque, et sa tanière est plus loin. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_aquatique.titre", "Aquatic investigation", "Enquête aquatique"),
+    ("annonce.enquete_aquatique.texte", "The traces lie on the bottom of the water and the target lives in it: bring something to dive and to cross. Head to the zone with your kit, vials and a brush", "Les traces reposent au fond de l'eau et la cible y vit : prévois de quoi plonger et traverser. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_fouille.titre", "Dig site", "Chantier de fouille"),
+    ("annonce.enquete_fouille.texte", "Every remain is buried here: dig carefully and brush each one out. Head to the zone with your kit, vials and a brush", "Ici, tous les restes sont enfouis : creuse avec soin et dégage-les un par un au pinceau. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_cimes.titre", "Canopy investigation", "Enquête des cimes"),
+    ("annonce.enquete_cimes.texte", "The traces are on tree trunks and up in the treetops: look up. Head to the zone with your kit, vials and a brush", "Les traces sont sur les troncs et au sommet des arbres : lève les yeux. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_altitude.titre", "Highland investigation", "Enquête d'altitude"),
+    ("annonce.enquete_altitude.texte", "The traces are on rock faces, scattered across a much wider zone. Head to the zone with your kit, vials and a brush", "Les traces sont sur les parois rocheuses, éparpillées dans une zone bien plus vaste. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_givre.titre", "Frozen trail", "Piste gelée"),
+    ("annonce.enquete_givre.texte", "The samples are frozen and fragile: each one holds one dose fewer. Head to the zone with your kit, vials and a brush", "Les échantillons sont gelés et fragiles : chacun contient une dose de moins. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_brume.titre", "Misty investigation", "Enquête dans la brume"),
+    ("annonce.enquete_brume.texte", "Cries carry poorly here: your bearings will be much less precise, take more of them. Head to the zone with your kit, vials and a brush", "Les cris portent mal ici : tes relevés seront nettement moins précis, multiplie-les. Rends-toi dans la zone avec ton kit, des fioles et un pinceau"),
+    ("annonce.enquete_souterraine.titre", "Underground investigation", "Enquête souterraine"),
+    ("annonce.enquete_souterraine.texte", "A cave species: its traces and its lair are underground. The kit radar gives the depth; bring torches and a pickaxe. Head to the zone with your kit and vials",
+     "Une espèce des grottes : ses traces et sa tanière sont sous terre. Le radar du kit donne la profondeur ; prévois torches et pioche. Rends-toi dans la zone avec ton kit et des fioles"),
+    # --- 1.1 : progrès ---
+    ("progres.racine.titre", "Field Investigations", "Enquêtes de terrain"),
+    ("progres.racine.texte", "Get a Field Kit and open your first case", "Procure-toi un kit de terrain et ouvre ta première enquête"),
+    ("progres.premier_prelevement.titre", "Evidence Bag", "Pièce à conviction"),
+    ("progres.premier_prelevement.texte", "Sample a trace with the Field Kit", "Prélève une trace avec le kit de terrain"),
+    ("progres.indice_degage.titre", "Careful Hands", "Doigts de fée"),
+    ("progres.indice_degage.texte", "Dig up a buried clue and brush it out without breaking it", "Déterre un indice enfoui et dégage-le au pinceau sans le casser"),
+    ("progres.premiere_analyse.titre", "Lab Work", "Travail de labo"),
+    ("progres.premiere_analyse.texte", "Analyse a sample in the pocket sequencer", "Analyse un échantillon dans le séquenceur de poche"),
+    ("progres.bon_flair.titre", "Good Nose", "Bon flair"),
+    ("progres.bon_flair.texte", "Scan a target that turns out to be the suspect you named", "Scanne une cible qui se révèle être le suspect que tu avais désigné"),
+    ("progres.premiere_enquete.titre", "Case Closed", "Affaire classée"),
+    ("progres.premiere_enquete.texte", "Solve an investigation", "Résous une enquête"),
+    ("progres.cinq_etoiles.titre", "By the Book", "Dans les règles de l'art"),
+    ("progres.cinq_etoiles.texte", "Solve an investigation with five stars", "Résous une enquête avec cinq étoiles"),
+    ("progres.enquete_speciale.titre", "Out of the Ordinary", "Hors du commun"),
+    ("progres.enquete_speciale.texte", "Solve a special investigation", "Résous une enquête spéciale"),
+    ("progres.dix_enquetes.titre", "Seasoned Investigator", "Enquêteur chevronné"),
+    ("progres.dix_enquetes.texte", "Solve ten investigations", "Résous dix enquêtes"),
 ]
 
 # Objets et blocs (clés complètes).

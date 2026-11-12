@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "cobblemon_field_investigations:kit_terrain"
+    },
+    "title": {
+      "translate": "cobblemon_field_investigations.progres.rang_inspecteur.titre"
+    },
+    "description": {
+      "translate": "cobblemon_field_investigations.progres.rang_inspecteur.texte"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "cobblemon_field_investigations:premiere_enquete",
+  "criteria": {
+    "fait": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:writable_book"
+    },
+    "title": {
+      "translate": "cobblemon_field_investigations.progres.premiere_enquete.titre"
+    },
+    "description": {
+      "translate": "cobblemon_field_investigations.progres.premiere_enquete.texte"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "parent": "cobblemon_field_investigations:bon_flair",
+  "criteria": {
+    "fait": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}
