@@ -323,7 +323,7 @@ public final class Engine {
     private static <T> T read(Path file, java.lang.reflect.Type type, T fallback) {
         if (!Files.exists(file)) return fallback;
         try (Reader r = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            T value = GSON.fromJson(r, type);
+            T value = type == State.class ? GSON.fromJson(Legacy.state(com.google.gson.JsonParser.parseReader(r)), type) : GSON.fromJson(r, type);
             return value == null ? fallback : value;
         } catch (Exception e) {
             System.err.println("[Field Investigations] Could not read " + file + ": " + e);

@@ -72,7 +72,7 @@ public final class ModContent {
     }
 
     static CompoundTag data(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return Legacy.item(stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag());
     }
 
     // Trace left by the Pokémon: a flat decal sampled with the field kit.
