@@ -334,3 +334,6 @@ for y in range(0, 168, earth.height):
 wide.paste(top, (0, 0))
 wide.paste(top.transpose(Image.FLIP_LEFT_RIGHT), (64, 0))
 save(wide, "gui", "cast_mud")
+
+# Centrifugation: the open housing around the rotor (128 x 128, bowl radius about 36 texels).
+save(load("centrifuge_housing"), "gui", "centrifuge_housing")

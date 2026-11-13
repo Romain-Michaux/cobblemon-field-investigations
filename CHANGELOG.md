@@ -16,6 +16,9 @@
   plaster falls for real, so it keeps landing after the click is released, and the stream thickens the longer it runs.
   One toe hides under a fold of mud and is filled by ear. An overflow spills over the rim and must be scraped; at the
   end the plaster sets and the whole cast comes out of the ground.
+- **Centrifuge**: no more needle. The rotor sits in a steel housing with the sample tube in one bucket; braking makes
+  it coast about a turn before it stops, so the tube must be stopped under the lid's window by anticipation. Each good
+  stop separates one more layer in the test tube beside it (pellet, serum, pale band).
 
 ## 1.1.0 (2026-11-12)
 

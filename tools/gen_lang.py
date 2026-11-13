@@ -436,6 +436,13 @@ NEW_TEXTS = [
      "Balaie le sol avec la lampe : les taches n'apparaissent que dans le faisceau. Clique chacune avant que la batterie soit vide."),
 ]
 NEW_TEXTS += [
+    # centrifugation
+    ("Brake", "Freiner"), ("Separated!", "Séparé !"), ("Missed", "Manqué"), ("Spinning up…", "Mise en rotation…"),
+    ("Spinning, the sample sorts itself into layers. Brake so that the marked tube comes to rest under the window: the rotor coasts a while before it stops.",
+     "En tournant, l'échantillon se range en couches. Freine pour que le tube marqué s'immobilise sous la fenêtre : le rotor file encore un moment avant de s'arrêter."),
+]
+
+NEW_TEXTS += [
     # plaster cast (paw print)
     ("Pour (hold)", "Couler (maintenu)"), ("Scrape a spill", "Gratter un débordement"), ("Scrape", "Gratter"),
     ("The mud remembers a passing paw. Pour the plaster into each hollow, right to the brim: it keeps falling after you stop.",
