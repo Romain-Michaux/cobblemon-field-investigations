@@ -436,12 +436,10 @@ NEW_TEXTS = [
      "Balaie le sol avec la lampe : les taches n'apparaissent que dans le faisceau. Clique chacune avant que la batterie soit vide."),
 ]
 NEW_TEXTS += [
-    # plaster cast (jaw)
-    ("Sockets: ", "Alvéoles : "),
-    ("Fill up to the green marks, then lift the spout. The sockets are not all the same depth.",
-     "Remplis jusqu'aux repères verts, puis relève le bec. Les alvéoles n'ont pas toutes la même profondeur."),
-    ("Put the spout over a socket and hold the click to pour plaster. Fill them all to the brim without overflowing, then let go.",
-     "Place le bec sur une alvéole et maintiens le clic pour couler le plâtre. Remplis-les toutes à ras bord sans déborder, puis relâche."),
+    # plaster cast (paw print)
+    ("Pour (hold)", "Couler (maintenu)"), ("Scrape a spill", "Gratter un débordement"), ("Scrape", "Gratter"),
+    ("The mud remembers a passing paw. Pour the plaster into each hollow, right to the brim: it keeps falling after you stop.",
+     "La boue se souvient d'une patte passée par là. Coule le plâtre dans chaque creux, à ras bord : il tombe encore quand tu t'arrêtes."),
     # photo
     ("A local Pokémon walks past the trace. Follow it with the viewfinder and click when it is sharp (green viewfinder). Three photos before dark.",
      "Un Pokémon du coin passe près de la trace. Suis-le avec le viseur et clique quand il est net (viseur vert). Trois photos avant la nuit."),

@@ -12,6 +12,10 @@
   and kicks up dust, and turns orange before a stroke gets too rough. The clue is broken into three jagged shards
   buried apart; covered shards sound hollow under the brush, two decoy pebbles sound dry. Freed shards lift with a
   gold rim, and the three fly back together into the whole clue at the end.
+- **Cast**: a paw print in cross-section (four toes and the pad) filled from a jug that follows the pointer. The
+  plaster falls for real, so it keeps landing after the click is released, and the stream thickens the longer it runs.
+  One toe hides under a fold of mud and is filled by ear. An overflow spills over the rim and must be scraped; at the
+  end the plaster sets and the whole cast comes out of the ground.
 
 ## 1.1.0 (2026-11-12)
 

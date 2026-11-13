@@ -319,3 +319,18 @@ def flattened(im, radius=10, cracks=0.45):
 save(mirrored(tinted(flattened(load("brush_crust")), (0.93, 0.80, 0.62))), "gui", "brush_crust")
 save(mirrored(load("brush_damp").convert("RGBA").crop((10, 10, 54, 54))), "gui", "brush_damp")
 save(load("brush_tool"), "gui", "brush_tool")
+
+# Cast: the jug of plaster (32 x 32, drawn at 16 x 16), and the ground in cross-section: a 128 x 168 strip (drawn at
+# 64 x 84) starting with the surface layers of the PixelLab mud, then the damp earth of the brushing game, mirrored so
+# that it goes on without seams.
+save(load("cast_jug"), "gui", "cast_jug")
+top = load("cast_mud").convert("RGBA").crop((0, 8, 64, 30))
+from PIL import ImageEnhance
+earth = mirrored(ImageEnhance.Contrast(load("brush_damp").convert("RGBA").crop((10, 10, 54, 54))).enhance(0.55))
+wide = Image.new("RGBA", (128, 168))
+for y in range(0, 168, earth.height):
+    for x in range(0, 128, earth.width):
+        wide.paste(earth, (x, y))
+wide.paste(top, (0, 0))
+wide.paste(top.transpose(Image.FLIP_LEFT_RIGHT), (64, 0))
+save(wide, "gui", "cast_mud")
