@@ -8,6 +8,10 @@
 - **Bite**: a fossil jaw with real fangs over a putty cast in a steel tray; drag the cast with the mouse (a click
   presses it), the fangs sink into the putty when it fits, the jaw shakes and sparks fly where it jams. First round
   lights up the bumps that already match; the arrow buttons and the long text are gone.
+- **Brush**: two soil layers (dry crust, then damp earth) over the whole width, a real brush that leans with the stroke
+  and kicks up dust, and turns orange before a stroke gets too rough. The clue is broken into three jagged shards
+  buried apart; covered shards sound hollow under the brush, two decoy pebbles sound dry. Freed shards lift with a
+  gold rim, and the three fly back together into the whole clue at the end.
 
 ## 1.1.0 (2026-11-12)
 

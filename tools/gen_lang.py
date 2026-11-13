@@ -280,11 +280,11 @@ UI = [
     # --- small words ---
     ("at ", "à "),
     # --- brush dig ---
-    ("Fragments: ", "Fragments : "),
+    ("Shards: ", "Éclats : "),
     ("They are buried anywhere: brush around to find them.", "Ils sont enfouis n'importe où : cherche en brossant."),
-    ("Go slowly: a pale patch gives away what is buried.", "Passe lentement : une pâleur trahit ce qui est enfoui."),
-    ("Brush the soil (hold the click) slowly: it comes off bit by bit. Uncover the three fragments before the bar runs out; three rough strokes ruin them.",
-     "Brosse lentement (clic maintenu) : la terre part peu à peu. Dégage les trois fragments avant la fin de la barre ; trois gestes brusques les gâchent."),
+    ("Brush (hold)", "Brosser (maintenu)"),
+    ("The earth keeps what it buried. Brush it away gently, listen for what sounds hollow, and bring the three shards back to the light.",
+     "La terre garde ce qu'elle a enfoui. Brosse-la avec douceur, écoute ce qui sonne creux, et ramène les trois éclats à la lumière."),
 ]
 
 UI += [

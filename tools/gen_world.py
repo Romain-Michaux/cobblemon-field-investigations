@@ -281,3 +281,41 @@ fang = load("bite_tooth")
 save(fang.crop(fang.getbbox()), "gui", "bite_tooth")
 save(load("bite_bone"), "gui", "bite_bone")
 save(load("bite_putty"), "gui", "bite_putty")
+
+# Brushing: two soil layers read texel by texel by BrushGame (a warm dry crust, then damp earth), mirrored four ways so
+# that they tile without seams, and the brush that follows the pointer (32 x 32, drawn at 16 x 16).
+def mirrored(im):
+    out = Image.new("RGBA", (im.width * 2, im.height * 2))
+    out.paste(im, (0, 0))
+    out.paste(im.transpose(Image.FLIP_LEFT_RIGHT), (im.width, 0))
+    out.paste(im.transpose(Image.FLIP_TOP_BOTTOM), (0, im.height))
+    out.paste(im.transpose(Image.ROTATE_180), (im.width, im.height))
+    return out
+
+
+def tinted(im, k):
+    r, g, b, a = im.split()
+    return Image.merge("RGBA", [c.point(lambda v, f=f: min(255, int(v * f))) for c, f in zip((r, g, b), k)] + [a])
+
+
+# The crust has a light-to-dark gradient that would show as a diamond pattern once mirrored: keep only its fine detail
+# (the image minus its blur, around its mean colour) and soften the cracks.
+def flattened(im, radius=10, cracks=0.45):
+    from PIL import ImageFilter, ImageStat
+    rgb = im.convert("RGB")
+    blurred = rgb.filter(ImageFilter.GaussianBlur(radius))
+    mean = ImageStat.Stat(rgb).mean
+    out = Image.new("RGB", rgb.size)
+    for y in range(rgb.height):
+        for x in range(rgb.width):
+            p, q = rgb.getpixel((x, y)), blurred.getpixel((x, y))
+            v = [p[i] - q[i] + mean[i] for i in range(3)]
+            if sum(v) < sum(mean) * 0.8:
+                v = [v[i] + (mean[i] - v[i]) * cracks for i in range(3)]
+            out.putpixel((x, y), tuple(max(0, min(255, int(c))) for c in v))
+    return out.convert("RGBA")
+
+
+save(mirrored(tinted(flattened(load("brush_crust")), (0.93, 0.80, 0.62))), "gui", "brush_crust")
+save(mirrored(load("brush_damp").convert("RGBA").crop((10, 10, 54, 54))), "gui", "brush_damp")
+save(load("brush_tool"), "gui", "brush_tool")
