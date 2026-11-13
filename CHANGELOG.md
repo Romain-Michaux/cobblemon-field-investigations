@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0 (in progress)
+
+### Mini-games
+- **Abseil**: new art (climber, boulders, rock ledges growing out of the walls, gold-rimmed clues that glint), a short
+  poetic intro instead of a key list, and the controls shown as key icons on one line under the game.
+
 ## 1.1.0 (2026-11-12)
 
 ### Choosing and running a case

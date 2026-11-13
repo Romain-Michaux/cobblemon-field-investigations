@@ -25,6 +25,14 @@ abstract class MiniGame {
 
     abstract String instruction();
 
+    // One control shown as key icons under the play area: the keys (key codes, or a Draw.ARROW_* / Draw.MOUSE icon), then
+    // what they do. Games that return controls keep the keys out of their instruction.
+    record Control(String label, int... keys) {}
+
+    Control[] controls() {
+        return null;
+    }
+
     void end(boolean ok) {
         finished = true;
         success = ok;

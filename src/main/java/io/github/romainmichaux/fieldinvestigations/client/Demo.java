@@ -27,8 +27,30 @@ final class Demo {
 
     static void install() {
         if (!Files.exists(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo"))) return;
-        active = true;
         Minecraft mc = Minecraft.getInstance();
+        String content = "";
+        try {
+            content = Files.readString(FabricLoader.getInstance().getConfigDir().resolve("cobblemon_field_investigations_demo")).trim();
+        } catch (Exception e) {
+            // unreadable file: regular demo
+        }
+        // "play <game>": no screenshots, the game opens once as a practice run after joining the world, then the
+        // player keeps playing normally (replay with /hunt game).
+        if (content.startsWith("play ")) {
+            String game = Genetics.COMMAND_NAMES.getOrDefault(content.substring(5).trim(), content.substring(5).trim());
+            int[] wait = {60};
+            ClientTickEvents.END_CLIENT_TICK.register(c -> {
+                if (c.player == null || wait[0] < 0 || --wait[0] > 0) return;
+                wait[0] = -1;
+                AnalysisScreen screen = new AnalysisScreen("stat", game, System.nanoTime(), 2, false, false, Genetics.FIELD_GAMES.contains(game), 0);
+                screen.attempt = true;
+                c.setScreen(screen);
+            });
+            return;
+        }
+        // "only <text>": regular demo restricted to the steps whose name contains that text.
+        if (content.startsWith("only ")) only = content.substring(5).trim();
+        active = true;
         // Sound endurance test: if the file contains "ambience", a single screen (the sequencer) stays open for two minutes,
         // reopened every two seconds on another game while UI sounds play, then the game closes.
         try {
@@ -155,6 +177,11 @@ final class Demo {
             screen.intro = true;
             mc.setScreen(screen);
         });
+        step("first_time_abseil", () -> {
+            AnalysisScreen screen = new AnalysisScreen("stat", "abseil", 7L, 0, false, false, true, 0);
+            screen.intro = true;
+            mc.setScreen(screen);
+        });
         step("hud", () -> {
             mc.setScreen(null);
             FieldInvestigationsClient.announceTitle = net.minecraft.network.chat.Component.translatable("cobblemon_field_investigations.announce.new_investigation.title");
@@ -176,7 +203,10 @@ final class Demo {
         if (active && step >= 0 && step < NAMES.size()) OVERFLOWS.merge(NAMES.get(step) + "\t" + text, pixels, Math::max);
     }
 
+    private static String only;
+
     private static void step(String name, Runnable action) {
+        if (only != null && !name.contains(only)) return;
         NAMES.add(String.format("%02d_%s", NAMES.size() + 1, name));
         STEPS.add(action);
     }

@@ -296,6 +296,87 @@ final class Draw {
         g.pose().popPose();
     }
 
+    // Icons that are not keyboard keys, for MiniGame.Control: the four arrows (drawn, whatever the font) and the held click.
+    static final int ARROW_LEFT = -10, ARROW_RIGHT = -11, ARROW_UP = -12, ARROW_DOWN = -13, MOUSE = -20, OR = -30;
+    static final int KEY_H = 13;
+
+    // Name printed on a key cap, as on the player's own keyboard (Q for the key in the place of A on AZERTY).
+    static String keyLabel(int key) {
+        String name = com.mojang.blaze3d.platform.InputConstants.Type.KEYSYM.getOrCreate(key).getDisplayName().getString();
+        return name.length() <= 3 ? name.toUpperCase(java.util.Locale.ROOT) : name;
+    }
+
+    static int iconWidth(int key) {
+        if (key == OR) return 2;
+        if (key == MOUSE) return 9;
+        if (key <= ARROW_LEFT && key >= ARROW_DOWN) return 11;
+        return Math.max(11, textFont().width(keyLabel(key)) + 5);
+    }
+
+    static int controlWidth(MiniGame.Control c) {
+        int w = 0;
+        for (int key : c.keys()) w += iconWidth(key) + 2;
+        return w + 2 + textFont().width(c.label());
+    }
+
+    // The controls on one or more centred rows: key caps, then what they do, in grey.
+    static void controls(GuiGraphics g, MiniGame.Control[] list, int cx, int y, int maxWidth) {
+        final int gap = 8;
+        int start = 0;
+        while (start < list.length) {
+            int end = start, row = controlWidth(list[start]);
+            while (end + 1 < list.length && row + gap + controlWidth(list[end + 1]) <= maxWidth) row += gap + controlWidth(list[++end]);
+            int x = cx - row / 2;
+            for (int i = start; i <= end; i++) {
+                for (int key : list[i].keys()) {
+                    keyIcon(g, x, y, key);
+                    x += iconWidth(key) + 2;
+                }
+                g.drawString(textFont(), list[i].label(), x + 2, y + 2, GREY, false);
+                x += 2 + textFont().width(list[i].label()) + gap;
+            }
+            start = end + 1;
+            y += KEY_H + 3;
+        }
+    }
+
+    static void keyIcon(GuiGraphics g, int x, int y, int key) {
+        int w = iconWidth(key);
+        // OR: a small space between two sets of keys doing the same thing.
+        if (key == OR) return;
+        if (key == MOUSE) {
+            // A mouse seen from above, its left button lit.
+            g.fill(x, y + 1, x + 9, y + KEY_H, EDGE);
+            g.fill(x + 1, y + 2, x + 8, y + KEY_H - 1, 0xFFD5DCE3);
+            g.fill(x + 1, y + 2, x + 4, y + 6, ACCENT);
+            g.fill(x + 4, y + 2, x + 5, y + 6, EDGE);
+            g.fill(x + 1, y + 6, x + 8, y + 7, EDGE);
+            g.fill(x + 4, y - 1, x + 5, y + 1, DARK);
+            return;
+        }
+        g.fill(x, y, x + w, y + KEY_H, EDGE);
+        g.fill(x + 1, y + 1, x + w - 1, y + KEY_H - 1, 0xFF8E9BA8);
+        g.fill(x + 1, y + 1, x + w - 1, y + KEY_H - 3, 0xFFD5DCE3);
+        if (key <= ARROW_LEFT && key >= ARROW_DOWN) {
+            // Arrow drawn pixel by pixel: a triangle tip and a shaft.
+            int mx = x + w / 2, my = y + 5;
+            for (int i = 0; i < 3; i++) {
+                switch (key) {
+                    case ARROW_LEFT -> g.fill(mx - 3 + i, my - i, mx - 2 + i, my + i + 1, EDGE);
+                    case ARROW_RIGHT -> g.fill(mx + 2 - i, my - i, mx + 3 - i, my + i + 1, EDGE);
+                    case ARROW_UP -> g.fill(mx - i, my - 3 + i, mx + i + 1, my - 2 + i, EDGE);
+                    default -> g.fill(mx - i, my + 3 - i, mx + i + 1, my + 4 - i, EDGE);
+                }
+            }
+            if (key == ARROW_LEFT || key == ARROW_RIGHT) g.fill(mx - 2, my, mx + 3, my + 1, EDGE);
+            else if (key == ARROW_UP) g.fill(mx, my - 2, mx + 1, my + 3, EDGE);
+            else g.fill(mx, my - 2, mx + 1, my + 2, EDGE);
+            return;
+        }
+        String label = keyLabel(key);
+        g.drawString(textFont(), label, x + (w - textFont().width(label)) / 2 + 1, y + 2, EDGE, false);
+    }
+
     static int paragraph(GuiGraphics g, String text, int x, int y, int widthPx, int colour) {
         for (FormattedCharSequence line : textFont().split(Component.literal(text), widthPx)) {
             g.drawString(textFont(), line, x, y, colour, false);

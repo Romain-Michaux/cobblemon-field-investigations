@@ -424,10 +424,10 @@ NEW_TEXTS = [
     ("Holds scroll down the trunk. Click left or right, on the side of the hold, when it passes through the light band.",
      "Les prises défilent le long du tronc. Clique à gauche ou à droite, du côté de la prise, quand elle passe dans la bande claire."),
     # abseil
-    ("Traces: ", "Traces : "), ("Too low: ", "Trop bas : "), ("Speed", "Vitesse"),
-    ("The rope takes a while to brake: let go before the band.", "La corde met du temps à freiner : relâche avant la bande."),
-    ("Hold the click to let the rope run, let go to brake. Stop in the yellow band of each trace without going past it.",
-     "Maintiens le clic pour laisser filer la corde, relâche pour freiner. Arrête-toi dans la bande jaune de chaque trace, sans la dépasser."),
+    ("Traces: ", "Traces : "), ("Impacts: ", "Chocs : "), ("Rope ", "Corde "), ("Trace taken", "Trace prélevée"), ("Too fast!", "Trop vite !"),
+    ("Swing", "Se balancer"), ("Haul in", "Remonter"), ("Pay out", "Filer"),
+    ("Swing from boulder to boulder and slip down to the traces without ever grazing the rock.",
+     "Balance-toi d'un rocher à l'autre et glisse jusqu'aux traces sans jamais effleurer la roche."),
     # UV lamp
     ("Stains: ", "Taches : "), ("Battery", "Batterie"),
     ("Stains only glow under the beam. A click on nothing drains the battery.",

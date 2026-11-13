@@ -246,3 +246,31 @@ for name in ("trunk", "forest"):
 
 # Investigator badge of the logbook (tinted in game with the rank colour).
 save(load("badge"), "gui", "badge")
+
+# Abseil: climber (32 x 48, drawn at 16 x 24), a clue on the rock per trace kind (32 x 32, drawn at 16 x 16), the
+# boulder (cropped, drawn at the size of its hit circle) and the rock bar: the middle of a PixelLab outcrop, mirrored so
+# that it tiles, 32 rows high (drawn 16 px high).
+save(load("abseil_climber"), "gui", "abseil_climber")
+# The clues get a pale gold rim (2 texels = 1 px on screen): they must stand out on the dark rock and read as pickable.
+def rimmed(im, colour=(242, 214, 140, 255), width=2):
+    out = Image.new("RGBA", im.size)
+    a = im.getchannel("A")
+    for dx in range(-width, width + 1):
+        for dy in range(-width, width + 1):
+            if dx * dx + dy * dy <= width * width + 1:
+                shifted = Image.new("L", im.size)
+                shifted.paste(a, (dx, dy))
+                out.paste(Image.new("RGBA", im.size, colour), (0, 0), shifted.point(lambda v: 255 if v > 96 else 0))
+    out.alpha_composite(im)
+    return out
+
+
+for kind in ("stat", "size", "egg", "type1", "type2"):
+    save(rimmed(load("abseil_" + kind)), "gui", "abseil_" + kind)
+boulder = load("abseil_boulder")
+save(boulder.crop(boulder.getbbox()), "gui", "abseil_boulder")
+slab = load("abseil_ledge").crop((24, 8, 104, 27))
+tile = Image.new("RGBA", (slab.width * 2, slab.height))
+tile.paste(slab, (0, 0))
+tile.paste(slab.transpose(Image.FLIP_LEFT_RIGHT), (slab.width, 0))
+save(tile.resize((tile.width, 32), Image.NEAREST), "gui", "abseil_ledge")

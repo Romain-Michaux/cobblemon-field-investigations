@@ -53,7 +53,7 @@ public class AnalysisScreen extends Screen {
             case "swab" -> new SwabGame(rng);
             case "dive" -> new DiveGame(rng);
             case "climb" -> new ClimbGame(rng);
-            case "abseil" -> new AbseilGame(rng);
+            case "abseil" -> new AbseilGame(rng, kind);
             case "lamp" -> new UvLampGame(rng);
             case "rockfall" -> new RockfallGame(rng);
             case "filter" -> new FilterGame(rng);
@@ -140,7 +140,9 @@ public class AnalysisScreen extends Screen {
         game.ox = zx;
         game.oy = zy;
         game.draw(g, mx, my, pt);
-        if (!intro) Draw.paragraph(g, game.instruction(), zx, zy + AREA_H + 3, AREA_W, Draw.GREY);
+        MiniGame.Control[] controls = game.controls();
+        if (controls != null) Draw.controls(g, controls, zx + AREA_W / 2, zy + AREA_H + 4, AREA_W + 24);
+        else if (!intro) Draw.paragraph(g, game.instruction(), zx, zy + AREA_H + 3, AREA_W, Draw.GREY);
         if (intro) {
             g.pose().pushPose();
             g.pose().translate(0, 0, 350);
