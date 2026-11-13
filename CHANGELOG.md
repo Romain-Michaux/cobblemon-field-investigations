@@ -5,6 +5,9 @@
 ### Mini-games
 - **Abseil**: new art (climber, boulders, rock ledges growing out of the walls, gold-rimmed clues that glint), a short
   poetic intro instead of a key list, and the controls shown as key icons on one line under the game.
+- **Bite**: a fossil jaw with real fangs over a putty cast in a steel tray; drag the cast with the mouse (a click
+  presses it), the fangs sink into the putty when it fits, the jaw shakes and sparks fly where it jams. First round
+  lights up the bumps that already match; the arrow buttons and the long text are gone.
 
 ## 1.1.0 (2026-11-12)
 

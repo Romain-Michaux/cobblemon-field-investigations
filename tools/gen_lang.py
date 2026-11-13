@@ -446,9 +446,9 @@ NEW_TEXTS += [
     ("A local Pokémon walks past the trace. Follow it with the viewfinder and click when it is sharp (green viewfinder). Three photos before dark.",
      "Un Pokémon du coin passe près de la trace. Suis-le avec le viseur et clique quand il est net (viseur vert). Trois photos avant la nuit."),
     # bite cast
-    ("It fits!", "Emboîté !"), ("Red teeth are blocking", "Ça bute en rouge"), ("Slide the strip", "Glisser la réglette"), ("Press", "Presser"),
-    ("Slide the orange strip (buttons or arrow keys) until every tooth sits under its hollow, then press it: it must touch everywhere at once.",
-     "Fais glisser la réglette orange (boutons ou flèches) pour que chaque dent arrive sous son creux, puis presse-la : elle doit toucher partout à la fois."),
+    ("It fits!", "Emboîté !"), ("It jams", "Ça bute"), ("Slide", "Glisser"), ("Press", "Presser"),
+    ("Every bite leaves its signature. Slide the cast beneath the jaw until each fang finds its hollow, then press it home.",
+     "Chaque morsure signe son auteur. Glisse le moulage sous la mâchoire jusqu'à ce que chaque croc trouve son creux, puis presse."),
     # tree climb
     ("Grey, split branches are dead: let them go by without clicking.", "Les branches grises et fendues sont mortes : laisse-les passer sans cliquer."),
     ("Click left or right, on the side of the hold, when it crosses the light band. Leave the dead branches alone. It speeds up.",

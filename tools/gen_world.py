@@ -274,3 +274,10 @@ tile = Image.new("RGBA", (slab.width * 2, slab.height))
 tile.paste(slab, (0, 0))
 tile.paste(slab.transpose(Image.FLIP_LEFT_RIGHT), (slab.width, 0))
 save(tile.resize((tile.width, 32), Image.NEAREST), "gui", "abseil_ledge")
+
+# Bite: a fang cropped to its outline (stretched in game to each tooth's length), and two 64 x 64 tiles drawn at half
+# size: the fossil bone of the jaw and the moulding putty of the cast.
+fang = load("bite_tooth")
+save(fang.crop(fang.getbbox()), "gui", "bite_tooth")
+save(load("bite_bone"), "gui", "bite_bone")
+save(load("bite_putty"), "gui", "bite_putty")
