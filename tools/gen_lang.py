@@ -436,6 +436,14 @@ NEW_TEXTS = [
      "Balaie le sol avec la lampe : les taches n'apparaissent que dans le faisceau. Clique chacune avant que la batterie soit vide."),
 ]
 NEW_TEXTS += [
+    # chromatography
+    ("Too far", "Trop tard"), ("Blends: ", "Mélanges : "), ("Blend identified!", "Mélange identifié !"), ("Not this blend", "Pas ce mélange"),
+    ("Lift the rack", "Retirer le portoir"), ("Name two references", "Désigner deux références"),
+    ("Every trace is a blend of known inks. Let the solvent climb, lift the rack once you can read the sample, then name the two references it is made of.",
+     "Chaque trace mêle des encres connues. Laisse le solvant monter, retire le portoir quand tu sais lire l'échantillon, puis désigne les deux références qui le composent."),
+]
+
+NEW_TEXTS += [
     # centrifugation
     ("Brake", "Freiner"), ("Separated!", "Séparé !"), ("Missed", "Manqué"), ("Spinning up…", "Mise en rotation…"),
     ("Spinning, the sample sorts itself into layers. Brake so that the marked tube comes to rest under the window: the rotor coasts a while before it stops.",

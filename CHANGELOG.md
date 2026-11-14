@@ -19,6 +19,10 @@
 - **Centrifuge**: no more needle. The rotor sits in a steel housing with the sample tube in one bucket; braking makes
   it coast about a turn before it stops, so the tube must be stopped under the lid's window by anticipation. Each good
   stop separates one more layer in the test tube beside it (pellet, serum, pale band).
+- **Chromatography**: now an identification. The sample strip climbs in a glass tank beside four, then five,
+  reference strips; the sample is a blend of two references, to be named once the rack is lifted. Overlapping inks
+  blend into a dull smear, each hue exists at two heights, and neighbouring inks only part late in the run: reading
+  early is a guess, reading late risks the solvent reaching the top.
 
 ## 1.1.0 (2026-11-12)
 

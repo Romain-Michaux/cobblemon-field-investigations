@@ -337,3 +337,6 @@ save(wide, "gui", "cast_mud")
 
 # Centrifugation: the open housing around the rotor (128 x 128, bowl radius about 36 texels).
 save(load("centrifuge_housing"), "gui", "centrifuge_housing")
+
+# Chromatography: the binder clip holding each paper strip (32 x 32, drawn at 16 x 16).
+save(load("chroma_clip"), "gui", "chroma_clip")
