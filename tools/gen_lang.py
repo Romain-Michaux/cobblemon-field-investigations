@@ -463,9 +463,9 @@ NEW_TEXTS += [
     ("Every bite leaves its signature. Slide the cast beneath the jaw until each fang finds its hollow, then press it home.",
      "Chaque morsure signe son auteur. Glisse le moulage sous la mâchoire jusqu'à ce que chaque croc trouve son creux, puis presse."),
     # tree climb
-    ("Grey, split branches are dead: let them go by without clicking.", "Les branches grises et fendues sont mortes : laisse-les passer sans cliquer."),
-    ("Click left or right, on the side of the hold, when it crosses the light band. Leave the dead branches alone. It speeds up.",
-     "Clique à gauche ou à droite, du côté de la prise, quand elle passe dans la bande claire. Ne touche pas aux branches mortes. Ça accélère."),
+    ("Perfect!", "Parfait !"), ("Good", "Bien"), ("Slipped!", "Glissade !"), ("Grab", "Attraper"), ("Vine: hold", "Liane : maintenir"),
+    ("The canopy keeps its secrets high. Catch each hold as it reaches your hands, let dead wood go by, hang on to the vines, and climb to the trace.",
+     "La canopée garde ses secrets en hauteur. Attrape chaque prise quand elle arrive à tes mains, laisse passer le bois mort, tiens bon sur les lianes, et grimpe jusqu'à la trace."),
     # sorting
     ("Shells: ", "Coquilles : "),
     ("Objects push each other: clear the way before bringing a shell over.", "Les objets se poussent : dégage le passage avant d'amener une coquille."),

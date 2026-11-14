@@ -340,3 +340,16 @@ save(load("centrifuge_housing"), "gui", "centrifuge_housing")
 
 # Chromatography: the binder clip holding each paper strip (32 x 32, drawn at 16 x 16).
 save(load("chroma_clip"), "gui", "chroma_clip")
+
+# Climb: the climber seen from behind, arms up (32 x 48), and the round bush that closes the top of the climb (cropped
+# above its grass, 114 x 54).
+save(load("climb_climber"), "gui", "climb_climber")
+bush = load("climb_canopy").convert("RGBA").crop((7, 7, 121, 64))
+# Soften the cut at the bottom: the last rows thin out in a dither so the bush melts into the trunk and the forest.
+for y in range(bush.height - 14, bush.height):
+    t = (y - (bush.height - 14)) / 14
+    for x in range(bush.width):
+        p = bush.getpixel((x, y))
+        if p[3] and ((x * 7 + y * 13) % 17) / 17 < t:
+            bush.putpixel((x, y), (0, 0, 0, 0))
+save(bush, "gui", "climb_canopy")

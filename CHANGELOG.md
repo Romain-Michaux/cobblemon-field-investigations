@@ -23,6 +23,9 @@
   reference strips; the sample is a blend of two references, to be named once the rack is lifted. Overlapping inks
   blend into a dull smear, each hue exists at two heights, and neighbouring inks only part late in the run: reading
   early is a guess, reading late risks the solvent reaching the top.
+- **Climb**: a climber on the trunk, full width, keys or mouse. Grabs right on the hands are perfect and give a little
+  momentum; double holds take both hands, vines are held while they pass. A miss cracks the branch and the climber
+  slides down. The tree ends in a round bush with the trace on its last branch, scrolling with the holds.
 
 ## 1.1.0 (2026-11-12)
 

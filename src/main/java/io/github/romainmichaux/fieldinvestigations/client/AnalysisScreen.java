@@ -52,7 +52,7 @@ public class AnalysisScreen extends Screen {
             case "photo" -> new PhotoGame(rng);
             case "swab" -> new SwabGame(rng);
             case "dive" -> new DiveGame(rng);
-            case "climb" -> new ClimbGame(rng);
+            case "climb" -> new ClimbGame(rng, kind);
             case "abseil" -> new AbseilGame(rng, kind);
             case "lamp" -> new UvLampGame(rng);
             case "rockfall" -> new RockfallGame(rng);
