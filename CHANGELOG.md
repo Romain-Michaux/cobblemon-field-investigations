@@ -35,6 +35,10 @@
 - **Crystals**: clusters on a rock wall instead of a grid. Sound ones are pried loose by holding the click; an unstable
   one cracks under the hand (let go in time) and, if it bursts, shatters its neighbours. Each deposit has a short time
   once the crystals go dull; rare sparks and shivers reward a sharp eye. Pried crystals fly into a vial.
+- **Dive**: a lake scene over the whole width. The vial swims after the pointer with inertia, so the drifting trace has
+  to be anticipated; air runs out in about eleven seconds, so the dive needs a breath or two at the surface (where the
+  vial slowly loses some). Currents push the vial sideways, a fast pass near the bottom stirs up silt that hides the
+  trace, and the trace no longer jumps when the vial fills.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

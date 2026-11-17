@@ -365,3 +365,8 @@ save(wall, "gui", "crystals_rock")
 for variant in ("a", "b", "c"):
     cluster = load("crystals_" + variant)
     save(cluster, "gui", "crystals_" + variant)
+
+# Dive: the lake (280 x 120, darkened so the glowing trace stands out) and the sample vial (cropped, 20 x 41, drawn at half).
+save(tinted(load("dive_lake").convert("RGBA"), (0.55, 0.62, 0.7)), "gui", "dive_lake")
+vial = load("dive_vial")
+save(vial.crop(vial.getbbox()), "gui", "dive_vial")

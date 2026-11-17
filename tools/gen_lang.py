@@ -408,8 +408,9 @@ NEW_TEXTS = [
     # free dive
     ("Air", "Air"), ("Vial", "Fiole"),
     ("Stay on the trace. 40% air left at the end: one extra dose.", "Suis la trace sans la lâcher. 40 % d'air restant : une dose de plus."),
-    ("Hold the click on the glowing trace to fill the vial. The current moves it, and your air is running out.",
-     "Maintiens le clic sur la trace lumineuse pour remplir la fiole. Le courant la déplace, et ta réserve d'air baisse."),
+    ("Swim", "Nager"), ("Fill (hold)", "Remplir (maintenir)"), ("Go up for air!", "Remonte respirer !"), ("Breathing…", "Tu respires…"),
+    ("Below the surface, the trace drifts with the current. Swim after it and hold your vial in its glow; come up for air when you must.",
+     "Sous la surface, la trace dérive au gré du courant. Nage à sa suite, tiens ta fiole dans sa lueur, et remonte respirer quand il le faut."),
     # thawing
     ("Thawed: ", "Dégel : "), ("Overheats: ", "Surchauffes : "),
     ("The ice only melts in the green range. It drifts: follow it.", "La glace ne fond que dans la plage verte. Elle se déplace : accompagne-la."),
