@@ -255,7 +255,7 @@ final class Reports {
             }
             if (!water && !open.isEmpty()) {
                 Trace t = open.get(Engine.RANDOM.nextInt(open.size()));
-                t.challenge = "track";
+                t.challenge = Engine.RANDOM.nextBoolean() ? "track" : "tail";
                 t.sx = t.x;
                 t.sz = t.z;
             }

@@ -34,7 +34,12 @@
 - **The track**: a 200-block trail of glowing footprints sets off in one direction from the start, on the real ground
   (under foliage, around water). Tall beams mark a checkpoint every 30 blocks and the radar needle points at the next
   one. Each leg has its own countdown, sized for a sprint: run, jump the bumps, do not stop.
-- `/hunt challenge` (operators) turns the next trace of the current case into a challenge right in front of you.
+- **The tail**: a wisp drifts away along a path. It sees the player within 26 blocks when nothing stands in between: a
+  spotting gauge fills, faster the closer, and drains behind cover, so the chase goes from one hiding place to the
+  next. A ring on the ground shows its range and red motes run towards the player while it sees them. Full gauge, or
+  more than 34 blocks away, and the try is lost; at the end of its path it settles and the trace is there.
+- `/hunt challenge [track|tail]` (operators) turns the next trace of the current case into a challenge right in front
+  of you.
 
 ## 1.1.0 (2026-11-12)
 

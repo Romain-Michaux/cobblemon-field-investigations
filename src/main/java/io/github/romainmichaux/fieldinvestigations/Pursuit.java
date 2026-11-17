@@ -86,7 +86,15 @@ final class Pursuit {
                 }
                 signal.data().putInt("zone", (int) Engine.distance(player, d.zoneX, d.zoneZ));
                 // Challenge: waiting at its start (the nearest sign), or running (it takes over the radar).
-                if (running != null) {
+                if (running != null && "tail".equals(running.challenge)) {
+                    signal.data().putString("challenge", running.challenge);
+                    signal.data().putBoolean("running", true);
+                    signal.data().putInt("alert", (int) Math.round(running.alert));
+                    signal.data().putBoolean("looking", running.looking);
+                    signal.data().putDouble("metres", running.metres);
+                    double dx = running.wx - player.getX(), dz = running.wz - player.getZ();
+                    signal.data().putDouble("heading", (Math.toDegrees(Math.atan2(dx, -dz)) + 360) % 360);
+                } else if (running != null) {
                     List<Integer> beacons = Challenges.beacons(running);
                     signal.data().putString("challenge", running.challenge);
                     signal.data().putBoolean("running", true);

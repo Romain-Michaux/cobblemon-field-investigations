@@ -14,7 +14,7 @@ public class Trace {
     // One trace per case may be in a shallow cave connected to the outside (see Traces.openCave).
     // It reverts to a surface trace if no such cave exists near the intended spot.
     public boolean cave;
-    // Challenge trace (see Challenges): "track" for now. The radar leads to the start (sx, sz); the trace appears at the end
+    // Challenge trace (see Challenges): "track" or "tail". The radar leads to the start (sx, sz); the trace appears at the end
     // of the challenge, damaged after three failed tries.
     public String challenge;
     public boolean challengeDone, damaged;
@@ -24,6 +24,9 @@ public class Trace {
     public transient boolean running;
     public transient int stage;
     public transient long deadline;
+    // Tail: how far along its path the wisp is, the spotting gauge (0-100), and what the radar shows (looking: it sees you).
+    public transient double along, alert, metres, wx, wz;
+    public transient boolean looking;
     // Underground case: how many times no cave was found for this trace (after six, it is placed on the surface).
     public transient int failures;
 

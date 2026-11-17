@@ -274,6 +274,20 @@ case "analyse" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("
                     line1 = T.f("wait_for_nightfall");
                     colour1 = 0xFF8FA8FF;
                     line2 = T.f("no_traces_by_day");
+                } else if (signal.getBoolean("running") && signal.getString("challenge").equals("tail")) {
+                    // Tail: the spotting gauge, and the wisp's distance (or a warning while it sees the player).
+                    int alert = signal.getInt("alert");
+                    line1 = T.f("spotted") + alert + " %";
+                    colour1 = alert > 70 ? Draw.ALERT : alert > 35 ? 0xFFE9A15B : Draw.GREEN;
+                    boolean seen = signal.getBoolean("looking");
+                    line2 = (seen ? T.f("it_sees_you") : T.f("hidden")) + " · " + Math.round(signal.getDouble("metres")) + " m";
+                    colour2 = seen ? ((now / 200) % 2 == 0 ? Draw.ALERT : Draw.YELLOW) : Draw.GREEN;
+                    for (int i = 0; i < 6; i++) {
+                        int hb = 3 + i * 2;
+                        g.fill(x + 152 + i * 4, y + 32 - hb, x + 155 + i * 4, y + 32, alert >= (i + 1) * 100 / 6 ? colour1 : 0xFF12303A);
+                    }
+                    sweep = Math.toRadians(signal.getDouble("heading") - (mc.player.getYRot() + 180));
+                    needle = true;
                 } else if (signal.getBoolean("running")) {
                     // Challenge under way: the countdown and the markers reached replace the signal strength.
                     long left = signal.getLong("left");
@@ -302,7 +316,8 @@ case "analyse" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("
                         line2 = T.f("buried_clue");
                         colour2 = Draw.YELLOW;
                     } else if (!signal.getString("challenge").isEmpty()) {
-                        line2 = T.f("track_go_to_the_start") + " · " + T.f("try") + signal.getInt("try") + "/" + signal.getInt("tries");
+                        line2 = (signal.getString("challenge").equals("tail") ? T.f("tailing_go_to_the_start") : T.f("track_go_to_the_start"))
+                                + " · " + T.f("try") + signal.getInt("try") + "/" + signal.getInt("tries");
                         colour2 = Draw.YELLOW;
                     } else if (level == 0) {
                         line2 = T.f("zone_at") + signal.getInt("zone") + T.f("blocks_2");

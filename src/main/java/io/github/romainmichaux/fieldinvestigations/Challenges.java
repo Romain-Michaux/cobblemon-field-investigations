@@ -12,15 +12,20 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 // Challenge traces: the trace does not wait on the ground, it is earned. The radar leads to a starting point; from there the
 // player has three tries at the challenge, and the trace appears at its end. After three failures it appears anyway, but
 // damaged (one dose fewer). Nothing is placed or broken in the world: the course is drawn with particles for this player only.
 //
-// "track": a trail of footprints winds away from the start. Only the next few prints show; beacons along the way add time to
-// a countdown. Reach the last beacon before the time runs out.
+// "track": a trail of footprints sets off from the start. Only the next few prints show; each leg between markers has its own
+// countdown. Reach the last marker in time.
+// "tail": a wisp drifts away along a path. Follow it without being spotted: a gauge fills while it sees the player (within its
+// detection radius, nothing in between), faster the closer; it drains behind cover. Too far, and it is lost.
 final class Challenges {
     private Challenges() {}
 
@@ -31,6 +36,11 @@ final class Challenges {
     // Prints are bright and paired with a spark that glows by itself, so the trail shows at night as well as by day.
     static final ParticleOptions PRINT = new DustParticleOptions(new Vector3f(1f, 0.62f, 0.2f), 1.4f);
     static final ParticleOptions START = new DustParticleOptions(new Vector3f(1f, 0.82f, 0.25f), 1.6f);
+    // Tail: a 135-block path walked at a stroll; the wisp sees up to DETECT blocks, and is lost beyond LOSE.
+    static final int TAIL_PRINTS = 45;
+    static final double TAIL_SPEED = 1.15, DETECT = 26, LOSE = 34;
+    static final ParticleOptions RING = new DustParticleOptions(new Vector3f(0.75f, 0.9f, 1f), 1.1f);
+    static final ParticleOptions SEEN = new DustParticleOptions(new Vector3f(1f, 0.25f, 0.2f), 1.0f);
 
     static boolean pending(Trace t) {
         return t.challenge != null && !t.challengeDone;
@@ -55,6 +65,23 @@ final class Challenges {
             if (kit && toStart < 2.5 && player.onGround()) start(player, level, d, t, now);
             return false;
         }
+        return "tail".equals(t.challenge) ? tail(player, level, d, t, now) : track(player, level, d, t, now);
+    }
+
+    // A try is lost: back to the start for the next one, or the trace appears damaged after the third.
+    static void fail(ServerPlayer player, CaseFile d, Trace t, String why) {
+        t.running = false;
+        t.tries++;
+        player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1f, 0.6f);
+        if (t.tries >= TRIES) {
+            finish(player, d, t, true);
+        } else {
+            Messages.announce(player, why, 0xE8543A, t.tries + 1, TRIES);
+            Engine.save();
+        }
+    }
+
+    static boolean track(ServerPlayer player, ServerLevel level, CaseFile d, Trace t, long now) {
         List<Integer> beacons = beacons(t);
         int next = beacons.get(Math.min(t.stage, beacons.size() - 1));
         // Footprints: the next few after the last reached beacon or the player's nearest print, whichever is further along.
@@ -88,15 +115,7 @@ final class Challenges {
             player.playNotifySound(SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.8f, 0.9f + t.stage * 0.1f);
             Messages.announce(player, "track_beacon", 0x6CCB5F, t.stage, beacons.size(), added / 1000);
         } else if (now > t.deadline) {
-            t.running = false;
-            t.tries++;
-            player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1f, 0.6f);
-            if (t.tries >= TRIES) {
-                finish(player, d, t, true);
-            } else {
-                Messages.announce(player, "track_lost", 0xE8543A, t.tries + 1, TRIES);
-                Engine.save();
-            }
+            fail(player, d, t, "track_lost");
             return false;
         } else {
             long left = t.deadline - now;
@@ -105,9 +124,88 @@ final class Challenges {
         return true;
     }
 
+    static boolean tail(ServerPlayer player, ServerLevel level, CaseFile d, Trace t, long now) {
+        double[] dir = new double[2];
+        t.along += TAIL_SPEED;
+        if (t.along >= length(t)) {
+            finish(player, d, t, false); // it settles: the trace is there
+            return false;
+        }
+        double[] w = along(t, t.along, dir);
+        double wy = w[1] + 1.4;
+        double vx = player.getX() - w[0], vy = player.getEyeY() - wy, vz = player.getZ() - w[2], dist = Math.sqrt(vx * vx + vz * vz);
+        if (dist > LOSE) {
+            fail(player, d, t, "tail_lost");
+            return false;
+        }
+        // Seen: within its detection radius with nothing in between. The closer, the faster the gauge fills; behind cover
+        // (or out of range) it drains. So the chase goes from one hiding place to the next.
+        boolean inSight = dist < DETECT && level.clip(new ClipContext(new Vec3(w[0], wy, w[2]), player.getEyePosition(), ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE, player)).getType() == HitResult.Type.MISS;
+        if (inSight) {
+            double gain = (2 + 20 * Math.max(0, 1 - dist / DETECT)) * (player.isCrouching() ? 0.6 : 1);
+            t.alert = Math.min(100, t.alert + gain);
+            if (t.alert >= 100) {
+                fail(player, d, t, "tail_seen");
+                return false;
+            }
+        } else {
+            t.alert = Math.max(0, t.alert - 9);
+        }
+        // The wisp, its colour going from green to red with the gauge.
+        float a = (float) Math.min(1, t.alert / 100);
+        level.sendParticles(player, ParticleTypes.END_ROD, true, w[0], wy, w[2], 3, 0.12, 0.12, 0.12, 0.0);
+        level.sendParticles(player, new DustParticleOptions(new Vector3f(0.4f + 0.6f * a, 1f - 0.65f * a, 0.4f - 0.2f * a), 1.6f), true,
+                w[0], wy, w[2], 5, 0.18, 0.18, 0.18, 0.0);
+        // Its detection radius, a faint ring on the ground around it.
+        for (int k = 0; k < 28; k++) {
+            double r = Math.PI * 2 * k / 28 + t.along * 0.05, rx = w[0] + Math.cos(r) * DETECT, rz = w[2] + Math.sin(r) * DETECT;
+            if (player.distanceToSqr(rx, player.getY(), rz) > 40 * 40) continue;
+            level.sendParticles(player, RING, true, rx, w[1] + 0.3, rz, 1, 0.1, 0.05, 0.1, 0.0);
+        }
+        // While it sees the player, a line of red motes runs from it towards them.
+        if (inSight) {
+            for (int k = 1; k <= 6; k++) {
+                double f = k / 7.0;
+                level.sendParticles(player, SEEN, true, w[0] + vx * f, wy + vy * f, w[2] + vz * f, 1, 0.03, 0.03, 0.03, 0.0);
+            }
+        }
+        t.metres = Math.sqrt(vx * vx + vy * vy + vz * vz);
+        t.looking = inSight;
+        t.wx = w[0];
+        t.wz = w[2];
+        return true;
+    }
+
+    // Length of the path, and the point (and direction) at a distance along it.
+    static double length(Trace t) {
+        double sum = Math.hypot(t.course.get(0)[0] - t.sx, t.course.get(0)[2] - t.sz);
+        for (int i = 1; i < t.course.size(); i++) {
+            double[] a = t.course.get(i - 1), b = t.course.get(i);
+            sum += Math.hypot(b[0] - a[0], b[2] - a[2]);
+        }
+        return sum;
+    }
+
+    static double[] along(Trace t, double s, double[] dir) {
+        double[] prev = {t.sx, t.course.get(0)[1], t.sz};
+        for (double[] b : t.course) {
+            double seg = Math.hypot(b[0] - prev[0], b[2] - prev[2]);
+            if (seg > 0 && s <= seg) {
+                dir[0] = (b[0] - prev[0]) / seg;
+                dir[1] = (b[2] - prev[2]) / seg;
+                double f = s / seg;
+                return new double[] {prev[0] + (b[0] - prev[0]) * f, prev[1] + (b[1] - prev[1]) * f, prev[2] + (b[2] - prev[2]) * f};
+            }
+            s -= seg;
+            prev = b;
+        }
+        return prev;
+    }
+
     static void start(ServerPlayer player, ServerLevel level, CaseFile d, Trace t, long now) {
         if (t.course == null || t.course.isEmpty()) {
-            t.course = course(level, d, t);
+            t.course = course(level, d, t, "tail".equals(t.challenge) ? TAIL_PRINTS : PRINTS);
             if (t.course.size() < EVERY + 2) {
                 // No room for a trail here (water, unloaded land...): the trace simply appears.
                 finish(player, d, t, false);
@@ -117,8 +215,11 @@ final class Challenges {
         t.running = true;
         t.stage = 0;
         t.deadline = now + legTime(t, 0, beacons(t).get(0)) + 1500; // a moment to get going
+        // Tail: the wisp sets off a few blocks ahead.
+        t.along = 4;
+        t.alert = 0;
         player.playNotifySound(SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.PLAYERS, 1f, 1.2f);
-        Messages.announce(player, "track_start", 0xF2C93A, t.tries + 1, TRIES);
+        Messages.announce(player, t.challenge + "_start", 0xF2C93A, t.tries + 1, TRIES);
         Engine.save();
     }
 
@@ -143,13 +244,13 @@ final class Challenges {
         t.z = Math.floor(end[2]) + 0.5;
         t.placed = false;
         player.playNotifySound(damaged ? SoundEvents.NOTE_BLOCK_BASS.value() : SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.8f, damaged ? 0.5f : 1.3f);
-        Messages.announce(player, damaged ? "track_faded" : "track_done", damaged ? 0xE8543A : 0x6CCB5F);
+        Messages.announce(player, t.challenge + (damaged ? "_faded" : "_done"), damaged ? 0xE8543A : 0x6CCB5F);
         Engine.save();
     }
 
     // Test command (/hunt challenge): during the sampling phase, the first trace still to find (not buried) becomes a track
     // whose start is a few blocks in front of the player, with its tries reset.
-    static String debugStart(ServerPlayer player) {
+    static String debugStart(ServerPlayer player, String type) {
         CaseFile d = Engine.caseFile(player);
         if (d == null || !"SAMPLING".equals(d.phase)) return "No investigation in the sampling phase.";
         for (Trace t : d.traces) {
@@ -160,7 +261,7 @@ final class Challenges {
                 if (level.getBlockState(pos).is(ModContent.TRACE)) level.removeBlock(pos, false);
             }
             var look = player.getLookAngle();
-            t.challenge = "track";
+            t.challenge = type;
             t.challengeDone = false;
             t.damaged = false;
             t.tries = 0;
@@ -173,7 +274,7 @@ final class Challenges {
             t.x = t.sx;
             t.z = t.sz;
             Engine.save();
-            return "Track ready 4 blocks ahead (trace: " + t.kind + "). Hold the kit and step on the golden column.";
+            return "Challenge '" + type + "' ready 4 blocks ahead (trace: " + t.kind + "). Hold the kit and step on the golden column.";
         }
         return "No trace left to turn into a track.";
     }
@@ -191,24 +292,24 @@ final class Challenges {
     // The trail: it sets off in one direction and keeps roughly to it (a slow wobble of about thirty degrees either way),
     // stepping around water and walls, one print every STEP blocks (alternating left and right feet). It runs on the real
     // ground, under the foliage: trunks, leaves and vines are not ground.
-    static List<double[]> course(ServerLevel level, CaseFile d, Trace t) {
+    static List<double[]> course(ServerLevel level, CaseFile d, Trace t, int count) {
         // Try up to eight directions (from a random one) and keep the first full trail, or the longest: a start on a shore
         // or a cliff edge simply sets off the other way.
         java.util.Random h = new java.util.Random(d.seed + t.kind.hashCode() * 31L + t.tries);
         double first = h.nextDouble() * Math.PI * 2;
         List<double[]> best = new ArrayList<>();
         for (int k = 0; k < 8; k++) {
-            List<double[]> prints = walk(level, t, first + k * Math.PI / 4, h);
+            List<double[]> prints = walk(level, t, first + k * Math.PI / 4, h, count);
             if (prints.size() > best.size()) best = prints;
-            if (best.size() >= PRINTS) break;
+            if (best.size() >= count) break;
         }
         return best;
     }
 
-    static List<double[]> walk(ServerLevel level, Trace t, double main, java.util.Random h) {
+    static List<double[]> walk(ServerLevel level, Trace t, double main, java.util.Random h, int count) {
         List<double[]> prints = new ArrayList<>();
         double x = t.sx, z = t.sz, wobble = 0;
-        for (int i = 0; i < PRINTS; i++) {
+        for (int i = 0; i < count; i++) {
             wobble = Math.max(-0.55, Math.min(0.55, wobble * 0.85 + h.nextGaussian() * 0.22));
             double heading = main + wobble;
             double[] step = null;

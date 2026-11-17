@@ -108,15 +108,21 @@ public class FieldInvestigations implements ModInitializer {
                     ctx.getSource().sendSuccess(() -> Component.translatable("cobblemon_field_investigations.command.reset").withStyle(ChatFormatting.GREEN), false);
                     return 1;
                 }))
-                .then(Commands.literal("challenge").requires(src -> src.hasPermission(2)).executes(ctx -> {
-                    String text = Challenges.debugStart(ctx.getSource().getPlayerOrException());
-                    ctx.getSource().sendSuccess(() -> Component.literal(text).withStyle(ChatFormatting.AQUA), false);
-                    return 1;
-                }))
+                .then(Commands.literal("challenge").requires(src -> src.hasPermission(2))
+                        .then(Commands.literal("track").executes(ctx -> challenge(ctx.getSource(), "track")))
+                        .then(Commands.literal("tail").executes(ctx -> challenge(ctx.getSource(), "tail")))
+                        .executes(ctx -> challenge(ctx.getSource(), "track")))
                 .then(Commands.literal("reveal").requires(src -> src.hasPermission(2)).executes(ctx -> {
                     String text = Engine.reveal(ctx.getSource().getPlayerOrException());
                     ctx.getSource().sendSuccess(() -> Component.literal(text).withStyle(ChatFormatting.LIGHT_PURPLE), false);
                     return 1;
                 }))));
+    }
+
+    private static int challenge(net.minecraft.commands.CommandSourceStack source, String type)
+            throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        String text = Challenges.debugStart(source.getPlayerOrException(), type);
+        source.sendSuccess(() -> Component.literal(text).withStyle(ChatFormatting.AQUA), false);
+        return 1;
     }
 }

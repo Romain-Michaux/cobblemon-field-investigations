@@ -437,7 +437,8 @@ NEW_TEXTS = [
 ]
 NEW_TEXTS += [
     # challenge traces: the track
-    ("Track: go to the start", "Piste : rejoins le départ"), ("Try ", "Essai "), ("Track ", "Piste "), ("Marker ", "Balise "),
+    ("Track: go to the start", "Piste : rejoins le départ"), ("Tailing: go to the start", "Filature : rejoins le départ"),
+    ("Spotted: ", "Repérage : "), ("It sees you!", "Elle te voit !"), ("Hidden", "Caché"), ("Try ", "Essai "), ("Track ", "Piste "), ("Marker ", "Balise "),
 ]
 
 NEW_TEXTS += [
@@ -612,6 +613,11 @@ KEYS = [
     ("announce.track_lost.title", "Track lost", "Piste perdue"), ("announce.track_lost.text", "Back to the start for try %s / %s", "Retourne au départ pour l'essai %s / %s"),
     ("announce.track_done.title", "End of the track", "Bout de la piste"), ("announce.track_done.text", "The trace is right here: sample it with the kit", "La trace est là : prélève-la avec le kit"),
     ("announce.track_faded.title", "The track has faded", "La piste s'est effacée"), ("announce.track_faded.text", "The trace is at its end, damaged: one dose fewer", "La trace est au bout, abîmée : une dose de moins"),
+    ("announce.tail_start.title", "A wisp drifts away", "Une luciole s'éloigne"), ("announce.tail_start.text", "Follow it without being spotted · try %s / %s", "Suis-la sans te faire repérer · essai %s / %s"),
+    ("announce.tail_lost.title", "It slipped away", "Elle t'a semé"), ("announce.tail_lost.text", "Back to the start for try %s / %s", "Retourne au départ pour l'essai %s / %s"),
+    ("announce.tail_seen.title", "Spotted!", "Repéré !"), ("announce.tail_seen.text", "It fled. Back to the start for try %s / %s", "Elle a fui. Retourne au départ pour l'essai %s / %s"),
+    ("announce.tail_done.title", "It settles", "Elle se pose"), ("announce.tail_done.text", "The trace is right there: sample it with the kit", "La trace est là : prélève-la avec le kit"),
+    ("announce.tail_faded.title", "The wisp is gone", "La luciole a disparu"), ("announce.tail_faded.text", "The trace is where it was going, damaged: one dose fewer", "La trace est là où elle allait, abîmée : une dose de moins"),
     ("announce.clue_uncovered.title", "Clue uncovered", "Indice dégagé"), ("announce.clue_uncovered.text", "%s: sample it now with the kit", "%s : prélève-le maintenant avec le kit"),
     ("announce.clue_destroyed.title", "Clue destroyed (−½ star)", "Indice détruit (−½ étoile)"),
     ("announce.clue_destroyed.text", "The disturbed soil was broken: %s is lost, this marker will stay unknown", "Le sol remué a été cassé : %s est perdu, ce marqueur restera inconnu"),
