@@ -29,6 +29,9 @@
 - **Colour**: a bench with four dropper bottles and the flask; drops arc into it and the colour swirls. Colours now mix
   like paint (yellow and blue make green), drops cannot be taken back, and the hidden sample can be uncovered again by
   holding the click on it, from a small reserve. The verdict shows both colours and fills up to the score (88 % needed).
+- **Count**: the dish lies in the dark and the mouse is a lens. Only one strain is counted, among look-alikes (a close
+  colour, or the same colour in another shape); clicks pin colonies to keep track, and the count is set with the wheel
+  or the arrows instead of picked among four numbers.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

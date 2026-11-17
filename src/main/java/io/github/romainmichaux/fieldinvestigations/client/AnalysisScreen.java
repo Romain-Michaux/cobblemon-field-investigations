@@ -193,6 +193,12 @@ public class AnalysisScreen extends Screen {
     }
 
     @Override
+    public boolean mouseScrolled(double mx, double my, double dx, double dy) {
+        if (!intro && !game.finished) game.scrolled(dy);
+        return true;
+    }
+
+    @Override
     public boolean mouseReleased(double mx, double my, int button) {
         game.mouseDown = false;
         if (!game.finished) game.released(mx, my);

@@ -23,6 +23,9 @@ abstract class MiniGame {
         return false;
     }
 
+    // Mouse wheel (positive = up).
+    void scrolled(double amount) {}
+
     abstract String instruction();
 
     // One control shown as key icons under the play area: the keys (key codes, or a Draw.ARROW_* / Draw.MOUSE icon), then

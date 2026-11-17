@@ -182,8 +182,9 @@ UI = [
     ("Wrong: there were ", "Raté : il y en avait "),
     ("Count the colonies…", "Compte les colonies…"),
     ("How many were there?", "Combien y en avait-il ?"),
-    ("The dish is only visible for a moment: count the colonies, then pick the right number. Three dishes; two mistakes at most.",
-     "La boîte n'est visible qu'un instant : compte les colonies, puis choisis le bon nombre. Trois boîtes ; deux erreurs au plus."),
+    ("Count these:", "Compte celles-ci :"), ("Pins: ", "Punaises : "), ("Done", "Terminé"), ("Pin", "Épingler"), ("Number", "Nombre"),
+    ("A dish teeming with colonies, and a single strain to count. Sweep it with the lens, pin the ones you are after, then say how many there are.",
+     "Une boîte grouillante de colonies, et une seule souche à recenser. Balaie-la à la loupe, épingle celles que tu cherches, puis annonce leur nombre."),
     # --- crystals ---
     ("Deposit ", "Gisement "),
     ("Watch closely…", "Observe bien…"),
