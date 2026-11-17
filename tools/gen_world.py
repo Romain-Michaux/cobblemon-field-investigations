@@ -382,3 +382,10 @@ for name in ("frag_bin", "frag_tube"):
 for name in ("gel_lamp",):
     im = load(name)
     save(im.crop(im.getbbox()), "gui", name)
+
+# Measure: the mud the prints are pressed in (280 x 120), the leaf that hides part of one print and the field notebook
+# of the end (both cropped).
+save(tinted(load("measure_mud").convert("RGBA"), (0.92, 0.9, 0.88)), "gui", "measure_mud")
+for name in ("measure_leaf", "measure_notebook"):
+    im = load(name)
+    save(im.crop(im.getbbox()), "gui", name)

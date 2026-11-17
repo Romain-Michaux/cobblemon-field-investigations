@@ -52,6 +52,10 @@
   memory, over the whole width of the tank. The difference gets finer over the three gels (a band added or missing,
   then its thickness or brightness, then a band shifted by one step). The verdict lights the whole gel with a size
   ladder, joins the sample's bands to the right lane, or rings the band that differs.
+- **Measure**: three prints in the mud, measured with a calliper: set the fixed jaw on one edge, slide the other to the
+  opposite one, across then along. The true edge is the hollow, not the ridge of mud around it, and a round loupe
+  magnifies the spot under the pointer. Rain slowly blurs the edges away, a leaf hides part of the second print, and
+  the tolerance tightens. Each measure is drawn as a dimension line; a field notebook sums up the three at the end.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden
