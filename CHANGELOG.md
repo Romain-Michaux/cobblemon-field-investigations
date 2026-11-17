@@ -39,6 +39,10 @@
   to be anticipated; air runs out in about eleven seconds, so the dive needs a breath or two at the surface (where the
   vial slowly loses some). Currents push the vial sideways, a fast pass near the bottom stirs up silt that hides the
   trace, and the trace no longer jumps when the vial fills.
+- **Filter**: a spectrogram over the whole width, frequency across and time scrolling down. The cry is a bright line
+  that drifts and calls in bursts; a fainter creature hums an unbroken line that crosses it now and then and fills
+  nothing. The filter band follows the mouse and the wheel (or the arrows) narrows it: narrow isolates the cry faster
+  and holds through gusts of noise but loses it easily. Once isolated, the noise clears around the cry's signature.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

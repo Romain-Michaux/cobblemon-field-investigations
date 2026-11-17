@@ -417,10 +417,10 @@ NEW_TEXTS = [
     ("Hold the click to heat, let go to cool down. Keep the temperature in the green range without reaching the red.",
      "Maintiens le clic pour chauffer, relâche pour laisser refroidir. Garde la température dans la plage verte sans atteindre le rouge."),
     # cry filter
-    ("Clarity", "Clarté"), ("Cry isolated", "Cri isolé"),
-    ("Trust the sound: the higher it gets, the closer you are.", "Fie-toi au son : plus il est aigu, plus tu es près."),
-    ("Move the mouse left and right to tune the filter. Keep the cry clear long enough: the right frequency drifts.",
-     "Déplace la souris de gauche à droite pour régler le filtre. Garde le cri net assez longtemps : la bonne fréquence dérive."),
+    ("Cry isolated", "Cri isolé"), ("Cry isolated!", "Cri isolé !"), ("Gust of wind", "Bourrasque"), ("On the cry", "Sur le cri"),
+    ("Not this one…", "Ce n'est pas lui…"), ("Frequency", "Fréquence"), ("Band (wheel)", "Bande (molette)"),
+    ("In the mist, a cry comes and goes among other sounds. Slide the filter over its line and narrow the band with the wheel: the cry calls in bursts, the others hum without a break.",
+     "Dans la brume, un cri va et vient parmi d'autres bruits. Glisse le filtre sur sa ligne et resserre la bande à la molette : le cri appelle par saccades, les autres bourdonnent sans relâche."),
     # tree climb
     ("Holds: ", "Prises : "), ("Slips: ", "Glissades : "),
     ("Click on the side of the hold as it crosses the light band. The pace picks up.",
