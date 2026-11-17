@@ -26,6 +26,9 @@
 - **Climb**: a climber on the trunk, full width, keys or mouse. Grabs right on the hands are perfect and give a little
   momentum; double holds take both hands, vines are held while they pass. A miss cracks the branch and the climber
   slides down. The tree ends in a round bush with the trace on its last branch, scrolling with the holds.
+- **Colour**: a bench with four dropper bottles and the flask; drops arc into it and the colour swirls. Colours now mix
+  like paint (yellow and blue make green), drops cannot be taken back, and the hidden sample can be uncovered again by
+  holding the click on it, from a small reserve. The verdict shows both colours and fills up to the score (88 % needed).
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

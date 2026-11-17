@@ -164,8 +164,9 @@ UI = [
     ("Fails: ", "Échecs : "),
     ("Empty", "Vider"),
     ("Confirm", "Valider"),
-    ("Memorise the colour, then recreate it from memory by mixing the reagents. You need at least 85 % likeness. Three flasks; two fails at most.",
-     "Mémorise la teinte, puis recrée-la de tête en mélangeant les réactifs. Il faut au moins 85 % de ressemblance. Trois fioles ; deux échecs au plus."),
+    ("Sample", "Échantillon"), ("Add a drop", "Ajouter une goutte"), ("Look again (hold)", "Revoir (maintenir)"),
+    ("Every creature leaves its hue. Hold it in your mind, then bring it back drop by drop: the colours blend like paint, and no drop can be taken back.",
+     "Chaque créature laisse sa teinte. Garde-la en tête, puis fais-la renaître goutte à goutte : les couleurs se mêlent comme de la peinture, et aucune goutte ne se reprend."),
     # --- PCR ---
     ("Cycle ", "Cycle "),
     ("Watch the program…", "Observe le programme…"),

@@ -353,3 +353,7 @@ for y in range(bush.height - 14, bush.height):
         if p[3] and ((x * 7 + y * 13) % 17) / 17 < t:
             bush.putpixel((x, y), (0, 0, 0, 0))
 save(bush, "gui", "climb_canopy")
+
+# Colorimetry: the four reagent dropper bottles (32 x 48, drawn as they are).
+for colour in ("red", "yellow", "blue", "white"):
+    save(load("colour_" + colour), "gui", "colour_" + colour)
