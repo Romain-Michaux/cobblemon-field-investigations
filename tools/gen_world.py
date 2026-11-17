@@ -370,3 +370,10 @@ for variant in ("a", "b", "c"):
 save(tinted(load("dive_lake").convert("RGBA"), (0.55, 0.62, 0.7)), "gui", "dive_lake")
 vial = load("dive_vial")
 save(vial.crop(vial.getbbox()), "gui", "dive_vial")
+
+# Fragments: the slate bench (280 x 120, darkened so the cracks stay faint under the base tiles), the biohazard bin
+# and the sample tube that takes the finished strand (both cropped).
+save(tinted(load("frag_bench").convert("RGBA"), (0.55, 0.58, 0.64)), "gui", "frag_bench")
+for name in ("frag_bin", "frag_tube"):
+    im = load(name)
+    save(im.crop(im.getbbox()), "gui", name)

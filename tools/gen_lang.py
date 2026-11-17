@@ -51,13 +51,11 @@ UI = [
     ("Click (or Space) when the needle crosses the green zone. Three good stops; the zone shrinks and the rotor speeds up.",
      "Clique (ou Espace) quand l'aiguille passe dans la zone verte. Trois arrêts réussis ; la zone rétrécit et le rotor accélère."),
     # --- fragments ---
-    ("The end of a fragment", "La fin d'un fragment"),
-    ("= the start of the next", "= le début du suivant"),
-    ("Correct joints: ", "Jonctions justes : "),
-    ("Tries: ", "Essais : "),
-    ("Assemble", "Assembler"),
-    ("Click two fragments to swap them. In the right order, the last 2 bases of each fragment are the first 2 of the next.",
-     "Clique deux fragments pour les échanger. Dans le bon ordre, les 2 dernières bases de chaque fragment sont les 2 premières du suivant."),
+    ("Strand ", "Brin "), ("Strand complete!", "Brin complet !"), ("Tainted: into the bin", "Contaminé : à la poubelle"),
+    ("This one belongs to the strand", "Celui-là fait partie du brin"), ("It doesn't hold", "Ça ne tient pas"),
+    ("Throw away the tainted pieces", "Jette les morceaux contaminés"), ("Move a piece", "Déplacer un morceau"),
+    ("The code came out of the sample in pieces. Lay them end to end on the rail: two or three bases must overlap for a piece to hold. Some pieces are tainted and hold nowhere: throw them away.",
+     "Le code est sorti de l'échantillon en morceaux. Pose-les bout à bout sur la réglette : deux ou trois bases doivent se recouvrir pour qu'un morceau tienne. Certains sont contaminés et ne tiennent nulle part : jette-les."),
     # --- spectrum ---
     ("Frequency", "Fréquence"),
     ("Amplitude", "Amplitude"),

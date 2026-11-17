@@ -43,6 +43,11 @@
   that drifts and calls in bursts; a fainter creature hums an unbroken line that crosses it now and then and fills
   nothing. The filter band follows the mouse and the wheel (or the arrows) narrows it: narrow isolates the cry faster
   and holds through gusts of noise but loses it easily. Once isolated, the noise clears around the cry's signature.
+- **Fragments**: DNA pieces on a slate bench, dragged onto a rail behind a primer. A piece snaps under the end of the
+  strand at the overlap the pointer gives, showing which bases match; it only holds when two or three bases cover the
+  end exactly, otherwise it is thrown back and costs a mistake (three end the analysis). Tainted pieces hold nowhere
+  and go in the biohazard bin. Three strands of four, five and six pieces against the clock; each finished strand
+  pairs up, and the last one coils into a turning double helix that goes into a labelled sample tube.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

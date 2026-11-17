@@ -65,7 +65,7 @@ public class AnalysisScreen extends Screen {
             case "thaw" -> new ThawGame(rng);
             case "pairing" -> new PairingGame(rng);
             case "centrifugation" -> new CentrifugeGame(rng);
-            case "fragments" -> new FragmentsGame(rng);
+            case "fragments" -> new FragmentsGame(rng, kind);
             case "spectrum" -> new SpectrumGame(rng);
             case "gel" -> new GelGame(rng);
             case "colorimetry" -> new ColorimetryGame(rng);
@@ -390,91 +390,6 @@ public class AnalysisScreen extends Screen {
         @Override
         String instruction() {
             return T.f("give_the_base_that_pairs");
-        }
-    }
-
-    // ---------- 4. Assembly: put 5 fragments back in order using their overlaps ----------
-
-    private static final class FragmentsGame extends MiniGame {
-        final int[][] fragments = new int[5][4];
-        final int[] order = {0, 1, 2, 3, 4};
-        int selection = -1, triesLeft = 3, joints = -1;
-
-        FragmentsGame(Random rng) {
-            int[] seq = new int[12];
-            while (true) {
-                for (int k = 0; k < 12; k++) seq[k] = rng.nextInt(4);
-                java.util.Set<Integer> pairs = new java.util.HashSet<>();
-                for (int i = 0; i < 6; i++) pairs.add(seq[2 * i] * 4 + seq[2 * i + 1]);
-                if (pairs.size() == 6) break;
-            }
-            for (int i = 0; i < 5; i++) System.arraycopy(seq, 2 * i, fragments[i], 0, 4);
-            do {
-                for (int i = 4; i > 0; i--) {
-                    int j = rng.nextInt(i + 1);
-                    int t = order[i];
-                    order[i] = order[j];
-                    order[j] = t;
-                }
-            } while (correctJoints() == 4);
-        }
-
-        int correctJoints() {
-            int n = 0;
-            for (int i = 0; i < 4; i++) {
-                int[] a = fragments[order[i]], b = fragments[order[i + 1]];
-                if (a[2] == b[0] && a[3] == b[1]) n++;
-            }
-            return n;
-        }
-
-        @Override
-        void draw(GuiGraphics g, int mx, int my, float pt) {
-            for (int l = 0; l < 5; l++) {
-                int y = oy + 8 + l * 20;
-                boolean hover = Draw.in(mx, my, ox + 16, y - 1, 100, 18);
-                if (l == selection || hover) g.fill(ox + 14, y - 2, ox + 118, y + 17, l == selection ? Draw.YELLOW : Draw.EDGE_LIGHT);
-                g.fill(ox + 15, y - 1, ox + 117, y + 16, Draw.INSET);
-                Draw.write(g, String.valueOf(l + 1), ox + 20, y + 4, Draw.DARK, false);
-                for (int k = 0; k < 4; k++) Draw.base(g, ox + 34 + k * 20, y, 15, fragments[order[l]][k], false);
-            }
-            Draw.write(g, T.f("the_end_of_a_fragment"), ox + 132, oy + 10, Draw.GREY, false);
-            Draw.write(g, T.f("the_start_of_the_next"), ox + 132, oy + 20, Draw.GREY, false);
-            for (int k = 0; k < 4; k++) Draw.base(g, ox + 132 + k * 13, oy + 36, 11, k < 2 ? -1 : k - 2, false);
-            for (int k = 0; k < 4; k++) Draw.base(g, ox + 158 + k * 13, oy + 50, 11, k < 2 ? k : -1, false);
-            if (joints >= 0) Draw.write(g, T.f("correct_joints") + joints + " / 4", ox + 132, oy + 68, Draw.YELLOW, false);
-            Draw.write(g, T.f("tries") + triesLeft, ox + 132, oy + 80, triesLeft == 1 ? Draw.ALERT : Draw.TEXT, false);
-            Draw.button(g, ox + 132, oy + 92, 110, 20, T.f("assemble"), Draw.in(mx, my, ox + 132, oy + 92, 110, 20), true, Draw.ACCENT);
-        }
-
-        @Override
-        void click(double mx, double my) {
-            for (int l = 0; l < 5; l++) {
-                if (!Draw.in(mx, my, ox + 16, oy + 7 + l * 20, 100, 18)) continue;
-                if (selection < 0) selection = l;
-                else {
-                    int t = order[l];
-                    order[l] = order[selection];
-                    order[selection] = t;
-                    selection = -1;
-                }
-                Draw.click(1.2f);
-                return;
-            }
-            if (Draw.in(mx, my, ox + 132, oy + 92, 110, 20)) {
-                joints = correctJoints();
-                if (joints == 4) end(true);
-                else {
-                    triesLeft--;
-                    Draw.note(0.6f);
-                    if (triesLeft <= 0) end(false);
-                }
-            }
-        }
-
-        @Override
-        String instruction() {
-            return T.f("click_two_fragments_to_swap");
         }
     }
 
