@@ -248,6 +248,17 @@ final class Reports {
                 if (!t.buried) onSurface.add(t);
             }
             if (!water && !cave && !onSurface.isEmpty()) onSurface.get(Engine.RANDOM.nextInt(onSurface.size())).cave = true;
+            // One surface trace is earned through a challenge (not underwater): the radar leads to its start instead.
+            List<Trace> open = new ArrayList<>();
+            for (Trace t : d.traces) {
+                if (!t.buried && !t.cave) open.add(t);
+            }
+            if (!water && !open.isEmpty()) {
+                Trace t = open.get(Engine.RANDOM.nextInt(open.size()));
+                t.challenge = "track";
+                t.sx = t.x;
+                t.sz = t.z;
+            }
             d.suspects = suspects(target.species, basin, "exceptional".equals(special), water, cave);
             return d;
         }

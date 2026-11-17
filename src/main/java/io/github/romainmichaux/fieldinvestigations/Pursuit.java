@@ -44,11 +44,14 @@ final class Pursuit {
                 boolean asleep = Engine.asleep(d, level);
                 int range = Engine.rank(player) >= 1 ? 14 : 9; // rank 1 perk: sharper radar
                 double min = Double.MAX_VALUE;
-                Trace nearest = null;
+                Trace nearest = null, running = null;
                 for (Trace t : d.traces) {
                     if (t.over()) continue;
-                    double dist = Engine.distance(player, t.x, t.z);
-                    if (dist < 56 && !asleep) Traces.placeTrace(level, d, t);
+                    if (Challenges.pending(t)) {
+                        if (!asleep && Challenges.update(player, level, d, t, kit)) running = t;
+                    }
+                    double dist = Engine.distance(player, Challenges.pending(t) ? t.sx : t.x, Challenges.pending(t) ? t.sz : t.z);
+                    if (dist < 56 && !asleep && !Challenges.pending(t)) Traces.placeTrace(level, d, t);
                     if (dist < min) {
                         min = dist;
                         nearest = t;
@@ -82,6 +85,24 @@ final class Pursuit {
                     signal.data().putInt("below", (int) Math.round(player.getY() - nearest.py));
                 }
                 signal.data().putInt("zone", (int) Engine.distance(player, d.zoneX, d.zoneZ));
+                // Challenge: waiting at its start (the nearest sign), or running (it takes over the radar).
+                if (running != null) {
+                    List<Integer> beacons = Challenges.beacons(running);
+                    signal.data().putString("challenge", running.challenge);
+                    signal.data().putBoolean("running", true);
+                    signal.data().putLong("left", Math.max(0, running.deadline - now));
+                    signal.data().putInt("stage", running.stage);
+                    signal.data().putInt("stages", beacons.size());
+                    // Heading and distance of the next marker, for the radar needle.
+                    double[] b = running.course.get(beacons.get(Math.min(running.stage, beacons.size() - 1)));
+                    double dx = b[0] - player.getX(), dz = b[2] - player.getZ();
+                    signal.data().putDouble("heading", (Math.toDegrees(Math.atan2(dx, -dz)) + 360) % 360);
+                    signal.data().putDouble("metres", Math.hypot(dx, dz));
+                } else if (nearest != null && Challenges.pending(nearest)) {
+                    signal.data().putString("challenge", nearest.challenge);
+                    signal.data().putInt("try", nearest.tries + 1);
+                    signal.data().putInt("tries", Challenges.TRIES);
+                }
                 Messages.send(player, signal);
                 return;
             }

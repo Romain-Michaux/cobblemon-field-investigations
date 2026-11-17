@@ -145,6 +145,7 @@ final class Samples {
         else if (vial >= 0 && !player.isCreative()) player.getInventory().getItem(vial).shrink(1);
         int doses = success ? Engine.settings.dosesPerSample + (perfect ? 1 : 0) : 1;
         if (Engine.is(d, "frost")) doses = Math.max(1, doses - 1); // frozen, fragile sample
+        if (trace.damaged) doses = Math.max(1, doses - 1); // a challenge failed three times: the trace was found damaged
         ItemStack sample = new ItemStack(ModContent.SAMPLE);
         CompoundTag data = new CompoundTag();
         data.putLong("investigation", d.id);

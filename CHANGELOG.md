@@ -27,6 +27,15 @@
   momentum; double holds take both hands, vines are held while they pass. A miss cracks the branch and the climber
   slides down. The tree ends in a round bush with the trace on its last branch, scrolling with the holds.
 
+### Finding traces
+- **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden
+  column); the player has three tries, and the trace appears at the end of the challenge (damaged, one dose fewer,
+  after three failures). Nothing is placed or broken: the course is drawn with particles only that player sees.
+- **The track**: a 200-block trail of glowing footprints sets off in one direction from the start, on the real ground
+  (under foliage, around water). Tall beams mark a checkpoint every 30 blocks and the radar needle points at the next
+  one. Each leg has its own countdown, sized for a sprint: run, jump the bumps, do not stop.
+- `/hunt challenge` (operators) turns the next trace of the current case into a challenge right in front of you.
+
 ## 1.1.0 (2026-11-12)
 
 ### Choosing and running a case

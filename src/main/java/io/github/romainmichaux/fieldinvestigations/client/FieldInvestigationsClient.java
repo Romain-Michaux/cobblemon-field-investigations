@@ -274,6 +274,16 @@ case "analyse" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("
                     line1 = T.f("wait_for_nightfall");
                     colour1 = 0xFF8FA8FF;
                     line2 = T.f("no_traces_by_day");
+                } else if (signal.getBoolean("running")) {
+                    // Challenge under way: the countdown and the markers reached replace the signal strength.
+                    long left = signal.getLong("left");
+                    line1 = T.f("track_2") + String.format("%.1f s", left / 1000.0);
+                    colour1 = left < 5000 ? ((now / 250) % 2 == 0 ? Draw.ALERT : Draw.YELLOW) : Draw.YELLOW;
+                    line2 = T.f("marker_2") + (signal.getInt("stage") + 1) + " / " + signal.getInt("stages") + " · " + Math.round(signal.getDouble("metres")) + " m";
+                    colour2 = Draw.GREEN;
+                    // The needle points at the next marker, relative to where the player looks.
+                    sweep = Math.toRadians(signal.getDouble("heading") - (mc.player.getYRot() + 180));
+                    needle = true;
                 } else if (level < 0) {
                     line1 = T.f("all_sampled");
                     colour1 = Draw.GREEN;
@@ -290,6 +300,9 @@ case "analyse" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("
                         colour2 = Draw.YELLOW;
                     } else if (signal.getBoolean("buried")) {
                         line2 = T.f("buried_clue");
+                        colour2 = Draw.YELLOW;
+                    } else if (!signal.getString("challenge").isEmpty()) {
+                        line2 = T.f("track_go_to_the_start") + " · " + T.f("try") + signal.getInt("try") + "/" + signal.getInt("tries");
                         colour2 = Draw.YELLOW;
                     } else if (level == 0) {
                         line2 = T.f("zone_at") + signal.getInt("zone") + T.f("blocks_2");

@@ -436,6 +436,11 @@ NEW_TEXTS = [
      "Balaie le sol avec la lampe : les taches n'apparaissent que dans le faisceau. Clique chacune avant que la batterie soit vide."),
 ]
 NEW_TEXTS += [
+    # challenge traces: the track
+    ("Track: go to the start", "Piste : rejoins le départ"), ("Try ", "Essai "), ("Track ", "Piste "), ("Marker ", "Balise "),
+]
+
+NEW_TEXTS += [
     # chromatography
     ("Too far", "Trop tard"), ("Blends: ", "Mélanges : "), ("Blend identified!", "Mélange identifié !"), ("Not this blend", "Pas ce mélange"),
     ("Lift the rack", "Retirer le portoir"), ("Name two references", "Désigner deux références"),
@@ -602,6 +607,11 @@ KEYS = [
     ("announce.sampling.text", "%s · %s dose(s)%s", "%s · %s dose(s)%s"),
     ("announce.sampling.left", " · %s more trace(s) in the zone", " · encore %s trace(s) dans la zone"),
     ("announce.sampling.finished", " · every trace is sampled, off to the sequencer", " · toutes les traces sont prélevées, direction le séquenceur"),
+    ("announce.track_start.title", "A fresh track", "Une piste fraîche"), ("announce.track_start.text", "Follow the prints before they fade · try %s / %s", "Suis les empreintes avant qu'elles s'effacent · essai %s / %s"),
+    ("announce.track_beacon.title", "Marker %s / %s", "Balise %s / %s"), ("announce.track_beacon.text", "%s s to the next one", "%s s jusqu'à la suivante"),
+    ("announce.track_lost.title", "Track lost", "Piste perdue"), ("announce.track_lost.text", "Back to the start for try %s / %s", "Retourne au départ pour l'essai %s / %s"),
+    ("announce.track_done.title", "End of the track", "Bout de la piste"), ("announce.track_done.text", "The trace is right here: sample it with the kit", "La trace est là : prélève-la avec le kit"),
+    ("announce.track_faded.title", "The track has faded", "La piste s'est effacée"), ("announce.track_faded.text", "The trace is at its end, damaged: one dose fewer", "La trace est au bout, abîmée : une dose de moins"),
     ("announce.clue_uncovered.title", "Clue uncovered", "Indice dégagé"), ("announce.clue_uncovered.text", "%s: sample it now with the kit", "%s : prélève-le maintenant avec le kit"),
     ("announce.clue_destroyed.title", "Clue destroyed (−½ star)", "Indice détruit (−½ étoile)"),
     ("announce.clue_destroyed.text", "The disturbed soil was broken: %s is lost, this marker will stay unknown", "Le sol remué a été cassé : %s est perdu, ce marqueur restera inconnu"),

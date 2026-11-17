@@ -40,6 +40,14 @@ final class Traces {
             BlockState existing = level.getBlockState(new BlockPos(t.px, t.py, t.pz));
             if (existing.is(ModContent.TRACE) || (t.buried && !t.uncovered && existing.is(ModContent.DISTURBED_SOIL))) return;
         }
+        // End of a challenge: the trace lies on the ground where the trail ends, never up a tree or on a wall.
+        if (t.challenge != null && t.challengeDone && !t.buried) {
+            BlockPos ground = Challenges.groundAt(level, bx, bz);
+            if (ground != null && level.getBlockState(ground).canBeReplaced()) {
+                placeAt(level, t, ground, Direction.UP);
+                return;
+            }
+        }
         if (t.buried && !t.uncovered) {
             if (bury(level, t, bx, bz)) return;
             t.buried = false; // no loose soil around here: the clue sits on the surface like an ordinary trace
