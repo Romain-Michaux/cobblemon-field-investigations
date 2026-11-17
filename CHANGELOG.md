@@ -48,6 +48,10 @@
   end exactly, otherwise it is thrown back and costs a mistake (three end the analysis). Tainted pieces hold nowhere
   and go in the biohazard bin. Three strands of four, five and six pieces against the clock; each finished strand
   pairs up, and the last one coils into a turning double helix that goes into a labelled sample tube.
+- **Gel**: the bands only show under a UV lamp that follows the pointer, so lanes are compared a patch at a time, from
+  memory, over the whole width of the tank. The difference gets finer over the three gels (a band added or missing,
+  then its thickness or brightness, then a band shifted by one step). The verdict lights the whole gel with a size
+  ladder, joins the sample's bands to the right lane, or rings the band that differs.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

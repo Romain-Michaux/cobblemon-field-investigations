@@ -144,8 +144,10 @@ UI = [
     ("Err.", "Err."),
     ("Yes!", "Oui !"),
     ("No", "Non"),
-    ("Click the lane identical to the sample (smp.): position, thickness and brightness of every band matter. Three gels; two mistakes at most.",
-     "Clique la piste identique à l'échantillon (éch.) : position, épaisseur et éclat de chaque bande comptent. Trois gels ; deux erreurs au plus."),
+    ("Lamp, then pick a lane", "Lampe, puis choix de la piste"), ("Sweep with the lamp", "Balaie à la lampe"),
+    ("Same profile!", "Même profil !"), ("Not the same profile", "Pas le même profil"), ("Time's up", "Temps écoulé"),
+    ("The gel has run: its bands only show under the UV lamp. Sweep the gel with the mouse and click the lane identical to the sample.",
+     "Le gel a couru : ses bandes ne se voient qu'à la lampe UV. Balaie le gel à la souris et clique la piste identique à l'échantillon."),
     # --- colorimetry ---
     ("Red", "Rouge"),
     ("Yellow", "Jaune"),

@@ -5,52 +5,63 @@ import java.util.Random;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-// Electrophoresis: among nearly identical lanes, find the one matching the sample.
+// Electrophoresis: the gel has run, but its bands only show under the UV lamp that follows the pointer, so lanes are
+// compared a patch at a time, from memory. The lane identical to the sample is clicked. The difference to spot gets
+// finer over the three gels: a band added or missing, then its thickness or brightness, then a band shifted by one step.
 final class GelGame extends MiniGame {
-    static final ResourceLocation TANK = Draw.texture("gel");
-    // A band = its position (SLOTS steps of 5 px), its thickness (thin or wide) and its intensity (pale or vivid).
-    static final int SLOTS = 14, STEP = 30, WIDTH = 22;
+    static final ResourceLocation TANK = Draw.texture("gel"), LAMP = Draw.texture("gel_lamp");
+    static final int SLOTS = 14, STEP = 34, WIDTH = 22, TOP = 28, BOTTOM = 99, LAMP_R = 17, MAX_ERRORS = 2;
+    // How far the gel ran: the fastest band ends near the bottom, one slot apart is about three pixels.
+    static final double DIST = 66, DYE = 1.08;
+    static final int[] DURATION = {640, 600, 560};
     final Random h;
-    int[][] lanes;          // leads[0] = the sample; each lane: SLOTS values (0 = no band, else 4 | bit 0 = wide | bit 1 = vivid)
-    int good, round, errors, time, duration, pause, chosen = -1;
-    boolean lastOk;
+    int[][] lanes; // lanes[0] = the sample; each lane: SLOTS values (0 = no band, else 4 | bit 0 = wide | bit 1 = vivid)
+    int good, round, errors, time, duration, pause, chosen = -1, phase, tic, differs = -1;
+    double dist = DIST, mx, my;
+    boolean lastOk, lampOn;
 
+    // Phases: 2 reading, 3 verdict.
     GelGame(Random h) {
         this.h = h;
         newRound();
+    }
+
+    static double mobility(int slot) {
+        return 0.30 + slot * 0.052;
     }
 
     int band(boolean wide, boolean vivid) {
         return 4 | (wide ? 1 : 0) | (vivid ? 2 : 0);
     }
 
-    // A decoy lane: a single subtle difference from the model (a band shifted one step, thickness or
-    // intensity changed, or a pale band added or removed).
+    boolean free(int[] p, int i, int except) {
+        for (int j = i - 1; j <= i + 1; j++) if (j >= 0 && j < SLOTS && j != except && p[j] != 0) return false;
+        return true;
+    }
+
+    // A decoy lane: one difference from the model, of the kind this gel tests.
     int[] variant(int[] model) {
-        for (int attempt = 0; attempt < 200; attempt++) {
+        for (int attempt = 0; attempt < 300; attempt++) {
             int[] p = model.clone();
             int i = h.nextInt(SLOTS);
-            switch (h.nextInt(round == 0 ? 3 : 5)) {
+            switch (round) {
                 case 0 -> {
-                    int dest = i + (h.nextBoolean() ? 1 : -1);
-                    if (p[i] == 0 || dest < 0 || dest >= SLOTS || p[dest] != 0) continue;
-                    p[dest] = p[i];
-                    p[i] = 0;
+                    if (h.nextBoolean()) {
+                        if (p[i] == 0) continue;
+                        p[i] = 0;
+                    } else {
+                        if (!free(p, i, -1)) continue;
+                        p[i] = band(false, h.nextBoolean());
+                    }
                 }
                 case 1 -> {
                     if (p[i] == 0) continue;
-                    p[i] ^= 1;
-                }
-                case 2 -> {
-                    if (p[i] == 0) continue;
-                    p[i] ^= 2;
-                }
-                case 3 -> {
-                    if (p[i] != 0) continue;
-                    p[i] = band(false, false);
+                    p[i] ^= h.nextBoolean() ? 1 : 2;
                 }
                 default -> {
-                    if (p[i] == 0 || (p[i] & 2) != 0) continue;
+                    int dest = i + (h.nextBoolean() ? 1 : -1);
+                    if (p[i] == 0 || dest < 0 || dest >= SLOTS || !free(p, dest, i)) continue;
+                    p[dest] = p[i];
                     p[i] = 0;
                 }
             }
@@ -63,9 +74,9 @@ final class GelGame extends MiniGame {
         int laneCount = round == 0 ? 5 : 6;
         lanes = new int[laneCount + 1][];
         int[] model = new int[SLOTS];
-        for (int n = 0; n < 6 + round; ) {
+        for (int n = 0, guard = 0; n < 5 + Math.min(1, round) && guard < 500; guard++) {
             int i = h.nextInt(SLOTS);
-            if (model[i] != 0) continue;
+            if (!free(model, i, -1)) continue;
             model[i] = band(h.nextInt(3) == 0, h.nextBoolean());
             n++;
         }
@@ -84,94 +95,205 @@ final class GelGame extends MiniGame {
                 if (distinct) break;
             }
         }
-        duration = time = 320 - round * 30;
+        duration = time = DURATION[round];
         chosen = -1;
+        differs = -1;
+        phase = 2;
     }
 
     void judge(int lane) {
         chosen = lane;
         lastOk = lane == good;
-        pause = lastOk ? 16 : 40;
-        if (lastOk) {
-            Draw.note(1f + round * 0.25f);
-            if (++round >= 3) {
-                perfect = errors == 0;
-                end(true);
-            }
-        } else {
-            Draw.note(0.5f);
-            if (++errors >= 2) end(false);
+        phase = 3;
+        pause = lastOk ? 60 : 70;
+        differs = -1;
+        if (lane > 0 && !lastOk) {
+            for (int i = 0; i < SLOTS; i++) if (lanes[lane][i] != lanes[0][i]) differs = i;
         }
+        if (lastOk) Draw.note(1f + round * 0.25f);
+        else {
+            errors++;
+            Draw.note(0.5f);
+        }
+    }
+
+    int px(int k) {
+        return ox + 24 + k * STEP + (k > 0 ? 8 : 0);
     }
 
     @Override
     void tick() {
-        if (pause > 0) {
-            if (--pause == 0 && !finished) newRound();
+        tic++;
+        if (phase == 3) {
+            if (--pause == 0 && !finished) {
+                if (lastOk) {
+                    if (++round >= 3) {
+                        perfect = errors == 0;
+                        end(true);
+                        return;
+                    }
+                } else if (errors >= MAX_ERRORS) {
+                    end(false);
+                    return;
+                }
+                newRound();
+            }
             return;
         }
-        if (--time <= 0) judge(-1);
-        else hurryTicks(time, duration);
+        if (--time <= 0) {
+            judge(-1);
+            return;
+        }
+        hurryTicks(time, duration);
+        if (phase == 2) {
+            boolean lamp = inTank(mx, my);
+            if (lamp && !lampOn) Draw.beep(Sounds.LAMP, 1.2f, 0.5f);
+            lampOn = lamp;
+        }
     }
 
-    int px(int k) {
-        return ox + 16 + k * STEP + (k > 0 ? 6 : 0);
+    boolean inTank(double x, double y) {
+        return Draw.in(x, y, ox + 4, oy + 16, AREA_W - 8, 100);
     }
 
     @Override
-    void click(double mx, double my) {
-        if (pause > 0) return;
+    void click(double x, double y) {
+        if (finished || phase == 3) return;
+        if (phase != 2) return;
         for (int k = 1; k < lanes.length; k++) {
-            if (Draw.in(mx, my, px(k), oy + 20, WIDTH, 78)) {
+            if (Draw.in(x, y, px(k) - 2, oy + 18, WIDTH + 4, BOTTOM - 18)) {
                 judge(k);
                 return;
             }
         }
     }
 
-    void drawLane(GuiGraphics g, int k, int border) {
+    // One lane's bands. In reading, only the part under the lamp shows; the verdict shows everything.
+    void drawBands(GuiGraphics g, int k, boolean all) {
         int x = px(k);
-        if (border != 0) {
-            g.fill(x - 2, oy + 18, x + WIDTH + 2, oy + 19, border);
-            g.fill(x - 2, oy + 99, x + WIDTH + 2, oy + 100, border);
-            g.fill(x - 2, oy + 18, x - 1, oy + 100, border);
-            g.fill(x + WIDTH + 1, oy + 18, x + WIDTH + 2, oy + 100, border);
-        }
-        g.fill(x, oy + 20, x + WIDTH, oy + 98, 0x50081420);
-        g.fill(x + 4, oy + 21, x + WIDTH - 4, oy + 24, 0xFF0A1622);
         for (int i = 0; i < SLOTS; i++) {
             int b = lanes[k][i];
             if (b == 0) continue;
             boolean wide = (b & 1) != 0, vivid = (b & 2) != 0;
-            int y = oy + 27 + i * 5, thickness = wide ? 4 : 2, colour = vivid ? 0xFF8CFAEC : 0xFF3C9C98;
-            if (vivid) g.fill(x + 2, y - 1, x + WIDTH - 2, y + thickness + 1, 0x7030C8C0);
-            g.fill(x + 3, y, x + WIDTH - 3, y + thickness, colour);
-            g.fill(x + 5, y + thickness, x + WIDTH - 5, y + thickness + 1, 0x4030C8C0);
+            int thick = wide ? 4 : 2, colour = vivid ? 0xFF8CFAEC : 0xFF3C9C98;
+            double centre = oy + TOP + dist * mobility(i);
+            if (centre > oy + BOTTOM) continue;
+            int y0 = (int) Math.round(centre - thick / 2.0);
+            for (int y = y0 - 1; y < y0 + thick + 1; y++) {
+                boolean core = y >= y0 && y < y0 + thick;
+                int c = core ? colour : (colour & 0x00FFFFFF) | (vivid ? 0x60000000 : 0x40000000);
+                int a = x + 3 - (core ? 0 : 1), z = x + WIDTH - 3 + (core ? 0 : 1);
+                fillLit(g, a, y, z, c, all);
+            }
         }
     }
 
-    @Override
-    void draw(GuiGraphics g, int mx, int my, float pt) {
-        timeGauge(g, ox + 6, oy + 3, 232, pause > 0 ? 0 : time / (double) duration);
-        Draw.image(g, TANK, ox + 2, oy + 11, 240, 104);
-        drawLane(g, 0, Draw.YELLOW);
-        Draw.centre(g, T.f("smp"), px(0) + WIDTH / 2, oy + 103, Draw.YELLOW);
-        for (int k = 1; k < lanes.length; k++) {
-            boolean hover = pause == 0 && !finished && Draw.in(mx, my, px(k), oy + 20, WIDTH, 78);
-            int border = pause > 0 || finished ? (k == good ? Draw.GREEN : k == chosen ? Draw.ALERT : 0) : hover ? Draw.TEXT : 0;
-            drawLane(g, k, border);
-            Draw.centre(g, String.valueOf(k), px(k) + WIDTH / 2, oy + 103, border == 0 ? Draw.GREY : border);
+    // A row segment, clipped to the lamp's circle unless everything is shown.
+    void fillLit(GuiGraphics g, int a, int y, int z, int c, boolean all) {
+        if (!all) {
+            double dy = y + 0.5 - my;
+            if (Math.abs(dy) >= LAMP_R) return;
+            double half = Math.sqrt(LAMP_R * LAMP_R - dy * dy);
+            a = Math.max(a, (int) Math.ceil(mx - half));
+            z = Math.min(z, (int) Math.floor(mx + half));
         }
-        int tx = ox + 246;
-        Draw.write(g, T.f("gel"), tx, oy + 16, Draw.GREY, false);
-        Draw.write(g, Math.min(3, round + (pause > 0 || finished ? 0 : 1)) + " / 3", tx, oy + 27, Draw.TEXT, false);
-        Draw.write(g, T.f("err"), tx, oy + 46, Draw.GREY, false);
-        Draw.write(g, errors + " / 2", tx, oy + 57, errors > 0 ? Draw.ALERT : Draw.TEXT, false);
-        if (pause > 0 || finished) Draw.write(g, lastOk ? T.f("yes") : T.f("no"), tx, oy + 78, lastOk ? Draw.GREEN : Draw.ALERT, false);
+        if (z > a) g.fill(a, y, z, y + 1, c);
+    }
+
+    @Override
+    void draw(GuiGraphics g, int x, int y, float pt) {
+        mx = x;
+        my = y;
+        int ax = ox, ay = oy;
+        Draw.image(g, TANK, ax + 2, ay + 15, AREA_W - 4, 103);
+        boolean verdict = phase == 3 || finished;
+        // Lanes: the gel under each, its well at the top, the blue loading dye where the run has taken it.
+        for (int k = 0; k < lanes.length; k++) {
+            int lx = px(k);
+            g.fill(lx, ay + 20, lx + WIDTH, ay + BOTTOM + 1, 0x40081420);
+            g.fill(lx + 3, ay + 21, lx + WIDTH - 3, ay + 25, 0xFF0A1622);
+            double dye = ay + TOP + dist * DYE;
+            if (dye < ay + BOTTOM + 2) g.fill(lx + 4, (int) dye, lx + WIDTH - 4, (int) dye + 2, 0xA04A6CF0);
+            int border = 0;
+            if (verdict) border = k == good ? Draw.GREEN : k == chosen ? Draw.ALERT : k == 0 ? Draw.YELLOW : 0;
+            else if (k == 0) border = Draw.YELLOW;
+            else if (phase == 2 && Draw.in(x, y, lx - 2, ay + 18, WIDTH + 4, BOTTOM - 18)) border = Draw.TEXT;
+            if (border != 0) {
+                g.fill(lx - 2, ay + 18, lx + WIDTH + 2, ay + 19, border);
+                g.fill(lx - 2, ay + BOTTOM + 2, lx + WIDTH + 2, ay + BOTTOM + 3, border);
+                g.fill(lx - 2, ay + 18, lx - 1, ay + BOTTOM + 3, border);
+                g.fill(lx + WIDTH + 1, ay + 18, lx + WIDTH + 2, ay + BOTTOM + 3, border);
+            }
+            String label = k == 0 ? T.f("smp") : String.valueOf(k);
+            Draw.centre(g, label, lx + WIDTH / 2, ay + BOTTOM + 4, border == 0 ? Draw.GREY : border);
+        }
+        // Under the lamp: a violet glow, and the bands it lights.
+        if (lampOn && !verdict) disc(g, x, y, LAMP_R, 0x307A3CFF);
+        for (int k = 0; k < lanes.length; k++) {
+            if (verdict) drawBands(g, k, true);
+            else if (lampOn) drawBands(g, k, false);
+        }
+        if (lampOn && !verdict) {
+            Draw.circle(g, x - 1, y - 1, LAMP_R, 1, 0x80B89CFF);
+            g.pose().pushPose();
+            g.pose().translate(x + LAMP_R - 4, y + LAMP_R - 6, 0);
+            g.pose().scale(0.5f, 0.5f, 1f);
+            Draw.image(g, LAMP, 0, 0, 21, 35);
+            g.pose().popPose();
+        }
+        if (verdict) drawVerdict(g, ax, ay);
+
+        // Counters, time line and hints.
+        String left = T.f("gel") + " " + Math.min(3, round + 1) + " / 3", right = T.f("mistakes") + errors + " / " + MAX_ERRORS;
+        text(g, left, ax + 6, ay + 2, Draw.TEXT);
+        text(g, right, ax + AREA_W - 6 - Draw.textFont().width(right), ay + 2, errors > 0 ? Draw.ALERT : Draw.GREY);
+        double part = phase == 3 ? 0 : time / (double) duration;
+        g.fill(ax + 6, ay + 12, ax + 6 + (int) ((AREA_W - 12) * part), ay + 13, part > 0.25 ? Draw.ACCENT : Draw.ALERT);
+        String hint = "";
+        int hc = Draw.GREY;
+        if (phase == 2) hint = T.f("sweep_with_the_lamp");
+        else if (phase == 3) {
+            hint = chosen < 0 ? T.f("time_s_up") : lastOk ? T.f("same_profile") : T.f("not_the_same_profile");
+            hc = lastOk ? Draw.GREEN : Draw.ALERT;
+        }
+        if (!hint.isEmpty()) Draw.centre(g, hint, ax + AREA_W / 2, ay + 2, hc);
+    }
+
+    // Verdict: a size ladder beside the sample, and the sample's bands joined to the right lane by glowing lines; on a
+    // wrong pick, the band that differs is ringed in red.
+    void drawVerdict(GuiGraphics g, int ax, int ay) {
+        int lx = ax + 9;
+        g.fill(lx, ay + 20, lx + 6, ay + BOTTOM + 1, 0x60081420);
+        for (int i = 0; i < SLOTS; i += 2) {
+            double c = ay + TOP + dist * mobility(i);
+            if (c <= ay + BOTTOM) g.fill(lx + 1, (int) c, lx + 5, (int) c + 1, 0xC0E8F0F6);
+        }
+        double grow = Math.min(1, (70 - pause) / 18.0);
+        if (lastOk) {
+            int from = px(0) + WIDTH, to = px(good);
+            for (int i = 0; i < SLOTS; i++) {
+                if (lanes[0][i] == 0) continue;
+                double c = ay + TOP + dist * mobility(i);
+                if (c > ay + BOTTOM) continue;
+                int end = from + (int) ((to - from) * grow);
+                for (int xx = from + 1; xx < end; xx += 3) g.fill(xx, (int) c, xx + 2, (int) c + 1, 0xC06CF0A0);
+            }
+        } else if (differs >= 0 && chosen > 0) {
+            double c = ay + TOP + dist * mobility(differs);
+            if (c <= ay + BOTTOM + 2) {
+                int cx = px(chosen);
+                Draw.circle(g, cx + WIDTH / 2.0 - 1, c - 1, 8, 1, Draw.ALERT);
+            }
+        }
     }
 
     @Override
     String instruction() {
-        return T.f("click_the_lane_identical_to");
+        return T.f("the_gel_has_run_its");
+    }
+
+    @Override
+    Control[] controls() {
+        return new Control[] {new Control(T.f("lamp_then_pick_a_lane"), Draw.MOUSE)};
     }
 }

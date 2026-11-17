@@ -377,3 +377,8 @@ save(tinted(load("frag_bench").convert("RGBA"), (0.55, 0.58, 0.64)), "gui", "fra
 for name in ("frag_bin", "frag_tube"):
     im = load(name)
     save(im.crop(im.getbbox()), "gui", name)
+
+# Electrophoresis: the hand-held UV lamp (cropped).
+for name in ("gel_lamp",):
+    im = load(name)
+    save(im.crop(im.getbbox()), "gui", name)
