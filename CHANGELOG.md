@@ -32,6 +32,9 @@
 - **Count**: the dish lies in the dark and the mouse is a lens. Only one strain is counted, among look-alikes (a close
   colour, or the same colour in another shape); clicks pin colonies to keep track, and the count is set with the wheel
   or the arrows instead of picked among four numbers.
+- **Crystals**: clusters on a rock wall instead of a grid. Sound ones are pried loose by holding the click; an unstable
+  one cracks under the hand (let go in time) and, if it bursts, shatters its neighbours. Each deposit has a short time
+  once the crystals go dull; rare sparks and shivers reward a sharp eye. Pried crystals fly into a vial.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

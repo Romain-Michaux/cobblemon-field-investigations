@@ -194,8 +194,9 @@ UI = [
     ("unstable: avoid", "instable : évite"),
     ("Faults: ", "Fautes : "),
     ("No fault: one extra dose.", "Sans faute : une dose de plus."),
-    ("Stable (teal) and unstable (red) crystals glow for a moment: memorise them, then sample the stable ones without touching the red ones. Three faults at most.",
-     "Cristaux stables (turquoise) et instables (rouges) brillent un instant : mémorise, puis prélève les stables sans toucher aux rouges. Trois fautes au plus."),
+    ("Pry loose (hold)", "Détacher (maintenir)"),
+    ("The residue has set into crystals: some are sound, some ready to burst. Watch them glow, then pry the sound ones loose and leave the rest be.",
+     "Le résidu s'est figé en cristaux : certains sont sains, d'autres prêts à éclater. Regarde-les briller, puis détache les sains et laisse les autres en paix."),
     # --- pipetting ---
     ("Dose ", "Dose "),
     ("Right dose!", "Dose juste !"),

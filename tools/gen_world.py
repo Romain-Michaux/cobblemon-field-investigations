@@ -357,3 +357,11 @@ save(bush, "gui", "climb_canopy")
 # Colorimetry: the four reagent dropper bottles (32 x 48, drawn as they are).
 for colour in ("red", "yellow", "blue", "white"):
     save(load("colour_" + colour), "gui", "colour_" + colour)
+
+# Crystals: the rock wall (mirrored four ways so it tiles, 112 x 112, drawn at half size) and three pale
+# crystal clusters (32 x 32), tinted in game: dull, teal (sound) or red (unstable).
+wall = mirrored(load("crystals_rock").convert("RGBA").crop((4, 4, 60, 60)))
+save(wall, "gui", "crystals_rock")
+for variant in ("a", "b", "c"):
+    cluster = load("crystals_" + variant)
+    save(cluster, "gui", "crystals_" + variant)
