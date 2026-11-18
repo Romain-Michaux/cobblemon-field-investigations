@@ -389,3 +389,64 @@ save(tinted(load("measure_mud").convert("RGBA"), (0.92, 0.9, 0.88)), "gui", "mea
 for name in ("measure_leaf", "measure_notebook"):
     im = load(name)
     save(im.crop(im.getbbox()), "gui", name)
+
+# Measure: one print per family of creature (from its first egg group). Bug, hand and blob come from PixelLab; the paw
+# is the old footprint; the three-toed claw, the bird talon and the webbed foot are drawn here, in the same style: a
+# dark hollow, lit from the bottom right, inside a beige rim of pushed-up mud.
+for name in ("print_bug", "print_hand", "print_blob"):
+    im = load(name)
+    save(im.crop(im.getbbox()), "gui", name)
+
+
+def print_from_mask(mask):
+    from PIL import ImageFilter, ImageChops
+    rim = ImageChops.subtract(mask.filter(ImageFilter.MaxFilter(5)), mask)
+    shadow = ImageChops.subtract(mask, ImageChops.offset(mask, 1, 1))
+    light = ImageChops.subtract(mask, ImageChops.offset(mask, -1, -1))
+    out = Image.new("RGBA", mask.size)
+    px = out.load()
+    for y in range(mask.height):
+        for x in range(mask.width):
+            if rim.getpixel((x, y)):
+                px[x, y] = (206, 182, 140, 255) if (x + y) % 5 else (226, 204, 164, 255)
+            elif mask.getpixel((x, y)):
+                t = y / mask.height
+                base = (int(64 + 30 * t), int(46 + 22 * t), int(34 + 16 * t), 255)
+                if shadow.getpixel((x, y)):
+                    base = (40, 28, 20, 255)
+                elif light.getpixel((x, y)):
+                    base = (124, 96, 70, 255)
+                px[x, y] = base
+    return out.crop(out.getbbox())
+
+
+def toes(angles, length, width, tip, heel, web=False):
+    import math
+    from PIL import ImageDraw
+    mask = Image.new("L", (72, 72))
+    d = ImageDraw.Draw(mask)
+    ox, oy = 36, 58
+    ends = []
+    for a, l in zip(angles, length):
+        r = math.radians(a)
+        ex, ey = ox + math.sin(r) * l, oy - math.cos(r) * l
+        ends.append((ex, ey))
+        nx, ny = math.cos(r), math.sin(r)
+        w0, w1 = width / 2, width / 4
+        d.polygon([(ox - nx * w0, oy - ny * w0), (ox + nx * w0, oy + ny * w0), (ex + nx * w1, ey + ny * w1), (ex - nx * w1, ey - ny * w1)], fill=255)
+        if tip:
+            d.polygon([(ex - nx * w1, ey - ny * w1), (ex + nx * w1, ey + ny * w1), (ex + math.sin(r) * tip, ey - math.cos(r) * tip)], fill=255)
+    if web:
+        # Webbing between neighbouring toes, a little short of their tips, its edge curving in.
+        for (ax_, ay_), (bx, by) in zip(ends, ends[1:]):
+            mx_, my_ = (ax_ + bx) / 2, (ay_ + by) / 2
+            d.polygon([(ox, oy), (ox + (ax_ - ox) * 0.85, oy + (ay_ - oy) * 0.85), (ox + (mx_ - ox) * 0.55, oy + (my_ - oy) * 0.55),
+                       (ox + (bx - ox) * 0.85, oy + (by - oy) * 0.85)], fill=255)
+    if heel:
+        d.ellipse((ox - heel, oy - heel * 0.8, ox + heel, oy + heel * 0.8), fill=255)
+    return mask
+
+
+save(print_from_mask(toes((-32, 0, 32), (30, 36, 30), 11, 6, 9)), "gui", "print_claw")
+save(print_from_mask(toes((-38, 0, 38, 180), (26, 32, 26, 14), 4, 3, 3)), "gui", "print_talon")
+save(print_from_mask(toes((-40, 0, 40), (30, 34, 30), 6, 0, 6, web=True)), "gui", "print_webbed")

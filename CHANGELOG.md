@@ -56,6 +56,8 @@
   opposite one, across then along. The true edge is the hollow, not the ridge of mud around it, and a round loupe
   magnifies the spot under the pointer. Rain slowly blurs the edges away, a leaf hides part of the second print, and
   the tolerance tightens. Each measure is drawn as a dimension line; a field notebook sums up the three at the end.
+  The print is the tracked creature's: its shape follows its first egg group (paw, three-toed claw, bird talon, webbed
+  foot, insect tracks, bare foot or soft blob) and its size its height, so the notebook ends on an estimated height.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

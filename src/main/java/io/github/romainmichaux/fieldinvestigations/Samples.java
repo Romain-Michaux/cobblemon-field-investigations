@@ -123,6 +123,12 @@ final class Samples {
         p.data().putBoolean("buried", trace.buried);
         p.data().putInt("variant", trace.variant);
         p.data().putLong("seed", Engine.RANDOM.nextLong());
+        // The creature's print and height, for the footprint measurement.
+        Species species = PokemonSpecies.getByName(d.species);
+        if (species != null) {
+            p.data().putString("print", Genetics.printShape(species));
+            p.data().putFloat("height", species.getHeight() / 10f);
+        }
         Messages.send(player, p);
     }
 

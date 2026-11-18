@@ -16,11 +16,15 @@ import net.minecraft.resources.ResourceLocation;
 // the edges away, a leaf hides part of the second print, and the tolerance tightens. Each measure is drawn on the print
 // as a dimension line; at the end the field notebook opens on the three sketches.
 final class MeasureGame extends MiniGame {
-    static final ResourceLocation FOOTPRINT = Draw.texture("footprint"), MUD = Draw.texture("measure_mud"), LEAF = Draw.texture("measure_leaf"),
+    static final ResourceLocation MUD = Draw.texture("measure_mud"), LEAF = Draw.texture("measure_leaf"),
             NOTEBOOK = Draw.texture("measure_notebook");
-    static final int PRINTS = 3, MAX_FAULTS = 3, LOUPE = 22, NEXT = 40, NOTES = 120;
+    static final int PRINTS = 3, MAX_FAULTS = 3, LOUPE = 22, NEXT = 40, NOTES = 140;
     static final double[] TOLERANCE = {3, 2.5, 2}, WEAR = {1 / 560.0, 1 / 480.0, 1 / 420.0};
     final Random h;
+    // The print: its texture and size (texels), and the creature's base scale (from its height, 0.5 to 1).
+    ResourceLocation footprint = Draw.texture("footprint");
+    int texW = 74, texH = 70;
+    double base;
     final double[][] measured = new double[PRINTS][2];
     final boolean[][] good = new boolean[PRINTS][2];
     final List<double[]> drops = new ArrayList<>(), splashes = new ArrayList<>();
@@ -34,13 +38,49 @@ final class MeasureGame extends MiniGame {
 
     MeasureGame(Random h) {
         this.h = h;
+        // Without a tracked creature (practice), any print at any size.
+        setPrint(SHAPES[h.nextInt(SHAPES.length)], (float) (0.3 + h.nextDouble() * 2.2));
+    }
+
+    static final String[] SHAPES = {"paw", "claw", "talon", "webbed", "bug", "hand", "blob"};
+
+    static final double SMALL = Math.log(0.25), LARGE = Math.log(3);
+
+    // The tracked creature: its family's print, sized after its height (a log scale from 25 cm to 3 m).
+    void setPrint(String shape, float height) {
+        footprint = shape.equals("paw") ? Draw.texture("footprint") : Draw.texture("print_" + shape);
+        try (var in = Minecraft.getInstance().getResourceManager().open(footprint);
+                var image = com.mojang.blaze3d.platform.NativeImage.read(in)) {
+            texW = image.getWidth();
+            texH = image.getHeight();
+        } catch (Exception e) {
+            footprint = Draw.texture("footprint");
+            texW = 74;
+            texH = 70;
+        }
+        if (height > 0) base = 0.5 + 0.5 * Math.max(0, Math.min(1, (Math.log(height) - SMALL) / (LARGE - SMALL)));
         newPrint();
     }
 
+    // The height the measured prints point to, in metres.
+    double estimate() {
+        double sum = 0;
+        int n = 0;
+        for (double[] m : measured) {
+            if (m[0] <= 0 || m[1] <= 0) continue;
+            sum += Math.max(m[0], m[1]) / 72;
+            n++;
+        }
+        if (n == 0) return -1;
+        double s = Math.max(0, Math.min(1, (sum / n - 0.5) / 0.5));
+        return Math.exp(SMALL + s * (LARGE - SMALL));
+    }
+
     void newPrint() {
-        scale = 0.68 + h.nextDouble() * 0.3;
-        w = (int) Math.round(74 * scale);
-        hgt = (int) Math.round(70 * scale);
+        // The three prints of one creature differ a little (depth, stride).
+        scale = (base + (h.nextDouble() - 0.5) * 0.08) * 72 / Math.max(texW, texH);
+        w = (int) Math.round(texW * scale);
+        hgt = (int) Math.round(texH * scale);
         left = 112 - w / 2 + h.nextInt(21) - 10;
         top = 62 - hgt / 2 + h.nextInt(5) - 2;
         step = 0;
@@ -105,7 +145,7 @@ final class MeasureGame extends MiniGame {
             if (leafX < -30 || leafX > AREA_W + 30 || leafY > AREA_H + 30) leafState = 0;
         }
         if (notes >= 0) {
-            if (++notes == 20 || notes == 40 || notes == 60) Draw.beep(Sounds.PAPER, 1.1f + notes / 100f, 0.6f);
+            if (++notes == 20 || notes == 40 || notes == 60 || notes == 96) Draw.beep(Sounds.PAPER, 1.1f + notes / 100f, 0.6f);
             if (notes >= NOTES) {
                 perfect = faults == 0;
                 end(true);
@@ -255,20 +295,20 @@ final class MeasureGame extends MiniGame {
         double fade = Math.min(1, wear);
         // The ridge of pushed-up mud, a few pixels outside the true edge.
         g.setColor(0.78f, 0.62f, 0.45f, (float) (0.55 * (1 - fade * 0.8)));
-        Draw.image(g, FOOTPRINT, px - 4, py - 4, w + 8, hgt + 8);
+        Draw.image(g, footprint, px - 4, py - 4, w + 8, hgt + 8);
         g.setColor(0.2f, 0.14f, 0.1f, (float) (0.5 * (1 - fade * 0.8)));
-        Draw.image(g, FOOTPRINT, px - 1, py - 1, w + 2, hgt + 2);
+        Draw.image(g, footprint, px - 1, py - 1, w + 2, hgt + 2);
         // The print: sharp at first, then smeared as the rain wears it.
         double spread = fade * 3.5;
         if (spread > 0.3) {
             g.setColor(1f, 1f, 1f, (float) (0.3 * fade));
             for (int k = 0; k < 4; k++) {
                 int dx = (int) Math.round(Math.cos(k * Math.PI / 2 + 0.6) * spread), dy = (int) Math.round(Math.sin(k * Math.PI / 2 + 0.6) * spread);
-                Draw.image(g, FOOTPRINT, px + dx, py + dy, w, hgt);
+                Draw.image(g, footprint, px + dx, py + dy, w, hgt);
             }
         }
         g.setColor(1f, 1f, 1f, (float) (1 - fade * 0.7));
-        Draw.image(g, FOOTPRINT, px, py, w, hgt);
+        Draw.image(g, footprint, px, py, w, hgt);
         g.setColor(1f, 1f, 1f, 1f);
         for (double[] s : splashes) Draw.circle(g, ax + s[0], ay + s[1], 1 + s[2] * 0.4, 1, ((int) (0x90 * (1 - s[2] / 9)) << 24) | 0xC8E0F0);
 
@@ -385,7 +425,9 @@ final class MeasureGame extends MiniGame {
             if (notes < 20 + i * 20) continue;
             int sx = i < 2 ? nx + 12 : nx + 66, sy = i < 2 ? ny + 8 + i * 40 : ny + 8;
             g.setColor(0.23f, 0.16f, 0.11f, 0.85f);
-            Draw.image(g, FOOTPRINT, sx + 4, sy, 22, 21);
+            double f = 22.0 / Math.max(texW, texH);
+            int sw = (int) Math.round(texW * f), sh = (int) Math.round(texH * f);
+            Draw.image(g, footprint, sx + 15 - sw / 2, sy + 11 - sh / 2, sw, sh);
             g.setColor(1f, 1f, 1f, 1f);
             boolean ok = measured[i][0] > 0 && measured[i][1] > 0;
             String v = ok ? Math.round(measured[i][0] / 2) + "×" + Math.round(measured[i][1] / 2) + T.f("cm") : "—";
@@ -400,6 +442,14 @@ final class MeasureGame extends MiniGame {
             int sx = nx + 66, sy = ny + 52;
             g.drawString(Draw.textFont(), T.f("average"), sx, sy, Draw.INK_LIGHT, false);
             g.drawString(Draw.textFont(), Math.round(sumW / counted / 2) + "×" + Math.round(sumL / counted / 2) + T.f("cm"), sx, sy + 11, Draw.INK, false);
+        }
+        // What the prints say of the creature: its height, estimated from their size.
+        double m = estimate();
+        if (notes >= 96 && m > 0) {
+            String lang = Minecraft.getInstance().getLanguageManager().getSelected();
+            String v = String.format(java.util.Locale.ROOT, "%.1f", m);
+            if (lang.startsWith("fr")) v = v.replace('.', ',');
+            g.drawString(Draw.textFont(), "≈ " + v + " m", nx + 66, ny + 76, Draw.INK_RED, false);
         }
     }
 

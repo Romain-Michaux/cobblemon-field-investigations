@@ -27,6 +27,12 @@ public class AnalysisScreen extends Screen {
     private int endSince = -1;
     private int ticks;
 
+    // The tracked creature's print and height (metres), sent with a sampling: the footprint measurement draws it.
+    public AnalysisScreen print(String shape, float height) {
+        if (game instanceof MeasureGame m && !shape.isEmpty()) m.setPrint(shape, height);
+        return this;
+    }
+
     public AnalysisScreen(String kind, String gameId, long seed, int doses, boolean mesh, boolean buried, boolean sampling, int variant) {
         super(Component.literal(T.f("dna_sequencer")));
         this.kind = kind;

@@ -101,7 +101,7 @@ public class FieldInvestigationsClient implements ClientModInitializer {
 case "analyse" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("game"), d.getLong("seed"),
                                     d.getInt("doses"), d.getBoolean("mesh"), d.getBoolean("buried"), false, d.getInt("variant")), d, false);
                             case "sampling" -> play(mc, new AnalysisScreen(d.getString("kind"), d.getString("game"), d.getLong("seed"),
-                                    0, false, d.getBoolean("buried"), true, d.getInt("variant")), d, false);
+                                    0, false, d.getBoolean("buried"), true, d.getInt("variant")).print(d.getString("print"), d.getFloat("height")), d, false);
                             case "attempt" -> {
                                 boolean field = d.getBoolean("field");
                                 play(mc, new AnalysisScreen(d.getString("kind"), d.getString("game"), d.getLong("seed"), field ? 0 : 2,

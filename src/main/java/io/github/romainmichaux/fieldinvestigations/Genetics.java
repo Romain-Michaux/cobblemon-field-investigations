@@ -77,6 +77,20 @@ public final class Genetics {
         return blocks[Math.max(0, Math.min(blocks.length - 1, variant))];
     }
 
+    // The print a creature leaves, from its first egg group (the one the egg marker shows): measured in the footprint game.
+    public static String printShape(Species s) {
+        String egg = value("egg", s);
+        return switch (egg) {
+            case "MONSTER", "DRAGON" -> "claw";
+            case "FLYING" -> "talon";
+            case "WATER_1", "WATER_2", "WATER_3" -> "webbed";
+            case "BUG" -> "bug";
+            case "HUMAN_LIKE", "FAIRY" -> "hand";
+            case "AMORPHOUS", "MINERAL", "DITTO", "GRASS" -> "blob";
+            default -> "paw";
+        };
+    }
+
     // The sampling gesture depends on what is sampled, and sometimes on the case type: free-diving for an aquatic case,
     // climbing in the canopy, abseiling at altitude, UV lamp at night. The draw is fixed for a given trace.
     public static String samplingGame(String kind, boolean buried, boolean cave, String special, java.util.Random h) {
