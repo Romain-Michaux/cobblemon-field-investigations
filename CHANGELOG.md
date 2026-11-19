@@ -58,6 +58,11 @@
   the tolerance tightens. Each measure is drawn as a dimension line; a field notebook sums up the three at the end.
   The print is the tracked creature's: its shape follows its first egg group (paw, three-toed claw, bird talon, webbed
   foot, insect tracks, bare foot or soft blob) and its size its height, so the notebook ends on an estimated height.
+- **Microscope**: a round eyepiece over a larger slide, dragged like the stage, with a mini-map. The wheel turns the focus
+  (shift for fine) and there is no gauge: the cells sharpen, and the sharp point drifts a little. About thirty cells,
+  none quite alike, some with a lobed nucleus as a decoy; a card shows the anomaly to find (two nuclei, a torn
+  membrane, an odd tint), sometimes on a deeper plane that only comes sharp at another focus. The right cell zooms in,
+  stained, with a handwritten note, and its photo is pinned on a board.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

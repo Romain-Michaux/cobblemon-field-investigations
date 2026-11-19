@@ -378,8 +378,12 @@ NEW_TEXTS = [
      "Maintiens le clic et frotte toute la tache violette. Ne repasse pas sur une zone déjà claire : l'écouvillon serait contaminé."),
     # microscope
     ("Slide ", "Lame "), ("Mistakes: ", "Erreurs : "),
-    ("Focus with the knobs (<< >> coarse, < > fine). Once the image is sharp, click the cell that has two nuclei.",
-     "Règle la mise au point avec les molettes (<< >> grossière, < > fine). Une fois l'image nette, clique la cellule à deux noyaux."),
+    ("Two nuclei", "Deux noyaux"), ("Torn membrane", "Membrane déchirée"), ("Odd tint", "Teinte anormale"), ("Look for:", "Cherche :"),
+    ("Too blurry to tell", "Trop flou pour juger"), ("A normal cell", "Cellule normale"), ("Plane: surface", "Plan : surface"),
+    ("Plane: deep", "Plan : profond"), ("Wheel: focus (shift: fine)", "Molette : netteté (Maj : fin)"),
+    ("Drag the slide, click a cell", "Glisser la lame, cliquer une cellule"),
+    ("A drop on the slide, thirty cells or so. Turn the wheel to bring them into focus, drag the slide to look around, and click the one that matches the card. Some lie deeper: focus further to see them.",
+     "Une goutte sur la lame, une trentaine de cellules. Tourne la molette pour faire la mise au point, fais glisser la lame pour chercher, et clique celle qui correspond à la fiche. Certaines sont plus profondes : pousse la mise au point pour les voir."),
     # chromatography
     ("Strips: ", "Bandelettes : "),
     ("The small grey mark shows the minimum gap between two bands.", "Le petit repère gris donne l'écart minimal entre deux bandes."),
