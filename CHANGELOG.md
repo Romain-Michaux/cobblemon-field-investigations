@@ -63,6 +63,10 @@
   none quite alike, some with a lobed nucleus as a decoy; a card shows the anomaly to find (two nuclei, a torn
   membrane, an odd tint), sometimes on a deeper plane that only comes sharp at another focus. The right cell zooms in,
   stained, with a handwritten note, and its photo is pinned on a board.
+- **Pairing**: a half ladder of DNA slides into a lit window where it zips up. Partner bases are typed ahead (A, T, C, G
+  as printed on the player's keyboard) and wait, ghosted, under their bases; a blinking frame shows the next one. The
+  strand repeats a motif, and damaged bases are guessed from it. No bar per base, one clock for the strand; a wrong base
+  breaks a rung, which is mended while the strand stalls. The zipped strand coils into a helix read by the sequencer.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

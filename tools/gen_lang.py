@@ -42,8 +42,10 @@ UI = [
     # --- strand pairing ---
     ("Strand to complete", "Brin à compléter"),
     ("Mistakes: ", "Erreurs : "),
-    ("Give the base that pairs with the big slot (A with T, C with G) before the bar runs out. Buttons or keys A, T, C, G.",
-     "Donne la base complémentaire de la grande case (A avec T, C avec G) avant la fin de la barre. Boutons ou touches A, T, C, G."),
+    ("Paired: ", "Appariées : "), ("Type the next bases", "Tape les bases suivantes"), ("Type ahead", "Taper d'avance"),
+    ("Undo", "Effacer"),
+    ("The strand slides into the lit window, where it closes. Type the partner of each base ahead (A with T, C with G): it waits under its base and is laid in the window. The strand repeats a motif; a damaged base is guessed from it.",
+     "Le brin glisse vers la fenêtre lumineuse, où il se referme. Tape d'avance la partenaire de chaque base (A avec T, C avec G) : elle attend sous sa base et se pose dans la fenêtre. Le brin répète un motif ; une base abîmée se devine grâce à lui."),
     # --- centrifugation ---
     ("Phases separated: ", "Phases séparées : "),
     ("Misses: ", "Ratés : "),
