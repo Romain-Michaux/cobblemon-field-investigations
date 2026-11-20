@@ -479,3 +479,9 @@ from PIL import ImageDraw
 im = load("seq_machine")
 ImageDraw.Draw(im).rectangle((181, 23, 256, 90), fill=(0xD0, 0xDC, 0xE7, 255))
 save(im, "gui", "seq_machine")
+
+# Sieving: the dig site, the sieve (cropped to its rim) and the things left in it, clods and pebbles.
+save(load("sieve_site"), "gui", "sieve_site")
+for name in ["sieve_tray", "sieve_clod", "sieve_pebble"]:
+    im = load(name)
+    save(im.crop(im.getbbox()), "gui", name)

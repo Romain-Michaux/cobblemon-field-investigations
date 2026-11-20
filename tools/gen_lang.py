@@ -351,10 +351,13 @@ NEW_TEXTS = [
     ("Cry bearing", "Relevé de cri"), ("CRY ISOLATED", "CRI ISOLÉ"), ("CRY LOST IN NOISE", "CRI BROUILLÉ"),
     ("precise bearing", "relevé précis"), ("less precise bearing", "relevé moins précis"),
     # sieving
-    ("Sand: ", "Sable : "), ("Lost: ", "Perdus : "), ("Shaking", "Secousse"),
-    ("Let go before the gauge is full.", "Relâche avant que la jauge soit pleine."),
-    ("Hold the click to shake the sieve, in bursts: if the shaking gauge fills up, a fragment falls through.",
-     "Maintiens le clic pour secouer le tamis, par à-coups : si la jauge de secousse se remplit, un fragment passe à travers."),
+    ("Sand: ", "Sable : "), ("Lost: ", "Perdus : "),
+    ("A fragment fell out!", "Un fragment est tombé !"), ("Pick out the fragments", "Ramasse les fragments"),
+    ("A fragment in the clod!", "Un fragment dans la motte !"), ("Just a pebble", "Ce n'est qu'un caillou"),
+    ("Clue bagged", "Indice ensaché"), ("Move: swing the sieve", "Bouger : balancer le tamis"),
+    ("Click: crumble, pick", "Clic : émietter, ramasser"),
+    ("Swing the sieve with the mouse, gently: the fragments slide toward the rim. Crumble the clods, then pick the three fragments from the pebbles.",
+     "Balance le tamis à la souris, sans brusquer : les fragments glissent vers le bord. Émiette les mottes, puis ramasse les trois fragments parmi les cailloux."),
     # plaster cast
     ("Hollows filled: ", "Creux remplis : "), ("Spilled: ", "Débordés : "),
     ("Stop in the green band, just under the line.", "Arrête-toi dans la bande verte, juste sous le trait."),

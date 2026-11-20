@@ -95,6 +95,11 @@
   read spending one of six reagent vials. The read is drawn as a trace of coloured peaks, then each base comes back
   coloured: in place, present elsewhere, or absent. A notebook on the side panel greys out the bases each position can
   no longer be. Found, the clean trace scrolls and coils into a double helix, stamped.
+- **Sieve**: a wooden sieve over a dig site, swung from side to side with the mouse. The sand sifts through onto a
+  growing heap below; what stays in the sieve lags behind the swings, and a brusque one sends it over the rim, so
+  the clue's fragments are seen sliding toward the edge. Clods are crumbled with a click, one of them holding a
+  fragment. Then the fragments are picked out from among the pebbles; they fit back into the clue, which goes into a
+  labelled sample bag.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces
