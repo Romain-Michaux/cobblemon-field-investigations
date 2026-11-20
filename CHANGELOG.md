@@ -81,6 +81,11 @@
   blur when off. Three sharp shots are asked for; each click startles it off to a bush, and a viewfinder held on it too
   long makes it bolt. The light fades with grain. Each shot becomes a polaroid of the actual scene, and the three
   spread out at the end.
+- **Pipette**: a close view of a lab bench: a micropipette with a wide graduated tip, a shallow dish of the strange
+  deposit and a plate of three wells, each printed with its volume. Holding draws faster at first, and the liquid
+  keeps rising a little after release, so the release comes before the yellow line. A missed dose goes back into the
+  dish minus a little spoiled; a right one is carried over its well and pushed out, letting go before air blows a
+  bubble. At the end the wells react one after the other and the plate is stamped.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces

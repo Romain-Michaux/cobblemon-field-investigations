@@ -455,3 +455,8 @@ save(print_from_mask(toes((-40, 0, 40), (30, 34, 30), 6, 0, 6, web=True)), "gui"
 save(load("photo_clearing").convert("RGBA"), "gui", "photo_clearing")
 im = load("photo_bush")
 save(im.crop(im.getbbox()), "gui", "photo_bush")
+
+# Pipette: the lab bench (dimmed a little so the white pipette and the liquids stand out) and the pipette body.
+save(tinted(load("pip_bench"), (0.82, 0.84, 0.88)), "gui", "pip_bench")
+im = load("pip_body")
+save(im.crop(im.getbbox()), "gui", "pip_body")
