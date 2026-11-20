@@ -472,3 +472,10 @@ save(tinted(im.transpose(Image.FLIP_LEFT_RIGHT), (1.08, 1.06, 1.02)), "gui", "ro
 save(tinted(im, (0.5, 0.55, 0.7)), "gui", "rock_massive")
 im = load("rock_scale")
 save(im.crop(im.getbbox()), "gui", "rock_scale")
+
+from PIL import ImageDraw
+
+# Sequencing: the sequencer's casing, its right-hand panel wiped clean (the game draws its own notebook and vials there).
+im = load("seq_machine")
+ImageDraw.Draw(im).rectangle((181, 23, 256, 90), fill=(0xD0, 0xDC, 0xE7, 255))
+save(im, "gui", "seq_machine")

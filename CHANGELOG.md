@@ -91,6 +91,10 @@
   if the ones on it keep another support, and tumbles away in dust; one left on a single support wobbles, then drops
   into the hole below, which can block a way just cleared. Massive stones split under a held pickaxe. The freed clue
   rises into the light.
+- **Sequencing**: a sequencer machine. Six bases to find, typed on the keyboard (or clicked) and run with Enter, each
+  read spending one of six reagent vials. The read is drawn as a trace of coloured peaks, then each base comes back
+  coloured: in place, present elsewhere, or absent. A notebook on the side panel greys out the bases each position can
+  no longer be. Found, the clean trace scrolls and coils into a double helix, stamped.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces

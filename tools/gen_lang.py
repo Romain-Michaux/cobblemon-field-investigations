@@ -34,11 +34,10 @@ UI = [
     ("one dose lost · −½ star", "une dose perdue · −½ étoile"),
     # --- sequencing ---
     ("Read", "Lire"),
-    ("right place", "bien placée"),
-    ("wrong place", "mal placée"),
-    ("Reads left: ", "Lectures : "),
-    ("Click the slots to pick the 4 bases, then Read. You have 6 reads to find the sequence.",
-     "Clique les cases pour choisir les 4 bases, puis Lire. Tu as 6 lectures pour retrouver la séquence."),
+    ("Type the bases", "Taper les bases"), ("Erase", "Effacer"), ("Sequence read", "Séquence lue"),
+    ("Sequence not found", "Séquence introuvable"),
+    ("Type a read of 6 bases (A, C, G, T), then run it. Each base comes back coloured: in place, present elsewhere, or absent. Six reagents to find it.",
+     "Tape une séquence de 6 bases (A, C, G, T), puis lance la lecture. Chaque base revient colorée : bien placée, présente ailleurs, ou absente. Six réactifs pour trouver la bonne."),
     # --- strand pairing ---
     ("Strand to complete", "Brin à compléter"),
     ("Mistakes: ", "Erreurs : "),
