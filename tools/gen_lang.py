@@ -356,8 +356,9 @@ NEW_TEXTS = [
     ("A fragment in the clod!", "Un fragment dans la motte !"), ("Just a pebble", "Ce n'est qu'un caillou"),
     ("Clue bagged", "Indice ensaché"), ("Move: swing the sieve", "Bouger : balancer le tamis"),
     ("Click: crumble, pick", "Clic : émietter, ramasser"),
-    ("Swing the sieve with the mouse, gently: the fragments slide toward the rim. Crumble the clods, then pick the three fragments from the pebbles.",
-     "Balance le tamis à la souris, sans brusquer : les fragments glissent vers le bord. Émiette les mottes, puis ramasse les trois fragments parmi les cailloux."),
+    ("Fragment picked", "Fragment ramassé"),
+    ("Swing the sieve with the mouse, gently, to sift the sand. Click the three fragments, not the pebbles; one is inside a clod: click it.",
+     "Balance le tamis à la souris, sans brusquer, pour faire passer le sable. Clique les trois fragments, pas les cailloux ; l'un est dans une motte : clique-la."),
     # plaster cast
     ("Hollows filled: ", "Creux remplis : "), ("Spilled: ", "Débordés : "),
     ("Stop in the green band, just under the line.", "Arrête-toi dans la bande verte, juste sous le trait."),
@@ -484,10 +485,12 @@ NEW_TEXTS += [
      "Fais glisser les coquilles dans la boîte de droite. Un débris qui y tombe, ou une coquille poussée au rebut à gauche, compte comme une erreur."),
 ]
 NEW_TEXTS += [
-    ("Throw the shells: they keep their momentum and knock into whatever is in the way.",
-     "Lance les coquilles : elles gardent leur élan, et cognent ce qu'elles croisent."),
-    ("Grab a shell and throw it into the box on the right. Time is short, but debris knocked into the box or a shell in the bin is a mistake.",
-     "Attrape une coquille et lance-la dans la boîte de droite. Le temps presse, mais un débris cogné dans la boîte ou une coquille au rebut est une erreur."),
+    ("A shell broke!", "Une coquille s'est brisée !"), ("Cracked!", "Fêlée !"), ("Right shell", "Bonne coquille"),
+    ("Wrong pattern", "Mauvais motif"), ("Debris in the box", "Un débris dans la boîte"),
+    ("A good shell binned", "Une bonne coquille au rebut"), ("Egg pieced together", "Œuf reconstitué"),
+    ("Pull back, release: flick", "Tirer, relâcher : pichenette"),
+    ("Pull back then release to flick things across the nest. Shells with the card's pattern go in the box, the rest in the bucket. Gently: a hard knock cracks a shell.",
+     "Tire en arrière puis relâche pour pichenetter les objets du nid. Les coquilles au motif de la fiche vont dans la boîte, le reste au rebut. Doucement : un choc trop fort fêle une coquille."),
 ]
 NEW_TEXTS += [
     ("Feathers", "Plumes"), ("Scales", "Écailles"), ("Wings", "Ailes"), ("Fins", "Nageoires"), ("Claws", "Griffes"), ("Fangs", "Crocs"),

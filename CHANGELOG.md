@@ -98,8 +98,14 @@
 - **Sieve**: a wooden sieve over a dig site, swung from side to side with the mouse. The sand sifts through onto a
   growing heap below; what stays in the sieve lags behind the swings, and a brusque one sends it over the rim, so
   the clue's fragments are seen sliding toward the edge. Clods are crumbled with a click, one of them holding a
-  fragment. Then the fragments are picked out from among the pebbles; they fit back into the clue, which goes into a
-  labelled sample bag.
+  fragment. Things in the sieve push one another apart instead of piling up, and the fragments can be picked as soon
+  as the thinning sand shows them (not the pebbles); they fit back into the clue, which goes into a labelled sample
+  bag.
+- **Sorting**: a nest seen from above, its hollow holding eggshells, twigs, pebbles and dry leaves, a bucket on the
+  left and a sample box on the right. Things are flicked like marbles: pull back, a dotted line shows the path and the
+  first knock (red when it would crack a shell), release. Only the shells with the card's pattern go into the box. A
+  hard knock cracks a shell, a second breaks it; leaves hide what lies under them. The boxed pieces close up into an
+  egg at the end.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces

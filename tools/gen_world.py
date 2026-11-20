@@ -485,3 +485,10 @@ save(load("sieve_site"), "gui", "sieve_site")
 for name in ["sieve_tray", "sieve_clod", "sieve_pebble"]:
     im = load(name)
     save(im.crop(im.getbbox()), "gui", name)
+
+# Sorting: the nest, cropped around its hollow and doubled so the hollow is the play field; the things in it, the
+# bucket and the sample box, cropped to their shapes.
+save(load("sort_nest").crop((70, 26, 210, 86)).resize((280, 120), Image.NEAREST), "gui", "sort_nest")
+for name in ["sort_shell", "sort_twig", "sort_leaf", "sort_bucket", "sort_box"]:
+    im = load(name)
+    save(im.crop(im.getbbox()), "gui", name)
