@@ -492,3 +492,11 @@ save(load("sort_nest").crop((70, 26, 210, 86)).resize((280, 120), Image.NEAREST)
 for name in ["sort_shell", "sort_twig", "sort_leaf", "sort_bucket", "sort_box"]:
     im = load(name)
     save(im.crop(im.getbbox()), "gui", name)
+
+# Spectrum: the spectrometer, with its pseudo-lettered knobs and side panel wiped (the game draws its own knobs and
+# labels there); the knob, cropped.
+im = load("spec_machine")
+ImageDraw.Draw(im).rectangle((136, 56, 274, 107), fill=(0xD4, 0xD3, 0xBF, 255))
+save(im, "gui", "spec_machine")
+im = load("spec_knob")
+save(im.crop(im.getbbox()), "gui", "spec_knob")

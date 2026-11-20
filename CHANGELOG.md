@@ -106,6 +106,10 @@
   first knock (red when it would crack a shell), release. Only the shells with the card's pattern go into the box. A
   hard knock cracks a shell, a second breaks it; leaves hide what lies under them. The boxed pieces close up into an
   egg at the end.
+- **Spectrum**: a spectrometer with a glowing screen and three real knobs (frequency, amplitude, phase) turned with the
+  wheel, Shift for fine. The sample's curve shows through noise that clears as the measure builds up, and a lamp
+  under each knob lights as that setting nears. The player validates with Space: 92 % match or more succeeds, less is
+  a mistake. The validated curve comes out on a printed ticket, its peak marked, stamped.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces
