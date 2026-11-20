@@ -460,3 +460,15 @@ save(im.crop(im.getbbox()), "gui", "photo_bush")
 save(tinted(load("pip_bench"), (0.82, 0.84, 0.88)), "gui", "pip_bench")
 im = load("pip_body")
 save(im.crop(im.getbbox()), "gui", "pip_body")
+
+# Rockfall: the mine gallery, the stones and the clue's scale. All stones come from one rock, so the pile is of a
+# piece: as is, mirrored, a shade lighter; the massive one is the same rock, much darker and bluer.
+save(tinted(load("rock_cave"), (0.9, 0.9, 0.95)), "gui", "rock_cave")
+im = load("rock_stone1")
+im = im.crop(im.getbbox())
+save(im, "gui", "rock_stone0")
+save(im.transpose(Image.FLIP_LEFT_RIGHT), "gui", "rock_stone1")
+save(tinted(im.transpose(Image.FLIP_LEFT_RIGHT), (1.08, 1.06, 1.02)), "gui", "rock_stone2")
+save(tinted(im, (0.5, 0.55, 0.7)), "gui", "rock_massive")
+im = load("rock_scale")
+save(im.crop(im.getbbox()), "gui", "rock_scale")

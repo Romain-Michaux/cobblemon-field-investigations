@@ -86,6 +86,11 @@
   keeps rising a little after release, so the release comes before the yellow line. A missed dose goes back into the
   dish minus a little spoiled; a right one is carried over its well and pushed out, letting go before air blows a
   bubble. At the end the wells react one after the other and the plate is stamped.
+- **Rockfall**: a rockfall blocking a lamplit mine gallery, built from one kind of rock, massive stones darker. The
+  clue is hidden at its foot, its glow seeping through the gaps, stronger as the stones near it go. A stone comes out
+  if the ones on it keep another support, and tumbles away in dust; one left on a single support wobbles, then drops
+  into the hole below, which can block a way just cleared. Massive stones split under a held pickaxe. The freed clue
+  rises into the light.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces

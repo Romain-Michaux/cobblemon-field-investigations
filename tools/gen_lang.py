@@ -535,11 +535,10 @@ NEW_TEXTS += [
     ("§7underground. Bring torches and a pickaxe.", "§7sous terre. Prévois torches et pioche."),
     ("Special loot · ores and stones", "Butin spécial · minerais et pierres"),
     ("In a cave: ", "En grotte : "),
-    ("Stones removed: ", "Pierres retirées : "), ("Rockslides: ", "Éboulements : "),
-    ("Darkened stones still carry weight. Dark notched ones take three hits.",
-     "Les pierres assombries portent encore du poids. Les sombres à entailles demandent trois coups."),
-    ("Free the glowing stone at the very bottom. You can only pull a stone nothing rests on: start from the top.",
-     "Dégage la pierre qui luit, tout en bas. On ne peut retirer qu'une pierre sur laquelle rien ne repose : commence par le haut."),
+    ("Rockslides: ", "Éboulements : "), ("Clue freed!", "Indice dégagé !"),
+    ("Click: pull a stone", "Clic : retirer une pierre"), ("Hold: split a big one", "Maintenir : fendre une grosse"),
+    ("The clue glows at the foot of the rockfall. A stone comes out if those on it keep another support. Hold on big ones to split them.",
+     "L'indice luit au pied de l'éboulis. Une pierre se retire si celles posées dessus ont un autre appui. Maintiens sur les grosses pour les fendre."),
 ]
 _listed = set(UI)
 UI += [t for t in NEW_TEXTS if t not in _listed]
