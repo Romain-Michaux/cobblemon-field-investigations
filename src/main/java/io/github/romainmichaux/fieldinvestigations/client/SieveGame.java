@@ -9,9 +9,9 @@ import net.minecraft.resources.ResourceLocation;
 
 // Sieving (buried clue): the sieve hangs at a dig site and follows the mouse from side to side. Swinging it sifts the
 // sand through the mesh onto a heap below; what stays in it slides with the swings, and a brusque one sends it over the
-// rim, so the clue's fragments are watched as they slide. Clods don't pass: a click crumbles them, and one may hold a
-// fragment. Once the sand is through, the fragments are picked out from among the pebbles; they fit back together into
-// the clue, which goes into a sample bag.
+// rim, so the clue's fragments are watched as they slide. Things in the sieve push one another apart rather than pile up.
+// The fragments, hidden by the sand until it thins, are picked with a click, not the pebbles; one is inside a clod, which
+// a click crumbles. They fit back together into the clue, which goes into a sample bag.
 final class SieveGame extends MiniGame {
     static final ResourceLocation SITE = Draw.texture("sieve_site"), TRAY = Draw.texture("sieve_tray"), CLOD = Draw.texture("sieve_clod"),
             PEBBLE = Draw.texture("sieve_pebble");
@@ -176,12 +176,11 @@ final class SieveGame extends MiniGame {
             for (int i = 0; i < n; i++) falling.add(new double[] {s + (h.nextDouble() * 2 - 1) * RX * 0.8, CY + RY * 0.6 + 6, 0.5});
             if (tic % 4 == 0) Draw.beep(Sounds.SIEVE, (float) (0.8 + activity / 10), 0.4f);
         }
-        // What stays in the sieve lags behind its swings; sand slows it, and the bowl draws it back.
+        // What stays in the sieve lags behind its swings; sand slows it.
         double friction = 0.80 + 0.12 * (1 - sand / 100);
         for (Item it : items) {
             if (it.state != IN) continue;
             it.vu += -accel / RX * 0.8 * it.weight();
-            it.vu += -it.u * 0.003;
             it.vu *= friction;
             it.u += it.vu;
             double limit = Math.sqrt(Math.max(0, 1 - it.v * it.v));
@@ -193,9 +192,36 @@ final class SieveGame extends MiniGame {
                 it.vy = -1;
                 if (it.type == FRAGMENT || it.type == CLOD_ITEM && it.piece >= 0) fault(T.f("a_fragment_fell_out"));
                 else Draw.beep(Sounds.BRANCH, 1.4f, 0.4f);
+                checkDone();
             }
         }
-        if (sorting() && tic % 40 == 0 && messageTicks == 0) say(T.f("pick_out_the_fragments"), Draw.YELLOW);
+        // Things don't pile on one another: overlapping ones push apart.
+        for (Item a : items) {
+            for (Item b : items) {
+                if (a == b || a.state != IN || b.state != IN) continue;
+                double dx = (b.u - a.u) * RX, dy = (b.v - a.v) * RY, d = Math.hypot(dx, dy);
+                double min = (a.type == CLOD_ITEM ? 9 : 6) + (b.type == CLOD_ITEM ? 9 : 6);
+                if (d >= min) continue;
+                if (d < 0.01) {
+                    dx = 1;
+                    d = 1;
+                }
+                double push = (min - d) / 2 / d;
+                a.u -= dx * push / RX;
+                b.u += dx * push / RX;
+                a.v = Math.max(-0.8, Math.min(0.8, a.v - dy * push / RY));
+                b.v = Math.max(-0.8, Math.min(0.8, b.v + dy * push / RY));
+            }
+        }
+        if (sand < 40 && tic % 60 == 0 && messageTicks == 0) say(T.f("pick_out_the_fragments"), Draw.YELLOW);
+    }
+
+    // Done once no fragment is left to pick (in the sieve or still inside a clod).
+    void checkDone() {
+        if (ending >= 0 || finished) return;
+        for (Item o : items) if (o.state == IN && (o.type == FRAGMENT || o.type == CLOD_ITEM && o.piece >= 0)) return;
+        if (picked > 0) ending = 0;
+        else end(false);
     }
 
     Item itemAt(double px, double py) {
@@ -227,14 +253,12 @@ final class SieveGame extends MiniGame {
             }
             return;
         }
-        if (!sorting()) return;
         if (it.type == FRAGMENT) {
             it.state = PICKED;
             picked++;
             Draw.beep(Sounds.CHIME, 1.2f + picked * 0.15f, 0.5f);
-            boolean left = false;
-            for (Item o : items) if (o.type == FRAGMENT && o.state == IN) left = true;
-            if (!left) ending = 0;
+            say(T.f("fragment_picked"), Draw.GREEN);
+            checkDone();
         } else {
             it.state = FALLING;
             it.x = itemX(it);
@@ -315,7 +339,7 @@ final class SieveGame extends MiniGame {
         for (Item it : items) if (it.state == IN && it.type == CLOD_ITEM) drawItem(g, it, ax + (int) Math.round(itemX(it)), ay + (int) Math.round(itemY(it)));
         // While sorting, the thing under the pointer is outlined.
         Item hover = finished || ending >= 0 ? null : itemAt(mx, my);
-        if (hover != null && (sorting() || hover.type == CLOD_ITEM)) {
+        if (hover != null) {
             int hx = ax + (int) Math.round(itemX(hover)), hy = ay + (int) Math.round(itemY(hover));
             int r = hover.type == CLOD_ITEM ? 10 : 8;
             g.fill(hx - r, hy + r, hx + r, hy + r + 1, Draw.YELLOW);
