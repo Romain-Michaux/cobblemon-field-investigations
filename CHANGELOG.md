@@ -67,6 +67,10 @@
   as printed on the player's keyboard) and wait, ghosted, under their bases; a blinking frame shows the next one. The
   strand repeats a motif, and damaged bases are guessed from it. No bar per base, one clock for the strand; a wrong base
   breaks a rung, which is mended while the strand stalls. The zipped strand coils into a helix read by the sequencer.
+- **PCR**: a thermocycler driven by hand: hold to heat, release to cool, with a heater that keeps warming a little
+  after release. Each cycle follows the real path (95° to separate, 55° to bind, 72° to copy), each band held a while
+  on a live graph; a full cycle doubles the copies in the tube, and going past 99° burns a quarter of them. The end
+  draws an amplification curve crossing its threshold, earlier with more copies.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

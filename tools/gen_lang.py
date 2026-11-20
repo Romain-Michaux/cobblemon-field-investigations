@@ -171,11 +171,10 @@ UI = [
      "Chaque créature laisse sa teinte. Garde-la en tête, puis fais-la renaître goutte à goutte : les couleurs se mêlent comme de la peinture, et aucune goutte ne se reprend."),
     # --- PCR ---
     ("Cycle ", "Cycle "),
-    ("Watch the program…", "Observe le programme…"),
-    ("Your turn: repeat it", "À toi : reproduis-le"),
-    ("The program gets one step longer each cycle.", "Le programme s'allonge d'un palier à chaque cycle."),
-    ("Watch the sequence of temperature steps, then repeat it by clicking the buttons in the same order. Three cycles; two mistakes at most.",
-     "Observe la suite de paliers de température, puis reproduis-la en cliquant les boutons dans le même ordre. Trois cycles ; deux erreurs au plus."),
+    ("Copies: ", "Copies : "), ("Separate", "séparer"), ("Bind", "accrocher"), ("Copy", "copier"), ("Amplified!", "Amplifié !"),
+    ("Too few copies", "Trop peu de copies"), ("Heat (hold)", "Chauffer (maintenir)"),
+    ("Hold to heat, release to cool: the block keeps warming a little after you let go. Each cycle: 95° to separate the strands, 55° for the primers to bind, 72° to copy; hold each band a while. A cycle doubles the copies; past 99°, some burn.",
+     "Maintiens pour chauffer, relâche pour refroidir : le bloc chauffe encore un peu après. Chaque cycle : 95° pour séparer les brins, 55° pour que les amorces s'accrochent, 72° pour copier ; tiens chaque palier un moment. Un cycle double les copies ; au-delà de 99°, une partie brûle."),
     # --- colony count ---
     ("Dish ", "Boîte "),
     (" / 3 · mistakes ", " / 3 · erreurs "),
