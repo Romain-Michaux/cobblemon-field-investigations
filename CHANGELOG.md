@@ -76,6 +76,12 @@
   after release. Each cycle follows the real path (95° to separate, 55° to bind, 72° to copy), each band held a while
   on a live graph; a full cycle doubles the copies in the tube, and going past 99° burns a quarter of them. The end
   draws an amplification curve crossing its threshold, earlier with more copies.
+- **Photo**: a painted forest clearing with bushes in depth, where a wary local Pokémon walks, dashes, comes close or
+  slips behind a bush, facing the way it goes. The focus is set with the wheel and follows its distance, with a real
+  blur when off. Three sharp shots are asked for; each click startles it off to a bush, and a viewfinder held on it too
+  long makes it bolt. The light fades with grain. Each shot becomes a polaroid of the actual scene, and the three
+  spread out at the end.
+- First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces
 - **Challenge traces**: one surface trace per case is earned instead of found. The radar leads to its start (a golden

@@ -33,6 +33,17 @@ public class AnalysisScreen extends Screen {
         return this;
     }
 
+    // Demo check: does the first-time screen of this game fit above its Start button? Returns a report line.
+    static String introCheck(String gameId) {
+        boolean field = Genetics.FIELD_GAMES.contains(gameId);
+        AnalysisScreen screen = new AnalysisScreen("stat", gameId, 1L, 2, false, false, field, 0);
+        String consequence = screen.filtering ? T.f("a_failure_costs_no_star") : field ? T.f("a_failure_damages_the_sample") : T.f("a_failure_loses_one_dose");
+        int lines = Draw.textFont().split(Component.literal(screen.game.instruction()), AREA_W - 32).size();
+        int more = Draw.textFont().split(Component.literal(consequence), AREA_W - 32).size();
+        int bottom = 24 + lines * 10 + 4 + more * 10;
+        return (bottom > AREA_H - 28 ? "OVERFLOW " : "ok       ") + gameId + " : " + lines + " + " + more + " lines, bottom " + bottom + " / " + (AREA_H - 28);
+    }
+
     public AnalysisScreen(String kind, String gameId, long seed, int doses, boolean mesh, boolean buried, boolean sampling, int variant) {
         super(Component.literal(T.f("dna_sequencer")));
         this.kind = kind;

@@ -48,6 +48,29 @@ final class Demo {
             });
             return;
         }
+        // "intros": checks that every game's first-time text fits above its Start button, writes the report, then quits.
+        if (content.equals("intros")) {
+            int[] wait = {60};
+            ClientTickEvents.END_CLIENT_TICK.register(c -> {
+                if (c.player == null || wait[0] < 0 || --wait[0] > 0) return;
+                wait[0] = -1;
+                StringBuilder sb = new StringBuilder();
+                for (String id : new java.util.TreeSet<>(Genetics.COMMAND_NAMES.values())) {
+                    try {
+                        sb.append(AnalysisScreen.introCheck(id)).append(System.lineSeparator());
+                    } catch (Exception e) {
+                        sb.append("ERROR    ").append(id).append(" : ").append(e).append(System.lineSeparator());
+                    }
+                }
+                try {
+                    Files.writeString(c.gameDirectory.toPath().resolve("screenshots").resolve("demo_intros.txt"), sb.toString());
+                } catch (Exception e) {
+                    // debugging aid only
+                }
+                c.stop();
+            });
+            return;
+        }
         // "only <text>": regular demo restricted to the steps whose name contains that text.
         if (content.startsWith("only ")) only = content.substring(5).trim();
         active = true;

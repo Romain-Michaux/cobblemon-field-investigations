@@ -450,3 +450,8 @@ def toes(angles, length, width, tip, heel, web=False):
 save(print_from_mask(toes((-32, 0, 32), (30, 36, 30), 11, 6, 9)), "gui", "print_claw")
 save(print_from_mask(toes((-38, 0, 38, 180), (26, 32, 26, 14), 4, 3, 3)), "gui", "print_talon")
 save(print_from_mask(toes((-40, 0, 40), (30, 34, 30), 6, 0, 6, web=True)), "gui", "print_webbed")
+
+# Photo: the forest clearing (280 x 120) and the bush the subject hides behind (cropped).
+save(load("photo_clearing").convert("RGBA"), "gui", "photo_clearing")
+im = load("photo_bush")
+save(im.crop(im.getbbox()), "gui", "photo_bush")

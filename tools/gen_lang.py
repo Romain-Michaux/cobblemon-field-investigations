@@ -44,8 +44,8 @@ UI = [
     ("Mistakes: ", "Erreurs : "),
     ("Paired: ", "Appariées : "), ("Type the next bases", "Tape les bases suivantes"), ("Type ahead", "Taper d'avance"),
     ("Undo", "Effacer"),
-    ("The strand slides into the lit window, where it closes. Type the partner of each base ahead (A with T, C with G): it waits under its base and is laid in the window. The strand repeats a motif; a damaged base is guessed from it.",
-     "Le brin glisse vers la fenêtre lumineuse, où il se referme. Tape d'avance la partenaire de chaque base (A avec T, C avec G) : elle attend sous sa base et se pose dans la fenêtre. Le brin répète un motif ; une base abîmée se devine grâce à lui."),
+    ("The strand slides into the lit window. Type each base's partner ahead (A-T, C-G): it is laid as it arrives. The strand repeats a motif, which gives away damaged bases.",
+     "Le brin glisse vers la fenêtre lumineuse. Tape d'avance la partenaire de chaque base (A-T, C-G) : elle s'y pose à son arrivée. Le brin répète un motif, qui trahit les bases abîmées."),
     # --- centrifugation ---
     ("Phases separated: ", "Phases séparées : "),
     ("Misses: ", "Ratés : "),
@@ -56,8 +56,8 @@ UI = [
     ("Strand ", "Brin "), ("Strand complete!", "Brin complet !"), ("Tainted: into the bin", "Contaminé : à la poubelle"),
     ("This one belongs to the strand", "Celui-là fait partie du brin"), ("It doesn't hold", "Ça ne tient pas"),
     ("Throw away the tainted pieces", "Jette les morceaux contaminés"), ("Move a piece", "Déplacer un morceau"),
-    ("The code came out of the sample in pieces. Lay them end to end on the rail: two or three bases must overlap for a piece to hold. Some pieces are tainted and hold nowhere: throw them away.",
-     "Le code est sorti de l'échantillon en morceaux. Pose-les bout à bout sur la réglette : deux ou trois bases doivent se recouvrir pour qu'un morceau tienne. Certains sont contaminés et ne tiennent nulle part : jette-les."),
+    ("The code came out of the sample in pieces. Lay them end to end on the rail: two or three bases must overlap. Tainted pieces hold nowhere: bin them.",
+     "L'ADN est sorti en morceaux. Pose-les bout à bout sur la réglette : deux ou trois bases doivent se recouvrir. Les morceaux contaminés ne tiennent nulle part : jette-les."),
     # --- spectrum ---
     ("Frequency", "Fréquence"),
     ("Amplitude", "Amplitude"),
@@ -174,8 +174,8 @@ UI = [
     ("Cycle ", "Cycle "),
     ("Copies: ", "Copies : "), ("Separate", "séparer"), ("Bind", "accrocher"), ("Copy", "copier"), ("Amplified!", "Amplifié !"),
     ("Too few copies", "Trop peu de copies"), ("Heat (hold)", "Chauffer (maintenir)"),
-    ("Hold to heat, release to cool: the block keeps warming a little after you let go. Each cycle: 95° to separate the strands, 55° for the primers to bind, 72° to copy; hold each band a while. A cycle doubles the copies; past 99°, some burn.",
-     "Maintiens pour chauffer, relâche pour refroidir : le bloc chauffe encore un peu après. Chaque cycle : 95° pour séparer les brins, 55° pour que les amorces s'accrochent, 72° pour copier ; tiens chaque palier un moment. Un cycle double les copies ; au-delà de 99°, une partie brûle."),
+    ("Hold to heat, release to cool: the block keeps warming a bit. Each cycle: 95° separate, 55° bind, 72° copy, each held a while. Past 99°, copies burn.",
+     "Maintiens pour chauffer, relâche pour refroidir : le bloc chauffe encore un peu. Un cycle : 95° séparer, 55° accrocher, 72° copier, chaque palier tenu. Au-delà de 99°, ça brûle."),
     # --- colony count ---
     ("Dish ", "Boîte "),
     (" / 3 · mistakes ", " / 3 · erreurs "),
@@ -213,8 +213,8 @@ UI = [
     ("Left edge", "Bord gauche"), ("Right edge", "Bord droit"), ("Top edge", "Bord haut"), ("Bottom edge", "Bord bas"),
     (" cm", " cm"), ("Print ", "Empreinte "), ("Washed away by the rain", "Effacée par la pluie"), ("Field notebook", "Carnet de terrain"),
     ("Average", "Moyenne"), ("Aim, then lock a jaw", "Viser, puis bloquer une mâchoire"),
-    ("A print in the mud, and rain on the way. Set the calliper's fixed jaw on one edge, then bring the other to the opposite edge. Aim for the hollow, not the ridge of mud around it: the loupe helps.",
-     "Une empreinte dans la boue, et la pluie qui menace. Pose la mâchoire fixe du pied à coulisse sur un bord, puis amène l'autre au bord opposé. Vise le creux, pas le bourrelet de terre autour : la loupe t'aide."),
+    ("A print in the mud, and rain on the way. Set the fixed jaw on one edge, bring the other to the opposite one. Aim for the hollow, not the ridge: the loupe helps.",
+     "Une empreinte dans la boue, et la pluie qui menace. Pose la mâchoire fixe sur un bord, amène l'autre au bord opposé. Vise le creux, pas le bourrelet : la loupe t'aide."),
     # --- sorting ---
     ("Shells", "Coquilles"),
     ("Faults", "Fautes"),
@@ -384,8 +384,8 @@ NEW_TEXTS = [
     ("Too blurry to tell", "Trop flou pour juger"), ("A normal cell", "Cellule normale"), ("Plane: surface", "Plan : surface"),
     ("Plane: deep", "Plan : profond"), ("Wheel: focus (shift: fine)", "Molette : netteté (Maj : fin)"),
     ("Drag the slide, click a cell", "Glisser la lame, cliquer une cellule"),
-    ("A drop on the slide, thirty cells or so. Turn the wheel to bring them into focus, drag the slide to look around, and click the one that matches the card. Some lie deeper: focus further to see them.",
-     "Une goutte sur la lame, une trentaine de cellules. Tourne la molette pour faire la mise au point, fais glisser la lame pour chercher, et clique celle qui correspond à la fiche. Certaines sont plus profondes : pousse la mise au point pour les voir."),
+    ("A drop on the slide. Wheel to focus, drag the slide to search, click the cell shown on the card. Some lie deeper: push the focus further.",
+     "Une goutte sur la lame. Molette pour la netteté, glisse la lame pour chercher, clique la cellule de la fiche. Certaines sont plus profondes : pousse la mise au point."),
     # chromatography
     ("Strips: ", "Bandelettes : "),
     ("The small grey mark shows the minimum gap between two bands.", "Le petit repère gris donne l'écart minimal entre deux bandes."),
@@ -466,8 +466,9 @@ NEW_TEXTS += [
     ("The mud remembers a passing paw. Pour the plaster into each hollow, right to the brim: it keeps falling after you stop.",
      "La boue se souvient d'une patte passée par là. Coule le plâtre dans chaque creux, à ras bord : il tombe encore quand tu t'arrêtes."),
     # photo
-    ("A local Pokémon walks past the trace. Follow it with the viewfinder and click when it is sharp (green viewfinder). Three photos before dark.",
-     "Un Pokémon du coin passe près de la trace. Suis-le avec le viseur et clique quand il est net (viseur vert). Trois photos avant la nuit."),
+    ("It bolted!", "Il a filé !"), ("Aim, shoot", "Viser, déclencher"),
+    ("A local Pokémon roams the clearing, wary. Focus with the wheel and take three sharp photos. Each click startles it, and if it feels watched it runs off. The light is fading.",
+     "Un Pokémon du coin rôde dans la clairière, méfiant. Règle la netteté à la molette et prends trois photos nettes. Chaque déclic l'effraie, et s'il se sent observé il file. La lumière baisse."),
     # bite cast
     ("It fits!", "Emboîté !"), ("It jams", "Ça bute"), ("Slide", "Glisser"), ("Press", "Presser"),
     ("Every bite leaves its signature. Slide the cast beneath the jaw until each fang finds its hollow, then press it home.",
