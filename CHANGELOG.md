@@ -2,6 +2,11 @@
 
 ## 1.2.0 (in progress)
 
+### Case board
+- The species' rarity no longer shows before a case is solved (it let players rule species out). Leads and the case
+  sheet show a bounty instead, one to four stars: the rarity give or take one step, fixed per case. Rewards still
+  follow the true rarity, which the "case solved" announcement now reveals.
+
 ### Mini-games
 - **Abseil**: new art (climber, boulders, rock ledges growing out of the walls, gold-rimmed clues that glint), a short
   poetic intro instead of a key list, and the controls shown as key icons on one line under the game.

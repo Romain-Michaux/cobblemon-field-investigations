@@ -14,6 +14,9 @@ public class CaseFile {
     public int forgiven;
     public boolean spareVialUsed;
     public boolean newSpecies;
+    // The bounty shown on the board, 0 to 3: the species' rarity give or take one step, fixed for the case, so that it
+    // hints at the reward without ruling species out. The rarity itself is only revealed when the case is solved.
+    public int bounty = -1;
     public long seed;
     public int level, flees;
     // Mini-game faults (damaged sample, lost dose, destroyed clue): each costs half a star.

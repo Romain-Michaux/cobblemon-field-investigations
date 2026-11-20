@@ -36,6 +36,16 @@ final class Reports {
 
     static final List<String> CATEGORIES = List.of("common", "uncommon", "rare", "ultra-rare");
 
+    // The bounty of a case (see CaseFile.bounty), drawn once; older saves get theirs from the case id.
+    static int bounty(CaseFile d) {
+        if (d.bounty < 0) {
+            int rank = Math.max(0, CATEGORIES.indexOf(d.category));
+            int shift = new java.util.Random(d.id * 31 + 7).nextInt(3) - 1;
+            d.bounty = Math.max(0, Math.min(3, rank + shift));
+        }
+        return d.bounty;
+    }
+
     // Special investigations: each has its own rule and reward (all give the "special" loot, plus "type_<name>" if it exists).
     // Possible anywhere:
     //  - nocturnal: traces, calls and target only at night (double shiny chance);
@@ -210,6 +220,7 @@ final class Reports {
             d.special = special;
             d.species = target.species;
             d.category = CATEGORIES.get(target.rank);
+            bounty(d);
             d.newSpecies = !owns(pokedex, target.species);
             d.seed = Engine.RANDOM.nextLong();
             d.level = target.levelMin + Engine.RANDOM.nextInt(Math.max(1, target.levelMax - target.levelMin + 1));

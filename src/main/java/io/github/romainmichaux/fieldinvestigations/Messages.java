@@ -146,7 +146,7 @@ final class Messages {
             ListTag list = new ListTag();
             for (CaseFile o : leads) {
                 CompoundTag c = new CompoundTag();
-                c.putInt("rank", Math.max(0, Reports.CATEGORIES.indexOf(o.category)));
+                c.putInt("bounty", Reports.bounty(o));
                 c.putString("special", o.special == null ? "" : o.special);
                 c.putBoolean("new", o.newSpecies);
                 c.putDouble("zoneX", o.zoneX);
@@ -159,7 +159,7 @@ final class Messages {
         if (d != null) {
             Species target = PokemonSpecies.getByName(d.species);
             t.putString("phase", d.phase);
-            t.putInt("rank", Math.max(0, Reports.CATEGORIES.indexOf(d.category)));
+            t.putInt("bounty", Reports.bounty(d));
             t.putBoolean("new", d.newSpecies);
             t.putDouble("zoneX", d.zoneX);
             t.putDouble("zoneZ", d.zoneZ);

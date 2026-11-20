@@ -102,6 +102,7 @@ UI = [
      "Blanc : tes relevés. Trait clair : cap entendu, traits sombres : marge d'erreur. Cercle jaune : zone probable. "),
     ("The closer you are, the more accurate the bearing.", "Plus tu es près, plus le cap est précis."),
     # --- case board ---
+    ("Bounty ", "Prime "), ("Bounty", "Prime"),
     ("common", "commune"),
     ("uncommon", "peu commune"),
     ("rare", "rare"),
@@ -651,7 +652,7 @@ KEYS = [
     ("announce.cancelled.title", "Investigation cancelled", "Enquête annulée"), ("announce.cancelled.text", "This species no longer exists", "Cette espèce n'existe plus"),
     ("announce.too_late.title", "Too late", "Trop tard"), ("announce.too_late.text", "Someone else caught your target", "Quelqu'un d'autre a capturé ta cible"),
     ("announce.solved.title", "Case solved! %s", "Enquête résolue ! %s"),
-    ("announce.solved.text", "%s %s · case no. %s%s%s%s", "%s %s · dossier n° %s%s%s%s"),
+    ("announce.solved.text", "%s %s%s · case no. %s%s%s%s", "%s %s%s · dossier n° %s%s%s%s"),
     ("announce.solved.xp", " · +%s XP", " · +%s XP"),
     ("announce.solved.rank", " · +%s XP · Promoted: %s!", " · +%s XP · Promotion : %s !"),
     ("announce.invitation.title", "Team invitation", "Invitation"),
@@ -673,6 +674,7 @@ KEYS = [
     ("rank.6", "Legend", "Légende"),
     ("advancement.rank_inspector.title", "Inspector", "Inspecteur"),
     ("advancement.rank_inspector.text", "Reach the rank of Inspector", "Atteins le rang d'inspecteur"),
+    ("announce.solved.rarity", " (a %s species)", " (une espèce %s)"),
     ("announce.solved.capture", "caught", "capturé"), ("announce.solved.defeated", "defeated", "vaincu"),
     ("announce.solved.milestone", " (milestone!)", " (palier !)"), ("announce.solved.loot", " · Loot: %s", " · Butin : %s"),
     # --- 1.1: reports, special investigations ---

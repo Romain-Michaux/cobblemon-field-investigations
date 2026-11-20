@@ -20,7 +20,11 @@ public class BoardScreen extends Screen {
     private static final int L = BG.il();
     private static final int PAPER_X = 3, PAPER_Y = 3, PAPER_W = 128, PAPER_H = 183;
     private static final int GRID_X = 134, STEP_X = 50, STEP_Y = 55, BUTTONS_Y = 171;
-    private static final String[] RANKS = {T.f("common"), T.f("uncommon"), T.f("rare"), T.f("very_rare")};
+    // The bounty: one to four stars, a blurred hint of the reward (the rarity is only revealed when the case is solved).
+    static String bounty(int b) {
+        int n = Math.max(0, Math.min(3, b)) + 1;
+        return "★".repeat(n) + "☆".repeat(4 - n);
+    }
     private String choice = "";
 
     public BoardScreen() {
@@ -84,7 +88,7 @@ public class BoardScreen extends Screen {
         String special = e.getString("special");
         if (!special.isEmpty()) Draw.write(g, "✦", tx + 50, py + 22, specialColour(special), false);
         boolean hoverStars = Draw.in(mx, my, tx - 2, py + 20, 62, 12);
-        Draw.write(g, T.f("species") + RANKS[Math.min(3, e.getInt("rank"))], tx, py + 37, Draw.INK_RED, false);
+        Draw.write(g, T.f("bounty") + bounty(e.getInt("bounty")), tx, py + 37, Draw.INK_RED, false);
         for (int i = 0; i < Genetics.MARKERS.size(); i++) {
             String m = Genetics.MARKERS.get(i);
             int ly = py + 49 + i * 20;
@@ -300,8 +304,8 @@ static String specialName(String special) {
             Draw.write(g, T.f("lead") + (i + 1), tx, cy + 9, Draw.ACCENT, false);
             Draw.write(g, (special.isEmpty() ? "" : "✦ ") + specialName(special), tx, cy + 21, specialColour(special), false);
             g.fill(tx, cy + 32, cx + CARD_W - 9, cy + 33, 0x40FFFFFF);
-            Draw.write(g, T.f("species_2"), tx, cy + 37, Draw.GREY, false);
-            Draw.write(g, RANKS[Math.min(3, p.getInt("rank"))], tx, cy + 47, Draw.TEXT, false);
+            Draw.write(g, T.f("bounty_2"), tx, cy + 37, Draw.GREY, false);
+            Draw.write(g, bounty(p.getInt("bounty")), tx, cy + 47, Draw.YELLOW, false);
             Draw.write(g, T.f("zone_2"), tx, cy + 60, Draw.GREY, false);
             String whereabouts = "?";
             if (minecraft != null && minecraft.player != null) {

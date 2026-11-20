@@ -103,7 +103,8 @@ final class CaseClosing {
         }
         player.playNotifySound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 0.8f, 1f);
         Messages.announce(player, Messages.tr("announce.solved.title", Messages.starsText(stars)),
-                Messages.tr("announce.solved.text", Engine.speciesName(d.species), Messages.tr(capture ? "announce.solved.capture" : "announce.solved.defeated"), total,
+                Messages.tr("announce.solved.text", Engine.speciesName(d.species), Messages.tr(capture ? "announce.solved.capture" : "announce.solved.defeated"),
+                        Messages.tr("announce.solved.rarity", Messages.tr("ui." + new String[] {"common", "uncommon", "rare", "very_rare"}[Math.max(0, Reports.CATEGORIES.indexOf(d.category))])), total,
                         milestone ? Messages.tr("announce.solved.milestone") : Component.empty(), first ? Component.empty() : Messages.tr("announce.solved.loot", list),
                         rankAfter > rankBefore ? Messages.tr("announce.solved.rank", gain, Messages.tr("rank." + rankAfter)) : Messages.tr("announce.solved.xp", gain)), 0x6CCB5F);
         if (rankAfter > rankBefore) player.playNotifySound(SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 1f, 0.8f);

@@ -85,7 +85,7 @@ final class Demo {
             String[] specials = {"", "underground", "dig_site"};
             for (int i = 0; i < 3; i++) {
                 CompoundTag c = new CompoundTag();
-                c.putInt("rank", i);
+                c.putInt("bounty", i);
                 c.putString("special", specials[i]);
                 c.putBoolean("new", i != 0);
                 c.putDouble("zoneX", mc.player.getX() + 110 - i * 90);
@@ -255,7 +255,7 @@ final class Demo {
         t.putBoolean("active", true);
         t.putInt("passed", 3);
         t.putString("phase", phase);
-        t.putInt("rank", 2);
+        t.putInt("bounty", 2);
         Minecraft mc = Minecraft.getInstance();
         double jx = mc.player.getX(), jz = mc.player.getZ();
         t.putDouble("zoneX", jx + 120);
