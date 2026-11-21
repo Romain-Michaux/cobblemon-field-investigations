@@ -131,6 +131,10 @@
   given: they are faint marks on the shell, read by holding a magnifier over them, among specks that are only
   scratches. Each fork has its own short time, so the traits are best read ahead. Guessing is allowed, a wrong branch
   is a mistake. Three lineages; the last is sealed.
+- **Tweezers**: fibres woven into a nest's hollow, each with a free end and its tail tucked under a twig. A fibre is
+  gripped by its free end and drawn out along its own line: pulled too fast or askew, the tension rises until it
+  snaps, and where the tail passes under the twig only a gentle pull gets it through. Four of the five go into the
+  sample bag, which is then sealed.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces

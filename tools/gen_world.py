@@ -543,3 +543,7 @@ save(load("tree_parchment"), "gui", "tree_parchment")
 for name in ["tree_shell", "tree_lens"]:
     im = load(name)
     save(im.crop(im.getbbox()), "gui", name)
+
+# Tweezers: the sample bag, cropped.
+im = load("tw_bag")
+save(im.crop(im.getbbox()), "gui", "tw_bag")

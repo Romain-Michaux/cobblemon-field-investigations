@@ -362,9 +362,10 @@ NEW_TEXTS = [
      "Place le bec sur un creux et maintiens le clic pour couler le plâtre. Remplis chaque creux jusqu'à la bande verte, sans dépasser le trait."),
     # tweezers
     ("Fibres: ", "Fibres : "), ("Misses: ", "Ratés : "), ("Tweezers closed", "Pince fermée"), ("Tweezers open", "Pince ouverte"),
-    ("The tips turn green when they grip.", "Les pointes passent au vert quand elles serrent."),
-    ("Line the tweezers up with a fibre and click the moment they close. They beat faster and faster.",
-     "Aligne la pince sur une fibre et clique à l'instant où elle se referme. Elle bat de plus en plus vite."),
+    ("Tension", "Tension"), ("Snapped!", "Cassée !"), ("Snag: gently", "Accroche : doucement"), ("Fibres bagged", "Fibres ensachées"),
+    ("Hold: grip · drag: pull", "Maintenir : pincer · glisser : tirer"),
+    ("Grip a fibre by its free end and pull it out along its own line. Too fast or askew, it snaps; where it runs under a twig, go gently. Four fibres in the bag.",
+     "Pince une fibre par son bout libre et tire-la dans son propre axe. Trop vite ou de travers, elle casse ; sous la brindille, vas-y doucement. Quatre fibres dans le sachet."),
     # photo
     ("Sharp photo", "Photo nette"), ("Blurry photo", "Photo floue"), ("Badly framed", "Mal cadrée"), ("Photos: ", "Photos : "),
     ("Failed: ", "Ratées : "), ("Sharpness", "Netteté"), ("Light", "Lumière"),
