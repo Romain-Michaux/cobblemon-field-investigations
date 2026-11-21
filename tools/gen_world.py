@@ -500,3 +500,9 @@ ImageDraw.Draw(im).rectangle((136, 56, 274, 107), fill=(0xD4, 0xD3, 0xBF, 255))
 save(im, "gui", "spec_machine")
 im = load("spec_knob")
 save(im.crop(im.getbbox()), "gui", "spec_knob")
+
+# Swab: the bark, the cotton swab and its tube, cropped to their shapes.
+save(load("swab_bark"), "gui", "swab_bark")
+for name in ["swab_stick", "swab_tube"]:
+    im = load(name)
+    save(im.crop(im.getbbox()), "gui", name)

@@ -110,6 +110,10 @@
   wheel, Shift for fine. The sample's curve shows through noise that clears as the measure builds up, and a lamp
   under each knob lights as that setting nears. The player validates with Space: 92 % match or more succeeds, less is
   a mistake. The validated curve comes out on a printed ticket, its peak marked, stamped.
+- **Swab**: a close view of tree bark with an organic stain running down its furrows, and a cotton swab leaving a wet
+  trail. Each swab holds a little over a third of the stain, bare bark filling it with dirt too, and a gauge shows how
+  full it is; lifting it puts it away in its tube, and there are three, so none is to be wasted. The cotton takes the
+  stain's colour. At the end the tubes are lifted and labelled.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces

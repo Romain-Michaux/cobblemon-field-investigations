@@ -376,9 +376,11 @@ NEW_TEXTS = [
      "Suis la trace avec le viseur et clique quand elle est nette (viseur vert). Trois photos avant que la lumière baisse."),
     # swabbing
     ("Swabbed: ", "Prélevé : "), ("Soiled: ", "Souillé : "),
-    ("You may lift the swab and start again elsewhere.", "Tu peux lever l'écouvillon pour reprendre ailleurs."),
-    ("Hold the click and rub the whole purple stain. Do not go back over a spot that is already clear: the swab would be contaminated.",
-     "Maintiens le clic et frotte toute la tache violette. Ne repasse pas sur une zone déjà claire : l'écouvillon serait contaminé."),
+    ("No swab left", "Plus d'écouvillon"), ("New swab", "Nouvel écouvillon"), ("Swab", "Écouvillon"),
+    ("Swab full: release", "Écouvillon plein : relâche"),
+    ("Swabs stored", "Écouvillons rangés"), ("Hold: rub · release: new swab", "Maintenir : frotter · relâcher : nouvel écouvillon"),
+    ("Rub the stain holding the click. A swab holds a third of it, and bare bark fills it with dirt; release to take the next. Only three: don't waste them.",
+     "Frotte la tache en maintenant le clic. Un écouvillon en prend un tiers, et l'écorce nue le salit ; relâche pour prendre le suivant. Trois en tout : ne les gaspille pas."),
     # microscope
     ("Slide ", "Lame "), ("Mistakes: ", "Erreurs : "),
     ("Two nuclei", "Deux noyaux"), ("Torn membrane", "Membrane déchirée"), ("Odd tint", "Teinte anormale"), ("Look for:", "Cherche :"),
