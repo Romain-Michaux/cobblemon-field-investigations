@@ -415,10 +415,11 @@ NEW_TEXTS = [
     ("Below the surface, the trace drifts with the current. Swim after it and hold your vial in its glow; come up for air when you must.",
      "Sous la surface, la trace dérive au gré du courant. Nage à sa suite, tiens ta fiole dans sa lueur, et remonte respirer quand il le faut."),
     # thawing
-    ("Thawed: ", "Dégel : "), ("Overheats: ", "Surchauffes : "),
-    ("The ice only melts in the green range. It drifts: follow it.", "La glace ne fond que dans la plage verte. Elle se déplace : accompagne-la."),
-    ("Hold the click to heat, let go to cool down. Keep the temperature in the green range without reaching the red.",
-     "Maintiens le clic pour chauffer, relâche pour laisser refroidir. Garde la température dans la plage verte sans atteindre le rouge."),
+    ("Feather freed: ", "Plume dégagée : "), ("Feather heat", "Chaleur plume"), ("The feather is cooking!", "La plume cuit !"),
+    ("Cold gust coming", "Rafale froide en approche"), ("Feather freed", "Plume dégagée"),
+    ("Move: aim the heat gun", "Bouger : viser avec le pistolet"),
+    ("Sweep the heat gun over the block: it melts from its edges. Don't linger: the feather caught inside would cook. A gust, heralded by flakes, refreezes what is not warm.",
+     "Promène le pistolet sur le bloc : il fond par les bords. Ne t'attarde pas : la plume prise dedans cuirait. Une rafale, annoncée par des flocons, regèle ce qui n'est pas chaud."),
     # cry filter
     ("Cry isolated", "Cri isolé"), ("Cry isolated!", "Cri isolé !"), ("Gust of wind", "Bourrasque"), ("On the cry", "Sur le cri"),
     ("Not this one…", "Ce n'est pas lui…"), ("Frequency", "Fréquence"), ("Band (wheel)", "Bande (molette)"),

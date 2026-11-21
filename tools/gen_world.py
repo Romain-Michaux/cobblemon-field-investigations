@@ -506,3 +506,14 @@ save(load("swab_bark"), "gui", "swab_bark")
 for name in ["swab_stick", "swab_tube"]:
     im = load(name)
     save(im.crop(im.getbbox()), "gui", name)
+
+# Thaw: the snowy clearing (trimmed to the play area's height), the ice (the inside of the block's front face, tripled
+# so each 4-pixel cell of the game's grid gets a clean piece), the feather caught in it, the heat gun turned to blow
+# down, and the cloth the feather is laid on.
+save(load("thaw_scene").crop((0, 2, 280, 120)), "gui", "thaw_scene")
+save(load("thaw_ice").crop((26, 32, 58, 56)).resize((96, 72), Image.NEAREST), "gui", "thaw_ice")
+for name in ["thaw_feather", "thaw_cloth"]:
+    im = load(name)
+    save(im.crop(im.getbbox()), "gui", name)
+im = load("thaw_lamp").rotate(90, expand=True)
+save(im.crop(im.getbbox()), "gui", "thaw_lamp")

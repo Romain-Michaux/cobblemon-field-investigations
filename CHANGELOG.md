@@ -114,6 +114,10 @@
   trail. Each swab holds a little over a third of the stain, bare bark filling it with dirt too, and a gauge shows how
   full it is; lifting it puts it away in its tube, and there are three, so none is to be wasted. The cotton takes the
   stain's colour. At the end the tubes are lifted and labelled.
+- **Thaw**: a block of ice on a snowy clearing, a feather caught inside. A silent heat gun follows the mouse and melts
+  the ice from its open faces, cell by cell, dripping into a growing puddle. The warmth lingers and spreads, so
+  lingering above the feather cooks it (a gauge fills). Cold gusts, heralded by flakes from one side, refreeze that
+  side's edge except where it is still warm. The freed feather is lifted out, dripping, and laid on a cloth.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces
