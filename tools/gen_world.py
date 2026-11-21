@@ -537,3 +537,9 @@ save(short, "gui", "tit_flask")
 save(load("trace_bark"), "gui", "trace_bark")
 im = load("trace_gun")
 save(im.crop(im.getbbox()), "gui", "trace_gun")
+
+# Family tree: the parchment the key is drawn on; the egg shell examined and the magnifier, cropped.
+save(load("tree_parchment"), "gui", "tree_parchment")
+for name in ["tree_shell", "tree_lens"]:
+    im = load(name)
+    save(im.crop(im.getbbox()), "gui", name)

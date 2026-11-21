@@ -127,6 +127,10 @@
   the paste lags the trigger, coming on and running on a moment. Too slow, it overflows onto the bark; too fast, the
   bead stays thin and is gone over again. The cartridge holds about half again what the gouges take. The set casts
   are peeled off and laid side by side.
+- **Family tree**: the key is inked on parchment, with the sample's egg shell beside it. Its traits are no longer
+  given: they are faint marks on the shell, read by holding a magnifier over them, among specks that are only
+  scratches. Each fork has its own short time, so the traits are best read ahead. Guessing is allowed, a wrong branch
+  is a mistake. Three lineages; the last is sealed.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces

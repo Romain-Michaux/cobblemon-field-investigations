@@ -392,9 +392,10 @@ NEW_TEXTS = [
      "Clique une bandelette pour l'arrêter quand ses trois bandes sont bien séparées, mais avant que le solvant atteigne le haut."),
     # family tree
     ("Lineage ", "Lignée "), ("Sample", "Échantillon"),
-    ("At each node, take the branch that matches the sample.", "À chaque nœud, prends la branche qui ressemble à l'échantillon."),
-    ("Start at the top: at each fork, follow the branch whose symbol matches the sample, then click the box you end up on.",
-     "Pars du haut : à chaque embranchement, suis la branche dont le symbole correspond à l'échantillon, puis clique la case où tu arrives."),
+    ("Nothing here", "Rien ici"), ("Lineage established", "Lignée établie"), ("Wrong branch", "Mauvaise branche"),
+    ("Move: magnifier · click: branch", "Bouger : loupe · clic : branche"),
+    ("Hold the magnifier over the shell's marks to read them. At each fork, click the branch of the trait found. Guessing is allowed, a wrong branch is a mistake.",
+     "Garde la loupe sur les marques de la coquille pour les lire. À chaque embranchement, clique la branche du trait trouvé. Deviner est permis, une mauvaise branche est une erreur."),
     # titration
     ("Too slow", "Trop lent"), ("Clean endpoint", "Virage net"), ("Endpoint overshot", "Virage dépassé"), ("Titration ", "Dosage "),
     ("Expected ", "Attendu "), ("Poured ", "Versé "), ("Tap ", "Robinet "), ("Titrated", "Dosé"),
