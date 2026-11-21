@@ -123,6 +123,10 @@
   still falls. Near the endpoint each arrival leaves a pink swirl that lasts longer the closer it is, watched through
   a magnifier. A card gives the expected range and records each result; at the end it is stamped and the three pink
   flasks stand in a row.
+- **Tracing**: three claw gouges torn in a trunk's bark, cast with silicone. The click held squeezes the cartridge;
+  the paste lags the trigger, coming on and running on a moment. Too slow, it overflows onto the bark; too fast, the
+  bead stays thin and is gone over again. The cartridge holds about half again what the gouges take. The set casts
+  are peeled off and laid side by side.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces

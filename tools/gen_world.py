@@ -532,3 +532,8 @@ short = Image.new("RGBA", (im.width, im.height - 14))
 short.paste(im.crop((0, 0, im.width, 8)), (0, 0))
 short.paste(im.crop((0, 22, im.width, im.height)), (0, 8))
 save(short, "gui", "tit_flask")
+
+# Tracing: the clawed trunk's bark and the silicone cartridge, cropped (its nozzle ends at the bottom left corner).
+save(load("trace_bark"), "gui", "trace_bark")
+im = load("trace_gun")
+save(im.crop(im.getbbox()), "gui", "trace_gun")

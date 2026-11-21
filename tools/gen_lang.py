@@ -218,14 +218,10 @@ UI = [
     ("Pick up the six eggshell shards among the twigs, leaves and pebbles before the bar runs out. Three mistakes at most.",
      "Ramasse les six éclats de coquille parmi les brindilles, feuilles et cailloux avant la fin de la barre. Trois erreurs au plus."),
     # --- scratches ---
-    ("Scratch ", "Griffure "),
-    ("Slips: ", "Écarts : "),
-    ("Follow the groove…", "Suis l'entaille…"),
-    ("Release and retry", "Relâche et reprends"),
-    ("Start from the dot", "Pars du point"),
-    ("Hold the click, from top to bottom.", "Clic maintenu, du haut vers le bas."),
-    ("Hold the click on the starting dot, then follow the groove to the bottom without straying. Three scratches; three slips damage the reading.",
-     "Clic maintenu sur le point de départ, puis suis l'entaille jusqu'en bas sans t'en écarter. Trois griffures ; trois écarts abîment le relevé."),
+    ("Cast: ", "Moulé : "), ("Cartridge", "Cartouche"), ("Overflowing!", "Ça déborde !"), ("Cast taken", "Empreinte moulée"),
+    ("Hold: squeeze the silicone", "Maintenir : presser le silicone"),
+    ("Hold the click to squeeze silicone into the claw gouges. Keep a steady pace: too slow it overflows, too fast it stays thin. The paste runs on a moment after letting go.",
+     "Maintiens le clic pour couler le silicone dans les griffures. Garde une allure régulière : trop lent, ça déborde ; trop vite, c'est trop fin. La pâte coule encore un peu après avoir relâché."),
     # --- excavation ---
     ("Uncovered: ", "Dégagé : "),
     ("Snags: ", "Accrocs : "),

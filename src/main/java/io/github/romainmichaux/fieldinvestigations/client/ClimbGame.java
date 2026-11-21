@@ -330,7 +330,7 @@ final class ClimbGame extends MiniGame {
         g.fill(gx, g1 - (int) ((g1 - g0) * part), gx + 3, g1, Draw.GREEN);
         g.fill(gx - 3, g0 - 1, gx + 6, g0, Draw.YELLOW);
 
-        String left = T.f("holds") + holds + " / " + liveHolds, right = T.f("slips_2") + faults + " / 3";
+        String left = T.f("holds") + holds + " / " + liveHolds, right = T.f("slips") + faults + " / 3";
         g.fill(ax + 2, ay + 2, ax + 10 + Draw.textFont().width(left), ay + 13, 0xA0101418);
         g.fill(ax + AREA_W - 10 - Draw.textFont().width(right), ay + 2, ax + AREA_W - 2, ay + 13, 0xA0101418);
         text(g, left, ax + 6, ay + 4, holds > 0 ? Draw.GREEN : Draw.TEXT);
