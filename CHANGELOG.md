@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.0 (in progress)
+## 1.2.0 (2026-11-21)
 
 ### Case board
 - The species' rarity no longer shows before a case is solved (it let players rule species out). Leads and the case
