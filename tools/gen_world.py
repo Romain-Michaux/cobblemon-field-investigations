@@ -547,3 +547,6 @@ for name in ["tree_shell", "tree_lens"]:
 # Tweezers: the sample bag, cropped.
 im = load("tw_bag")
 save(im.crop(im.getbbox()), "gui", "tw_bag")
+
+# UV lamp: the forest floor at night.
+save(load("uv_ground"), "gui", "uv_ground")

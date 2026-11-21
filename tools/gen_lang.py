@@ -437,10 +437,10 @@ NEW_TEXTS = [
      "Balance-toi d'un rocher à l'autre et glisse jusqu'aux traces sans jamais effleurer la roche."),
     # UV lamp
     ("Stains: ", "Taches : "), ("Battery", "Batterie"),
-    ("Stains only glow under the beam. A click on nothing drains the battery.",
-     "Les taches ne brillent que sous le faisceau. Un clic dans le vide use la batterie."),
-    ("Sweep the ground with the lamp: stains only show inside the beam. Click each one before the battery runs out.",
-     "Balaie le sol avec la lampe : les taches n'apparaissent que dans le faisceau. Clique chacune avant que la batterie soit vide."),
+    ("Not the trace", "Pas la trace"), ("Traces collected", "Traces prélevées"),
+    ("Move: sweep the beam", "Bouger : balayer le faisceau"), ("Hold on a stain: collect", "Maintenir sur une tache : prélever"),
+    ("Sweep the beam: the drops glow green a moment after it passes, each pointing to the next. Hold the click on one to collect it. Blue glints are not the trace.",
+     "Balaie le faisceau : les gouttes brillent en vert un moment après son passage, chacune pointant vers la suivante. Maintiens le clic dessus pour la prélever. Les reflets bleus ne sont pas la trace."),
 ]
 NEW_TEXTS += [
     # challenge traces: the track

@@ -135,6 +135,10 @@
   gripped by its free end and drawn out along its own line: pulled too fast or askew, the tension rises until it
   snaps, and where the tail passes under the twig only a gentle pull gets it through. Four of the five go into the
   sample bag, which is then sealed.
+- **UV lamp**: a forest floor at night, crossed by a trail of drops. They glow green under the beam and a moment after
+  it has passed, each drawn out towards the next, so the trail can be followed; holding the click on one collects it.
+  Blue glints are not the trace and waste battery. The beam narrows as the battery runs down. The collected drops
+  glow in a row of vials.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces
