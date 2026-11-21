@@ -517,3 +517,18 @@ for name in ["thaw_feather", "thaw_cloth"]:
     save(im.crop(im.getbbox()), "gui", name)
 im = load("thaw_lamp").rotate(90, expand=True)
 save(im.crop(im.getbbox()), "gui", "thaw_lamp")
+
+# Titration: the retort stand, the magnetic stirrer (its pseudo-logo wiped) and a clear flask, cropped to their shapes;
+# the bench is the pipetting one, the same lab.
+im = load("tit_stirrer")
+ImageDraw.Draw(im).rectangle((29, 17, 39, 20), fill=(0xC6, 0xC5, 0xC4, 255))
+save(im.crop(im.getbbox()), "gui", "tit_stirrer")
+im = load("tit_stand")
+save(im.crop(im.getbbox()), "gui", "tit_stand")
+# The flask's long neck is shortened, so it fits under the burette's tip on the stirrer.
+im = load("tit_flask")
+im = im.crop(im.getbbox())
+short = Image.new("RGBA", (im.width, im.height - 14))
+short.paste(im.crop((0, 0, im.width, 8)), (0, 0))
+short.paste(im.crop((0, 22, im.width, im.height)), (0, 8))
+save(short, "gui", "tit_flask")

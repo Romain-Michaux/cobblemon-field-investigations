@@ -118,6 +118,11 @@
   the ice from its open faces, cell by cell, dripping into a growing puddle. The warmth lingers and spreads, so
   lingering above the feather cooks it (a gauge fills). Cold gusts, heralded by flakes from one side, refreeze that
   side's edge except where it is still warm. The freed feather is lifted out, dripping, and laid on a cloth.
+- **Titration**: the pipetting lab's bench, a graduated burette on its stand above a flask on a magnetic stirrer. The
+  tap opens with the wheel, from a slow drip to a running stream, and a click closes it; a drop hanging at the tip
+  still falls. Near the endpoint each arrival leaves a pink swirl that lasts longer the closer it is, watched through
+  a magnifier. A card gives the expected range and records each result; at the end it is stamped and the three pink
+  flasks stand in a row.
 - First-time screens: every game's explanation is checked to fit above the Start button.
 
 ### Finding traces

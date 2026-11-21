@@ -401,9 +401,10 @@ NEW_TEXTS = [
      "Pars du haut : à chaque embranchement, suis la branche dont le symbole correspond à l'échantillon, puis clique la case où tu arrives."),
     # titration
     ("Too slow", "Trop lent"), ("Clean endpoint", "Virage net"), ("Endpoint overshot", "Virage dépassé"), ("Titration ", "Dosage "),
-    ("Drops: ", "Gouttes : "), ("Drop", "Goutte"), ("Squirt ×3", "Jet ×3"),
-    ("Pour until the liquid turns bright pink. Squirt at first, then go drop by drop as soon as it blushes: two drops too many and it fails.",
-     "Verse jusqu'au virage au rose vif. Va vite au jet, puis goutte à goutte dès que le liquide rosit : dépasser de deux gouttes rate le dosage."),
+    ("Expected ", "Attendu "), ("Poured ", "Versé "), ("Tap ", "Robinet "), ("Titrated", "Dosé"),
+    ("Wheel: open the tap", "Molette : ouvrir le robinet"), ("Click: close", "Clic : fermer"),
+    ("Open the tap with the wheel and watch the pink: near the endpoint, it takes longer to fade. Close in time: the hanging drop still falls.",
+     "Ouvre le robinet à la molette et regarde le rose : près du virage, il met plus longtemps à disparaître. Referme à temps : la goutte suspendue tombe quand même."),
     # bite cast
     ("Bite ", "Morsure "), ("Cast ", "Moulage "), ("Slide the cast", "Glisser le moulage"), ("Fit", "Emboîter"),
     ("Only one of the three casts matches the bite. Pick it, slide it until every tooth faces its hollow, then fit it.",
